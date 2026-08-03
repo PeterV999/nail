@@ -1,20 +1,23 @@
 :root {
   color-scheme: light;
-  --bg: #f4fbff;
+  --bg: #effcff;
   --surface: #fbfeff;
   --surface-strong: #ffffff;
-  --soft-pink: #e8f5ff;
-  --soft-mint: #e7fbf4;
-  --soft-lavender: #edf3ff;
-  --soft-peach: #fff0de;
-  --ink: #263948;
-  --muted: #667887;
-  --line: #d6e6f0;
-  --primary: #3a9bdc;
-  --primary-dark: #1d6f9f;
+  --soft-pink: #e4f8ff;
+  --soft-mint: #ddfbf3;
+  --soft-lavender: #eaf3ff;
+  --soft-peach: #fff1cf;
+  --ink: #203d48;
+  --muted: #607b86;
+  --line: #c9e6ee;
+  --primary: #14a9bf;
+  --primary-dark: #087f96;
+  --aqua: #78e4ef;
+  --coral: #ff9fc2;
+  --sun: #ffd66b;
   --danger: #c05665;
-  --disabled: #e2edf4;
-  --shadow: 0 16px 36px rgba(58, 155, 220, .14);
+  --disabled: #e1eff3;
+  --shadow: 0 16px 36px rgba(20, 169, 191, .15);
 }
 
 * {
@@ -26,8 +29,9 @@ body {
   min-width: 320px;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, #dff3ff 0, transparent 250px),
-    linear-gradient(135deg, var(--bg), #effbf7 55%, #f2f6ff);
+    linear-gradient(135deg, rgba(120, 228, 239, .32) 0 18%, transparent 18% 100%),
+    repeating-linear-gradient(160deg, rgba(255, 255, 255, .36) 0 18px, transparent 18px 48px),
+    linear-gradient(135deg, var(--bg), #e8fbf5 54%, #eaf5ff);
   font-family: "Mali", "Noto Sans Thai", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
 }
@@ -76,8 +80,8 @@ button {
   height: 44px;
   border-radius: 16px;
   color: #fff;
-  background: linear-gradient(135deg, var(--primary), #82c8f0);
-  box-shadow: 0 12px 22px rgba(58, 155, 220, .24);
+  background: linear-gradient(135deg, var(--primary), #72dfe9);
+  box-shadow: 0 12px 22px rgba(20, 169, 191, .24);
   font-weight: 700;
 }
 
@@ -102,7 +106,7 @@ button {
   padding: 5px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .72);
+  background: rgba(255, 255, 255, .78);
 }
 
 .tab-link {
@@ -142,7 +146,7 @@ button {
 .side-card {
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: rgba(255, 254, 253, .86);
+  background: rgba(255, 255, 255, .9);
   box-shadow: var(--shadow);
 }
 
@@ -186,7 +190,50 @@ h2 {
 }
 
 .customer-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 14px;
+  align-items: center;
   padding: 2px 0 4px;
+}
+
+.hero-copy {
+  min-width: 0;
+}
+
+.mascot-card {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background:
+    linear-gradient(145deg, rgba(221, 251, 243, .9), rgba(228, 248, 255, .95)),
+    var(--surface-strong);
+  box-shadow: 0 14px 30px rgba(20, 169, 191, .13);
+}
+
+.customer-mascot {
+  min-height: 132px;
+  overflow: hidden;
+}
+
+.mascot-card img {
+  width: min(128px, 100%);
+  height: auto;
+  display: block;
+}
+
+.corner-mascot {
+  width: 72px;
+  height: auto;
+  float: right;
+  margin: -8px -4px 4px 10px;
+}
+
+.owner-mascot {
+  width: 78px;
+  height: auto;
+  flex: 0 0 auto;
 }
 
 .lead {
@@ -269,7 +316,7 @@ legend span {
 .choice.active {
   border-color: var(--primary);
   background: var(--soft-pink);
-  box-shadow: 0 12px 22px rgba(58, 155, 220, .15);
+  box-shadow: 0 12px 22px rgba(20, 169, 191, .16);
 }
 
 .choice.active .dot {
@@ -359,13 +406,13 @@ textarea {
 
 .primary-button {
   color: #fff;
-  background: linear-gradient(135deg, var(--primary), #86cdf4);
-  box-shadow: 0 14px 26px rgba(58, 155, 220, .26);
+  background: linear-gradient(135deg, var(--primary), #65dce9);
+  box-shadow: 0 14px 26px rgba(20, 169, 191, .27);
 }
 
 .secondary-button {
   color: var(--ink);
-  background: var(--soft-mint);
+  background: linear-gradient(135deg, var(--soft-mint), #f3fffb);
   border: 1px solid var(--line);
 }
 
@@ -401,7 +448,7 @@ textarea {
   border-radius: 999px;
   padding: 5px 9px;
   color: var(--primary-dark);
-  background: var(--soft-pink);
+  background: #dff8ff;
   font-size: .82rem;
   font-weight: 800;
 }
@@ -574,7 +621,30 @@ textarea {
     padding: 14px;
   }
 
-  .time-options,
+  .customer-hero {
+    grid-template-columns: minmax(0, 1fr) 94px;
+    gap: 10px;
+    align-items: start;
+  }
+
+  .customer-mascot {
+    min-height: 94px;
+    border-radius: 22px;
+  }
+
+  .mascot-card img {
+    width: 94px;
+  }
+
+  .corner-mascot {
+    width: 58px;
+    margin: -6px -4px 2px 8px;
+  }
+
+  .owner-mascot {
+    width: 64px;
+  }
+
   .queue-actions,
   .inline-form {
     grid-template-columns: 1fr;
@@ -622,6 +692,14 @@ textarea {
 @media (max-width: 380px) {
   .service-options {
     grid-template-columns: 1fr;
+  }
+
+  .customer-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-mascot {
+    display: none;
   }
 
   .brand-mark {

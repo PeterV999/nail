@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-labelledby="title desc">
+  <title id="title">Cute shell queue mascot</title>
+  <desc id="desc">A smiling sea shell holding a small queue card.</desc>
+  <defs>
+    <linearGradient id="shell" x1="52" y1="38" x2="165" y2="178" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d8fbff"/>
+      <stop offset=".55" stop-color="#82e4ee"/>
+      <stop offset="1" stop-color="#29a9c4"/>
+    </linearGradient>
+  </defs>
+  <path d="M36 157c18 27 55 40 92 33 39-8 70-34 67-68-4-45-50-80-94-70-48 11-91 68-65 105z" fill="#e3fbff"/>
+  <path d="M68 122c0-39 28-73 45-73s45 34 45 73c0 35-18 62-45 62s-45-27-45-62z" fill="url(#shell)"/>
+  <path d="M113 55v125M90 72c13 28 13 66 3 100M137 72c-13 28-13 66-3 100" fill="none" stroke="#f4feff" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="97" cy="119" r="6" fill="#1e5d72"/>
+  <circle cx="130" cy="119" r="6" fill="#1e5d72"/>
+  <path d="M103 142c7 7 20 7 27 0" fill="none" stroke="#1e5d72" stroke-width="6" stroke-linecap="round"/>
+  <rect x="139" y="133" width="45" height="34" rx="10" transform="rotate(-9 139 133)" fill="#fff7d8" stroke="#ffc96f" stroke-width="5"/>
+  <path d="M151 147l20-3M153 158l14-2" stroke="#2a95b5" stroke-width="5" stroke-linecap="round"/>
+  <path d="M48 69l6 12 12 6-12 6-6 12-6-12-12-6 12-6 6-12z" fill="#ffb7d7"/>
+  <path d="M173 69l5 10 10 5-10 5-5 10-5-10-10-5 10-5 5-10z" fill="#ffe08a"/>
+</svg>
