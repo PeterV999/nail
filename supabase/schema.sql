@@ -282,6 +282,8 @@ grant select on public.public_booking_time_slots to anon, authenticated;
 grant select on public.public_booking_day_overrides to anon, authenticated;
 grant select on public.public_busy_time_windows to anon, authenticated;
 grant insert on public.booking_requests to anon;
+grant insert on public.booking_requests to authenticated;
+grant select on public.shop_members to authenticated;
 
 insert into public.shops (name, slug, phone, line_id)
 values ('Fah Nail', 'fah-nail', '08x-xxx-xxxx', '@fahnail')

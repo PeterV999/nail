@@ -109,7 +109,21 @@
     if (!db) return { configured: false, session: null };
     const { data, error } = await db.auth.getSession();
     if (error) throw error;
-    return { configured: true, session: data.session };
+
+    if (!data.session) {
+      return { configured: true, session: null, member: null };
+    }
+
+    const shop = await getShop();
+    const { data: membership, error: membershipError } = await db
+      .from("shop_members")
+      .select("shop_id,role")
+      .eq("shop_id", shop.id)
+      .eq("user_id", data.session.user.id)
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+    return { configured: true, session: data.session, member: membership };
   }
 
   async function signInWithGoogle() {

@@ -176,8 +176,14 @@ async function initOwnerAccess() {
 
   try {
     const authState = await window.FahNailSupabase?.ownerSession();
-    if (authState?.configured && authState.session) {
+    if (authState?.configured && authState.session && authState.member) {
       showOwnerApp("เข้าสู่ระบบแล้ว");
+      return;
+    }
+
+    if (authState?.configured && authState.session && !authState.member) {
+      showAuthPanel(false);
+      authStatus.textContent = "บัญชีนี้ยังไม่มีสิทธิ์หลังบ้าน กรุณาเพิ่มใน shop_members ก่อน";
       return;
     }
 
