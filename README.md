@@ -31,3 +31,19 @@
 - [Integrations](docs/integrations.md)
 - [UI Guidelines](docs/ui-guidelines.md)
 - [Backlog](docs/backlog.md)
+
+## หน้าเว็บ Prototype
+
+ไฟล์เริ่มต้นของหน้าเว็บอยู่ที่ [index.html](index.html)
+
+ตอนนี้เป็น static prototype สำหรับตรวจ UX/UI และ flow หลักก่อนเชื่อม Supabase:
+
+- หน้าจองคิวลูกค้า
+- เลือกบริการอย่างน้อย 1 รายการ
+- เลือกช่วงเวลาที่สะดวก
+- ส่งคำขอจอง
+- หลังบ้านเจ้าของร้าน
+- ยืนยันคำขอจอง
+- ลงคิวเอง
+- เพิ่ม ลบ เปิด หรือปิดบริการ
+- ปิดช่วงเวลาที่มีคิว confirmed แล้วในหน้าลูกค้า

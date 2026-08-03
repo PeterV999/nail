@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fah Nail Booking</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#customer" aria-label="Fah Nail">
+          <span class="brand-mark">FN</span>
+          <span>
+            <strong>Fah Nail</strong>
+            <small>Booking & Queue</small>
+          </span>
+        </a>
+        <nav class="view-tabs" aria-label="เลือกหน้า">
+          <a class="tab-link active" href="#customer" data-view-link="customer">จองคิว</a>
+          <a class="tab-link" href="#owner" data-view-link="owner">หลังบ้าน</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="view active" id="customer-view" aria-labelledby="customer-title">
+          <div class="customer-grid">
+            <section class="booking-panel">
+              <p class="eyebrow">Fah Nail</p>
+              <h1 id="customer-title">เลือกบริการและช่วงเวลาที่สะดวก</h1>
+              <p class="lead">ส่งคำขอจองคิวไว้ก่อน ร้านจะติดต่อกลับเพื่อยืนยันเวลาอีกครั้ง</p>
+
+              <form id="booking-form" class="booking-form">
+                <fieldset>
+                  <legend>เลือกบริการคร่าว ๆ</legend>
+                  <p class="hint">เลือกอย่างน้อย 1 รายการ</p>
+                  <div class="service-options" id="service-options"></div>
+                  <p class="form-error" id="service-error" hidden>กรุณาเลือกบริการอย่างน้อย 1 รายการ</p>
+                </fieldset>
+
+                <fieldset>
+                  <legend>เลือกช่วงเวลาที่สะดวก</legend>
+                  <p class="hint">ยังไม่ใช่การจองที่ยืนยันแล้ว</p>
+                  <div class="time-options" id="time-options"></div>
+                </fieldset>
+
+                <fieldset class="contact-fields">
+                  <legend>ข้อมูลติดต่อ</legend>
+                  <label>
+                    ชื่อ
+                    <input name="customerName" autocomplete="name" placeholder="เช่น คุณฟ้า" required>
+                  </label>
+                  <label>
+                    เบอร์ / LINE / Facebook
+                    <input name="contact" autocomplete="tel" placeholder="ช่องทางที่ร้านติดต่อกลับได้" required>
+                  </label>
+                  <label>
+                    หมายเหตุ
+                    <textarea name="note" rows="3" placeholder="เช่น อยากได้โทนชมพูใส หรือมีรูปแบบในใจ"></textarea>
+                  </label>
+                </fieldset>
+
+                <div class="notice">
+                  <strong>ร้านจะติดต่อกลับ</strong>
+                  <span>คำขอนี้ยังไม่ใช่การจองที่ยืนยันแล้ว</span>
+                </div>
+
+                <button class="primary-button" type="submit">จองคิว</button>
+              </form>
+            </section>
+
+            <aside class="status-panel" aria-label="สถานะวันนี้">
+              <div>
+                <p class="eyebrow">วันนี้</p>
+                <h2>ช่วงเวลาที่จองได้</h2>
+              </div>
+              <div class="mini-calendar" id="mini-calendar"></div>
+              <div class="privacy-note">
+                <strong>ข้อมูลลูกค้าปลอดภัย</strong>
+                <span>หน้าสาธารณะจะแสดงแค่ช่วงเวลาว่างหรือไม่ว่างเท่านั้น</span>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="owner-view" aria-labelledby="owner-title">
+          <div class="owner-layout">
+            <section class="owner-main">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">หลังบ้าน</p>
+                  <h1 id="owner-title">จัดการคำขอและบันทึกคิว</h1>
+                </div>
+                <button class="secondary-button" type="button" id="seed-button">เติมตัวอย่าง</button>
+              </div>
+
+              <div class="queue-list" id="request-list"></div>
+            </section>
+
+            <aside class="owner-side">
+              <section class="side-card">
+                <h2>ลงคิวเอง</h2>
+                <form id="manual-form" class="compact-form">
+                  <label>
+                    ชื่อลูกค้า
+                    <input name="customerName" placeholder="Walk-in / โทรจอง" required>
+                  </label>
+                  <label>
+                    ช่องทางติดต่อ
+                    <input name="contact" placeholder="เบอร์ / LINE / Facebook" required>
+                  </label>
+                  <label>
+                    ช่วงเวลา
+                    <select name="timeWindow" id="manual-time" required></select>
+                  </label>
+                  <label>
+                    บริการ
+                    <select name="serviceId" id="manual-service" required></select>
+                  </label>
+                  <button class="primary-button" type="submit">บันทึกคิว</button>
+                </form>
+              </section>
+
+              <section class="side-card">
+                <h2>จัดการบริการ</h2>
+                <form id="service-form" class="inline-form">
+                  <input name="serviceName" placeholder="เพิ่มบริการใหม่" required>
+                  <button class="secondary-button" type="submit">เพิ่ม</button>
+                </form>
+                <div class="service-list" id="owner-service-list"></div>
+              </section>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
