@@ -142,6 +142,32 @@
               </section>
 
               <section class="side-card">
+                <h2>จัดการเวลารับจอง</h2>
+                <div class="time-manager">
+                  <label>
+                    วันที่ตั้งค่า
+                    <input type="date" id="schedule-date" required>
+                  </label>
+                  <label class="switch-row">
+                    <input type="checkbox" id="closed-day-toggle">
+                    <span>ปิดรับจองทั้งวัน</span>
+                  </label>
+                  <div class="time-slot-list" id="owner-time-slot-list"></div>
+                  <form id="slot-form" class="slot-form">
+                    <label>
+                      เริ่ม
+                      <input type="time" name="startTime" required>
+                    </label>
+                    <label>
+                      สิ้นสุด
+                      <input type="time" name="endTime" required>
+                    </label>
+                    <button class="secondary-button" type="submit">เพิ่มช่วงเวลา</button>
+                  </form>
+                </div>
+              </section>
+
+              <section class="side-card">
                 <h2>จัดการบริการ</h2>
                 <form id="service-form" class="inline-form">
                   <input name="serviceName" placeholder="เพิ่มบริการใหม่" required>

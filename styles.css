@@ -543,6 +543,72 @@ textarea {
   background: #fff;
 }
 
+.time-manager {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  background: linear-gradient(135deg, #e5fbff, #f5fffc);
+}
+
+.switch-row input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--primary);
+}
+
+.time-slot-list {
+  display: grid;
+  gap: 8px;
+}
+
+.time-slot-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.time-slot-item.off {
+  background: var(--disabled);
+}
+
+.time-slot-item strong,
+.time-slot-item small {
+  display: block;
+}
+
+.time-slot-item small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.slot-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.slot-form button {
+  grid-column: 1 / -1;
+}
+
 .icon-button {
   min-width: 40px;
   min-height: 38px;
@@ -651,8 +717,13 @@ textarea {
   }
 
   .queue-actions,
-  .inline-form {
+  .inline-form,
+  .slot-form {
     grid-template-columns: 1fr;
+  }
+
+  .slot-form button {
+    grid-column: auto;
   }
 
   .service-options {

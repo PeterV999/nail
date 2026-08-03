@@ -107,6 +107,35 @@ cancelled
 no_show
 ```
 
+## booking_time_slots
+
+เก็บช่วงเวลาที่ร้านเปิดให้จอง
+
+```text
+id
+shop_id
+start_time
+end_time
+is_active
+sort_order
+created_at
+updated_at
+```
+
+## booking_day_overrides
+
+เก็บการปิดรับจองเฉพาะวัน เช่น หยุดร้าน หรือปิดทั้งวัน
+
+```text
+id
+shop_id
+date
+is_closed
+note
+created_at
+updated_at
+```
+
 ## staff
 
 เก็บข้อมูลช่าง รองรับอนาคตที่มีหลายคน
