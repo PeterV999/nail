@@ -14,9 +14,18 @@
 
 ```text
 Framework preset: None
-Build command: ไม่ต้องใส่
+Build command: exit 0
 Build output directory: /
+Root directory: /
+Production branch: main
 ```
+
+เหตุผล: เว็บระยะแรกเป็น static site ไม่มีขั้นตอน build จึงให้คำสั่งจบด้วย exit code 0 แล้วให้ Cloudflare อัปโหลดไฟล์จาก root directory
+
+เอกสารอ้างอิง:
+
+- [Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/)
+- [Cloudflare Pages Build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)
 
 ตัวแปรที่ต้องเตรียมเมื่อเชื่อม backend จริง:
 
