@@ -1,20 +1,20 @@
 :root {
   color-scheme: light;
-  --bg: #fff8fb;
-  --surface: #fffdfb;
+  --bg: #f4fbff;
+  --surface: #fbfeff;
   --surface-strong: #ffffff;
-  --soft-pink: #ffeaf4;
-  --soft-mint: #e4f8ef;
-  --soft-lavender: #f0ebff;
-  --soft-peach: #ffeade;
-  --ink: #40323d;
-  --muted: #756575;
-  --line: #ecdbe4;
-  --primary: #d84f8d;
-  --primary-dark: #ab3d70;
+  --soft-pink: #e8f5ff;
+  --soft-mint: #e7fbf4;
+  --soft-lavender: #edf3ff;
+  --soft-peach: #fff0de;
+  --ink: #263948;
+  --muted: #667887;
+  --line: #d6e6f0;
+  --primary: #3a9bdc;
+  --primary-dark: #1d6f9f;
   --danger: #c05665;
-  --disabled: #ebe3e8;
-  --shadow: 0 16px 36px rgba(188, 93, 139, .14);
+  --disabled: #e2edf4;
+  --shadow: 0 16px 36px rgba(58, 155, 220, .14);
 }
 
 * {
@@ -26,8 +26,8 @@ body {
   min-width: 320px;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, #ffe5f1 0, transparent 250px),
-    linear-gradient(135deg, var(--bg), #f3fbf6 55%, #fff3ec);
+    radial-gradient(circle at top left, #dff3ff 0, transparent 250px),
+    linear-gradient(135deg, var(--bg), #effbf7 55%, #f2f6ff);
   font-family: "Mali", "Noto Sans Thai", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 16px;
 }
@@ -76,8 +76,8 @@ button {
   height: 44px;
   border-radius: 16px;
   color: #fff;
-  background: linear-gradient(135deg, var(--primary), #f49bc1);
-  box-shadow: 0 12px 22px rgba(217, 84, 145, .25);
+  background: linear-gradient(135deg, var(--primary), #82c8f0);
+  box-shadow: 0 12px 22px rgba(58, 155, 220, .24);
   font-weight: 700;
 }
 
@@ -262,14 +262,14 @@ legend span {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid #d8c5d1;
+  border: 2px solid #b8d5e8;
   background: #fff;
 }
 
 .choice.active {
   border-color: var(--primary);
   background: var(--soft-pink);
-  box-shadow: 0 12px 22px rgba(217, 84, 145, .14);
+  box-shadow: 0 12px 22px rgba(58, 155, 220, .15);
 }
 
 .choice.active .dot {
@@ -279,15 +279,15 @@ legend span {
 
 .choice:disabled {
   cursor: not-allowed;
-  color: #8d7f88;
+  color: #718291;
   background: var(--disabled);
-  box-shadow: inset 0 0 0 1px #d6cbd2;
+  box-shadow: inset 0 0 0 1px #c6d8e4;
   opacity: .86;
 }
 
 .choice:disabled .dot {
-  background: #cfc4cb;
-  border-color: #c1b4bd;
+  background: #bfd2df;
+  border-color: #adc6d6;
 }
 
 .choice small {
@@ -359,8 +359,8 @@ textarea {
 
 .primary-button {
   color: #fff;
-  background: linear-gradient(135deg, var(--primary), #ee87b4);
-  box-shadow: 0 14px 26px rgba(217, 84, 145, .25);
+  background: linear-gradient(135deg, var(--primary), #86cdf4);
+  box-shadow: 0 14px 26px rgba(58, 155, 220, .26);
 }
 
 .secondary-button {
@@ -393,7 +393,7 @@ textarea {
 }
 
 .mini-slot.busy {
-  background: #f0e8ee;
+  background: #e6eff6;
 }
 
 .status-pill {
@@ -407,8 +407,8 @@ textarea {
 }
 
 .mini-slot.busy .status-pill {
-  color: #75656f;
-  background: #ddd0d8;
+  color: #637789;
+  background: #d3e2ec;
 }
 
 .section-head {
