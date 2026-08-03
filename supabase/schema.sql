@@ -164,6 +164,21 @@ as $$
   );
 $$;
 
+create or replace function public.is_active_shop(target_shop_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.shops
+    where shops.id = target_shop_id
+      and shops.status = 'active'
+  );
+$$;
+
 create policy "public can read active shops"
 on public.shops for select
 using (status = 'active');
@@ -202,11 +217,13 @@ with check (public.is_shop_member(shop_id));
 
 create policy "public can create booking requests"
 on public.booking_requests for insert
+to anon, authenticated
 with check (
-  status = 'pending_request'
+  status in ('pending_request', 'pending')
   and source = 'customer_request'
-  and customer_name <> ''
-  and contact_snapshot <> ''
+  and nullif(trim(customer_name), '') is not null
+  and nullif(trim(contact_snapshot), '') is not null
+  and public.is_active_shop(shop_id)
 );
 
 create policy "owners can manage booking requests"
@@ -276,6 +293,7 @@ from public.appointments
 where status = 'confirmed';
 
 grant usage on schema public to anon, authenticated;
+grant execute on function public.is_active_shop(uuid) to anon, authenticated;
 grant select on public.public_shops to anon, authenticated;
 grant select on public.public_services to anon, authenticated;
 grant select on public.public_booking_time_slots to anon, authenticated;
