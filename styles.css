@@ -1,20 +1,20 @@
 :root {
   color-scheme: light;
-  --bg: #fff7fb;
-  --surface: #fffefd;
+  --bg: #fff8fb;
+  --surface: #fffdfb;
   --surface-strong: #ffffff;
-  --soft-pink: #ffe8f2;
-  --soft-mint: #ddf8ee;
-  --soft-lavender: #eee9ff;
-  --soft-peach: #ffe5d5;
-  --ink: #3f3440;
-  --muted: #796878;
-  --line: #ead8e3;
-  --primary: #d95491;
-  --primary-dark: #b93f78;
+  --soft-pink: #ffeaf4;
+  --soft-mint: #e4f8ef;
+  --soft-lavender: #f0ebff;
+  --soft-peach: #ffeade;
+  --ink: #40323d;
+  --muted: #756575;
+  --line: #ecdbe4;
+  --primary: #d84f8d;
+  --primary-dark: #ab3d70;
   --danger: #c05665;
-  --disabled: #e5dce2;
-  --shadow: 0 20px 48px rgba(186, 88, 138, .16);
+  --disabled: #ebe3e8;
+  --shadow: 0 16px 36px rgba(188, 93, 139, .14);
 }
 
 * {
@@ -26,9 +26,10 @@ body {
   min-width: 320px;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, #ffe1ef 0, transparent 280px),
-    linear-gradient(135deg, var(--bg), #effbf5 56%, #fff3ea);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    radial-gradient(circle at top left, #ffe5f1 0, transparent 250px),
+    linear-gradient(135deg, var(--bg), #f3fbf6 55%, #fff3ec);
+  font-family: "Mali", "Noto Sans Thai", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
 }
 
 button,
@@ -43,9 +44,9 @@ button {
 }
 
 .app-shell {
-  width: min(1180px, calc(100% - 28px));
+  width: min(1120px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 18px 0 28px;
+  padding: 14px 0 28px;
 }
 
 .topbar {
@@ -56,7 +57,7 @@ button {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 10px 0 18px;
+  padding: 8px 0 14px;
   backdrop-filter: blur(18px);
 }
 
@@ -73,7 +74,7 @@ button {
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: 16px;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), #f49bc1);
   box-shadow: 0 12px 22px rgba(217, 84, 145, .25);
@@ -85,9 +86,14 @@ button {
   display: block;
 }
 
+.brand strong {
+  font-size: 1.04rem;
+}
+
 .brand small {
   color: var(--muted);
   margin-top: 2px;
+  font-size: .86rem;
 }
 
 .view-tabs {
@@ -100,8 +106,8 @@ button {
 }
 
 .tab-link {
-  min-width: 92px;
-  padding: 10px 14px;
+  min-width: 100px;
+  padding: 9px 13px;
   border-radius: 999px;
   color: var(--muted);
   text-align: center;
@@ -125,8 +131,8 @@ button {
 .customer-grid,
 .owner-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(310px, .72fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(292px, .58fr);
+  gap: 16px;
   align-items: start;
 }
 
@@ -135,14 +141,14 @@ button {
 .owner-main,
 .side-card {
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 22px;
   background: rgba(255, 254, 253, .86);
   box-shadow: var(--shadow);
 }
 
 .booking-panel,
 .owner-main {
-  padding: clamp(18px, 3vw, 32px);
+  padding: 24px;
 }
 
 .status-panel,
@@ -151,9 +157,10 @@ button {
 }
 
 .eyebrow {
-  margin: 0 0 8px;
+  margin: 0 0 7px;
   color: var(--primary-dark);
   font-weight: 700;
+  font-size: .94rem;
 }
 
 h1,
@@ -163,26 +170,36 @@ h2 {
 }
 
 h1 {
-  max-width: 660px;
-  font-size: clamp(2rem, 5vw, 4.1rem);
-  line-height: 1.08;
+  max-width: 560px;
+  font-size: 2.2rem;
+  line-height: 1.18;
+  font-weight: 700;
 }
 
 h2 {
-  font-size: 1.14rem;
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.owner-main h1 {
+  font-size: 1.75rem;
+}
+
+.customer-hero {
+  padding: 2px 0 4px;
 }
 
 .lead {
-  max-width: 560px;
-  margin: 14px 0 0;
+  max-width: 520px;
+  margin: 10px 0 0;
   color: var(--muted);
-  font-size: 1.06rem;
+  font-size: 1rem;
 }
 
 .booking-form {
   display: grid;
-  gap: 18px;
-  margin-top: 26px;
+  gap: 16px;
+  margin-top: 22px;
 }
 
 fieldset {
@@ -193,41 +210,57 @@ fieldset {
 }
 
 legend {
-  margin-bottom: 4px;
-  font-size: 1.04rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 1rem;
   font-weight: 700;
+}
+
+legend span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--primary);
+  font-size: .88rem;
 }
 
 .hint {
   margin: 0 0 10px;
   color: var(--muted);
+  font-size: .92rem;
 }
 
 .service-options,
 .time-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 9px;
 }
 
 .choice {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 9px;
   align-items: center;
-  min-height: 58px;
-  padding: 13px;
+  min-height: 54px;
+  padding: 12px;
   border: 2px solid transparent;
-  border-radius: 18px;
+  border-radius: 17px;
   color: var(--ink);
   background: var(--surface-strong);
   box-shadow: inset 0 0 0 1px var(--line);
   text-align: left;
+  font-weight: 700;
 }
 
 .choice .dot {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2px solid #d8c5d1;
   background: #fff;
@@ -261,7 +294,8 @@ legend {
   display: block;
   margin-top: 2px;
   color: var(--muted);
-  font-size: .86rem;
+  font-size: .82rem;
+  font-weight: 500;
 }
 
 .contact-fields {
@@ -274,6 +308,7 @@ label {
   gap: 7px;
   color: var(--muted);
   font-weight: 700;
+  font-size: .94rem;
 }
 
 input,
@@ -284,8 +319,12 @@ textarea {
   border-radius: 16px;
   color: var(--ink);
   background: #fff;
-  padding: 13px 14px;
+  padding: 12px 13px;
   outline-color: var(--primary);
+}
+
+.date-field {
+  margin-bottom: 10px;
 }
 
 textarea {
@@ -296,9 +335,9 @@ textarea {
 .privacy-note {
   display: grid;
   gap: 4px;
-  padding: 14px;
+  padding: 13px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 17px;
   background: var(--soft-mint);
 }
 
@@ -313,7 +352,7 @@ textarea {
 .danger-button {
   min-height: 48px;
   border: 0;
-  border-radius: 17px;
+  border-radius: 16px;
   padding: 12px 16px;
   font-weight: 800;
 }
@@ -337,8 +376,8 @@ textarea {
 
 .mini-calendar {
   display: grid;
-  gap: 9px;
-  margin: 16px 0;
+  gap: 8px;
+  margin: 14px 0;
 }
 
 .mini-slot {
@@ -346,8 +385,8 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 42px;
+  padding: 9px 11px;
   border-radius: 16px;
   background: #fff;
   border: 1px solid var(--line);
@@ -363,7 +402,7 @@ textarea {
   padding: 5px 9px;
   color: var(--primary-dark);
   background: var(--soft-pink);
-  font-size: .86rem;
+  font-size: .82rem;
   font-weight: 800;
 }
 
@@ -388,8 +427,8 @@ textarea {
 
 .queue-card {
   display: grid;
-  gap: 12px;
-  padding: 14px;
+  gap: 10px;
+  padding: 13px;
   border: 1px solid var(--line);
   border-radius: 20px;
   background: #fff;
@@ -416,7 +455,7 @@ textarea {
   padding: 6px 9px;
   color: var(--muted);
   background: var(--soft-lavender);
-  font-size: .88rem;
+  font-size: .84rem;
 }
 
 .queue-actions {
@@ -496,24 +535,25 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .status-panel {
-    order: -1;
-  }
-
   h1 {
-    font-size: clamp(1.85rem, 7vw, 3.2rem);
+    font-size: 1.9rem;
   }
 }
 
 @media (max-width: 620px) {
+  body {
+    font-size: 15px;
+  }
+
   .app-shell {
-    width: min(100% - 18px, 480px);
-    padding-top: 10px;
+    width: min(100% - 16px, 460px);
+    padding-top: 8px;
   }
 
   .topbar {
     align-items: stretch;
     flex-direction: column;
+    gap: 10px;
   }
 
   .view-tabs {
@@ -530,23 +570,66 @@ textarea {
   .owner-main,
   .status-panel,
   .side-card {
-    border-radius: 20px;
-    padding: 16px;
+    border-radius: 18px;
+    padding: 14px;
   }
 
-  .service-options,
   .time-options,
   .queue-actions,
   .inline-form {
     grid-template-columns: 1fr;
   }
 
+  .service-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .choice {
-    min-height: 54px;
+    min-height: 50px;
+    padding: 10px;
+    border-radius: 15px;
+  }
+
+  h1 {
+    font-size: 1.55rem;
+  }
+
+  .owner-main h1 {
+    font-size: 1.35rem;
+  }
+
+  .lead {
+    font-size: .94rem;
+  }
+
+  .booking-form {
+    gap: 14px;
+    margin-top: 18px;
   }
 
   .queue-top,
   .section-head {
     display: grid;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .danger-button {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 380px) {
+  .service-options {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tab-link {
+    padding: 9px 10px;
   }
 }

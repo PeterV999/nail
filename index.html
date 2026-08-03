@@ -3,7 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Fah Nail Booking</title>
+    <title>จองคิว Fah Nail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -13,12 +16,12 @@
           <span class="brand-mark">FN</span>
           <span>
             <strong>Fah Nail</strong>
-            <small>Booking & Queue</small>
+            <small>จองคิวทำเล็บ</small>
           </span>
         </a>
         <nav class="view-tabs" aria-label="เลือกหน้า">
-          <a class="tab-link active" href="#customer" data-view-link="customer">จองคิว</a>
-          <a class="tab-link" href="#owner" data-view-link="owner">หลังบ้าน</a>
+          <a class="tab-link active" href="#customer" data-view-link="customer">หน้าลูกค้า</a>
+          <a class="tab-link" href="#owner" data-view-link="owner">หน้าร้าน</a>
         </nav>
       </header>
 
@@ -26,26 +29,32 @@
         <section class="view active" id="customer-view" aria-labelledby="customer-title">
           <div class="customer-grid">
             <section class="booking-panel">
-              <p class="eyebrow">Fah Nail</p>
-              <h1 id="customer-title">เลือกบริการและช่วงเวลาที่สะดวก</h1>
-              <p class="lead">ส่งคำขอจองคิวไว้ก่อน ร้านจะติดต่อกลับเพื่อยืนยันเวลาอีกครั้ง</p>
+              <div class="customer-hero">
+                <p class="eyebrow">Fah Nail</p>
+                <h1 id="customer-title">จองคิวทำเล็บ</h1>
+                <p class="lead">เลือกบริการและช่วงเวลาที่สะดวก แล้วร้านจะติดต่อกลับเพื่อยืนยันคิว</p>
+              </div>
 
               <form id="booking-form" class="booking-form">
                 <fieldset>
-                  <legend>เลือกบริการคร่าว ๆ</legend>
-                  <p class="hint">เลือกอย่างน้อย 1 รายการ</p>
+                  <legend><span>1</span> เลือกบริการคร่าว ๆ</legend>
+                  <p class="hint">เลือกได้หลายอย่าง อย่างน้อย 1 รายการ</p>
                   <div class="service-options" id="service-options"></div>
                   <p class="form-error" id="service-error" hidden>กรุณาเลือกบริการอย่างน้อย 1 รายการ</p>
                 </fieldset>
 
                 <fieldset>
-                  <legend>เลือกช่วงเวลาที่สะดวก</legend>
+                  <legend><span>2</span> เลือกวันและช่วงเวลาที่สะดวก</legend>
                   <p class="hint">ยังไม่ใช่การจองที่ยืนยันแล้ว</p>
+                  <label class="date-field">
+                    วันที่ต้องการ
+                    <input type="date" name="bookingDate" id="booking-date" required>
+                  </label>
                   <div class="time-options" id="time-options"></div>
                 </fieldset>
 
                 <fieldset class="contact-fields">
-                  <legend>ข้อมูลติดต่อ</legend>
+                  <legend><span>3</span> ข้อมูลติดต่อ</legend>
                   <label>
                     ชื่อ
                     <input name="customerName" autocomplete="name" placeholder="เช่น คุณฟ้า" required>
@@ -71,8 +80,8 @@
 
             <aside class="status-panel" aria-label="สถานะวันนี้">
               <div>
-                <p class="eyebrow">วันนี้</p>
-                <h2>ช่วงเวลาที่จองได้</h2>
+                <p class="eyebrow">คิวของวัน</p>
+                <h2 id="status-date-title">ช่วงเวลาที่จองได้</h2>
               </div>
               <div class="mini-calendar" id="mini-calendar"></div>
               <div class="privacy-note">
@@ -103,11 +112,15 @@
                 <form id="manual-form" class="compact-form">
                   <label>
                     ชื่อลูกค้า
-                    <input name="customerName" placeholder="Walk-in / โทรจอง" required>
+                    <input name="customerName" placeholder="หน้าร้าน / โทรจอง" required>
                   </label>
                   <label>
                     ช่องทางติดต่อ
                     <input name="contact" placeholder="เบอร์ / LINE / Facebook" required>
+                  </label>
+                  <label>
+                    วันที่
+                    <input type="date" name="bookingDate" id="manual-date" required>
                   </label>
                   <label>
                     ช่วงเวลา

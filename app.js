@@ -1,4 +1,5 @@
 const STORAGE_KEY = "fah-nail-booking-demo";
+const today = new Date().toISOString().slice(0, 10);
 
 const timeWindows = [
   "08:00-10:00",
@@ -24,6 +25,7 @@ const defaultState = {
       customerName: "คุณมายด์",
       contact: "LINE mind.nail",
       services: ["สีเจล", "เพ้นท์ลาย"],
+      bookingDate: today,
       timeWindow: "10:00-12:00",
       note: "อยากได้สีชมพูใส",
       status: "pending_request",
@@ -36,6 +38,7 @@ const defaultState = {
       customerName: "คุณแพรว",
       contact: "โทร 08x-xxx-1234",
       services: ["ต่อเล็บ"],
+      bookingDate: today,
       timeWindow: "14:00-16:00",
       status: "confirmed",
       source: "phone"
@@ -54,10 +57,13 @@ const requestList = document.getElementById("request-list");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
 const manualService = document.getElementById("manual-service");
+const bookingDate = document.getElementById("booking-date");
+const manualDate = document.getElementById("manual-date");
 const bookingForm = document.getElementById("booking-form");
 const manualForm = document.getElementById("manual-form");
 const serviceForm = document.getElementById("service-form");
 const serviceError = document.getElementById("service-error");
+const statusDateTitle = document.getElementById("status-date-title");
 const toast = document.getElementById("toast");
 
 function loadState() {
@@ -65,7 +71,10 @@ function loadState() {
   if (!saved) return structuredClone(defaultState);
 
   try {
-    return JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    parsed.requests = (parsed.requests || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today }));
+    parsed.appointments = (parsed.appointments || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today }));
+    return parsed;
   } catch {
     return structuredClone(defaultState);
   }
@@ -79,9 +88,17 @@ function activeServices() {
   return state.services.filter((service) => service.active);
 }
 
-function busyWindows() {
+function selectedBookingDate() {
+  return bookingDate.value || today;
+}
+
+function selectedManualDate() {
+  return manualDate.value || selectedBookingDate();
+}
+
+function busyWindows(date = selectedBookingDate()) {
   return new Set(state.appointments
-    .filter((appointment) => appointment.status === "confirmed")
+    .filter((appointment) => appointment.status === "confirmed" && appointment.bookingDate === date)
     .map((appointment) => appointment.timeWindow));
 }
 
@@ -143,6 +160,7 @@ function renderTimeWindows() {
 function renderMiniCalendar() {
   const busy = busyWindows();
   miniCalendar.innerHTML = "";
+  statusDateTitle.textContent = thaiDate(selectedBookingDate());
 
   timeWindows.forEach((timeWindow) => {
     const row = document.createElement("div");
@@ -165,7 +183,6 @@ function renderOwnerLists() {
     empty.className = "empty-state";
     empty.textContent = "ยังไม่มีคำขอจองหรือคิววันนี้";
     requestList.append(empty);
-    return;
   }
 
   items.forEach((item) => {
@@ -182,6 +199,7 @@ function renderOwnerLists() {
         <span class="status-pill">${statusText}</span>
       </div>
       <div class="queue-meta">
+        <span>${thaiDate(item.bookingDate || today)}</span>
         <span>${escapeHtml(item.timeWindow)}</span>
         <span>${escapeHtml(item.services.join(", "))}</span>
         <span>${sourceText}</span>
@@ -196,7 +214,7 @@ function renderOwnerLists() {
       confirm.type = "button";
       confirm.className = "primary-button";
       confirm.textContent = "ยืนยันคิว";
-      confirm.disabled = busyWindows().has(item.timeWindow);
+      confirm.disabled = busyWindows(item.bookingDate || today).has(item.timeWindow);
       confirm.addEventListener("click", () => confirmRequest(item.id));
 
       const reject = document.createElement("button");
@@ -212,6 +230,10 @@ function renderOwnerLists() {
     requestList.append(card);
   });
 
+  renderOwnerServices();
+}
+
+function renderOwnerServices() {
   ownerServiceList.innerHTML = "";
   state.services.forEach((service) => {
     const row = document.createElement("div");
@@ -247,7 +269,7 @@ function renderOwnerLists() {
 }
 
 function renderManualOptions() {
-  const busy = busyWindows();
+  const busy = busyWindows(selectedManualDate());
   manualTime.innerHTML = "";
   timeWindows.forEach((timeWindow) => {
     const option = document.createElement("option");
@@ -270,7 +292,7 @@ function confirmRequest(id) {
   const request = state.requests.find((item) => item.id === id);
   if (!request) return;
 
-  if (busyWindows().has(request.timeWindow)) {
+  if (busyWindows(request.bookingDate || today).has(request.timeWindow)) {
     showToast("ช่วงเวลานี้ไม่ว่างแล้ว");
     return;
   }
@@ -280,6 +302,7 @@ function confirmRequest(id) {
     customerName: request.customerName,
     contact: request.contact,
     services: request.services,
+    bookingDate: request.bookingDate || today,
     timeWindow: request.timeWindow,
     status: "confirmed",
     source: "customer_request"
@@ -316,6 +339,7 @@ bookingForm.addEventListener("submit", (event) => {
     customerName: formData.get("customerName").trim(),
     contact: formData.get("contact").trim(),
     services: Array.from(selectedServices),
+    bookingDate: formData.get("bookingDate"),
     timeWindow: selectedTime,
     note: formData.get("note").trim(),
     status: "pending_request",
@@ -333,9 +357,10 @@ bookingForm.addEventListener("submit", (event) => {
 manualForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(manualForm);
+  const bookingDateValue = formData.get("bookingDate");
   const timeWindow = formData.get("timeWindow");
 
-  if (busyWindows().has(timeWindow)) {
+  if (busyWindows(bookingDateValue).has(timeWindow)) {
     showToast("ช่วงเวลานี้ไม่ว่างแล้ว");
     return;
   }
@@ -345,6 +370,7 @@ manualForm.addEventListener("submit", (event) => {
     customerName: formData.get("customerName").trim(),
     contact: formData.get("contact").trim(),
     services: [formData.get("serviceId")],
+    bookingDate: bookingDateValue,
     timeWindow,
     status: "confirmed",
     source: "admin"
@@ -390,6 +416,13 @@ document.getElementById("seed-button").addEventListener("click", () => {
   showToast("เติมข้อมูลตัวอย่างแล้ว");
 });
 
+bookingDate.addEventListener("change", () => {
+  renderTimeWindows();
+  renderMiniCalendar();
+});
+
+manualDate.addEventListener("change", renderManualOptions);
+
 function setView(view) {
   document.querySelectorAll("[data-view-link]").forEach((link) => {
     link.classList.toggle("active", link.dataset.viewLink === view);
@@ -401,12 +434,20 @@ function setView(view) {
 function sourceLabel(source) {
   return {
     customer_request: "ลูกค้าจองเอง",
-    walk_in: "Walk-in",
+    walk_in: "หน้าร้าน",
     phone: "โทรจอง",
     line: "LINE",
     facebook: "Facebook",
     admin: "เจ้าของร้านลงเอง"
   }[source] || "หลังบ้าน";
+}
+
+function thaiDate(value) {
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(`${value}T00:00:00`));
 }
 
 function showToast(message) {
@@ -426,4 +467,8 @@ function escapeHtml(value) {
   }[char]));
 }
 
+bookingDate.value = today;
+manualDate.value = today;
+bookingDate.min = today;
+manualDate.min = today;
 render();
