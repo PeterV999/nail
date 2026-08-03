@@ -14,6 +14,16 @@
 - จัดการช่วงเวลารับจอง
 - ปิดรับจองทั้งวันตามวันที่เลือก
 - จัดการผลงาน
+- เตรียม Supabase schema, public view, และ RLS policy
+- เตรียม owner auth gate สำหรับหลังบ้าน
+
+## ขั้นตอนต่อไปก่อนใช้ข้อมูลจริง
+
+- สร้าง Supabase project และ run `supabase/schema.sql`
+- ใส่ `Project URL` และ `anon public key` ใน `app-config.js`
+- เปิด Google provider ใน Supabase Auth
+- เพิ่ม user id ของเจ้าของร้านใน `shop_members`
+- เชื่อม Cloudflare Pages กับ GitHub auto deploy หลัง Cloudflare แสดง repo `PeterV999/nail`
 
 ## Phase 2: Google Calendar
 

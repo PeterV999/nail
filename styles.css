@@ -157,7 +157,8 @@ button {
 .booking-panel,
 .status-panel,
 .owner-main,
-.side-card {
+.side-card,
+.auth-panel {
   border: 1px solid var(--line);
   border-radius: 22px;
   background: rgba(255, 255, 255, .9);
@@ -165,7 +166,8 @@ button {
 }
 
 .booking-panel,
-.owner-main {
+.owner-main,
+.auth-panel {
   padding: 24px;
 }
 
@@ -535,6 +537,24 @@ textarea {
   gap: 18px;
 }
 
+.auth-panel {
+  display: grid;
+  gap: 18px;
+  max-width: 680px;
+  margin: 32px auto 0;
+}
+
+.auth-panel[hidden],
+.owner-layout[hidden] {
+  display: none;
+}
+
+.auth-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .compact-form,
 .inline-form {
   display: grid;
@@ -731,7 +751,8 @@ textarea {
   .booking-panel,
   .owner-main,
   .status-panel,
-  .side-card {
+  .side-card,
+  .auth-panel {
     border-radius: 18px;
     padding: 14px;
   }
@@ -762,7 +783,8 @@ textarea {
 
   .queue-actions,
   .inline-form,
-  .slot-form {
+  .slot-form,
+  .auth-actions {
     grid-template-columns: 1fr;
   }
 

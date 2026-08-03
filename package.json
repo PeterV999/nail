@@ -5,6 +5,6 @@
   "description": "Fah Nail booking and queue management web app.",
   "scripts": {
     "dev": "python3 -m http.server 4177",
-    "check": "node --check customer.js && node --check owner.js"
+    "check": "node --check customer.js && node --check owner.js && node --check supabase-adapter.js"
   }
 }

@@ -57,6 +57,13 @@ const defaultState = {
 
 let state = loadState();
 
+const ownerAuthPanel = document.getElementById("owner-auth-panel");
+const ownerApp = document.getElementById("owner-app");
+const googleLoginButton = document.getElementById("google-login-button");
+const demoLoginButton = document.getElementById("demo-login-button");
+const logoutButton = document.getElementById("logout-button");
+const authCopy = document.getElementById("auth-copy");
+const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
@@ -159,6 +166,53 @@ function render() {
   renderManualOptions();
   renderTimeManager();
   renderCalendarIntegration();
+}
+
+async function initOwnerAccess() {
+  manualDate.value = today;
+  scheduleDate.value = today;
+  manualDate.min = today;
+  scheduleDate.min = today;
+
+  try {
+    const authState = await window.FahNailSupabase?.ownerSession();
+    if (authState?.configured && authState.session) {
+      showOwnerApp("เข้าสู่ระบบแล้ว");
+      return;
+    }
+
+    if (authState?.configured) {
+      showAuthPanel(false);
+      return;
+    }
+  } catch (error) {
+    console.warn("Owner auth check failed", error);
+    authStatus.textContent = "ยังเชื่อมต่อ Supabase ไม่สำเร็จ ใช้โหมดตัวอย่างได้ชั่วคราว";
+  }
+
+  showAuthPanel(true);
+}
+
+function showAuthPanel(allowDemo) {
+  ownerAuthPanel.hidden = false;
+  ownerApp.hidden = true;
+  demoLoginButton.hidden = !allowDemo;
+  googleLoginButton.hidden = allowDemo;
+
+  authCopy.textContent = allowDemo
+    ? "ตอนนี้ยังไม่ได้ใส่ค่า Supabase จึงเปิดดูหลังบ้านในโหมดตัวอย่างได้"
+    : "กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าของร้าน";
+  authStatus.textContent = allowDemo
+    ? "โหมดตัวอย่างใช้ข้อมูลในเครื่อง ยังไม่ใช่ระบบรักษาความปลอดภัยจริง"
+    : "ข้อมูลหลังบ้านจริงจะแสดงเฉพาะบัญชีเจ้าของร้านที่กำหนดใน Supabase";
+}
+
+function showOwnerApp(message) {
+  ownerAuthPanel.hidden = true;
+  ownerApp.hidden = false;
+  logoutButton.hidden = !window.FahNailSupabase?.isConfigured();
+  render();
+  if (message) showToast(message);
 }
 
 function renderOwnerLists() {
@@ -477,6 +531,28 @@ document.getElementById("seed-button").addEventListener("click", () => {
   showToast("เติมข้อมูลตัวอย่างแล้ว");
 });
 
+googleLoginButton.addEventListener("click", async () => {
+  try {
+    await window.FahNailSupabase?.signInWithGoogle();
+  } catch (error) {
+    console.warn("Google login failed", error);
+    showToast("ยังเข้าสู่ระบบ Google ไม่สำเร็จ");
+  }
+});
+
+demoLoginButton.addEventListener("click", () => {
+  showOwnerApp("เปิดหลังบ้านโหมดตัวอย่าง");
+});
+
+logoutButton.addEventListener("click", async () => {
+  try {
+    await window.FahNailSupabase?.signOut();
+  } catch (error) {
+    console.warn("Sign out failed", error);
+  }
+  showAuthPanel(!window.FahNailSupabase?.isConfigured());
+});
+
 manualDate.addEventListener("change", renderManualOptions);
 scheduleDate.addEventListener("change", renderTimeManager);
 
@@ -575,8 +651,4 @@ function escapeHtml(value) {
   }[char]));
 }
 
-manualDate.value = today;
-scheduleDate.value = today;
-manualDate.min = today;
-scheduleDate.min = today;
-render();
+initOwnerAccess();

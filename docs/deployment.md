@@ -54,6 +54,36 @@ git push -u origin main
 3. วางเนื้อหาใน `supabase/schema.sql`
 4. Run schema
 5. ตรวจว่าเปิด Row Level Security แล้วทุกตาราง
+6. เปิด Authentication > Providers > Google แล้วตั้งค่า Google OAuth
+7. นำ `Project URL` และ `anon public key` มาใส่ใน `app-config.js`
+8. เพิ่มบัญชีเจ้าของร้านลง `shop_members`
+
+ตัวอย่าง `app-config.js` สำหรับเว็บจริง:
+
+```js
+window.FAH_NAIL_CONFIG = {
+  shopSlug: "fah-nail",
+  supabaseUrl: "https://your-project.supabase.co",
+  supabaseAnonKey: "your-public-anon-key",
+  ownerRedirectUrl: "https://fah-nail-booking.pages.dev/owner.html"
+};
+```
+
+หลังเจ้าของร้าน login ด้วย Google ครั้งแรก ให้ดู user id ใน Supabase > Authentication > Users แล้ว run SQL นี้:
+
+```sql
+insert into public.shop_members (shop_id, user_id, role)
+select id, 'OWNER_USER_ID_FROM_AUTH_USERS', 'owner'
+from public.shops
+where slug = 'fah-nail';
+```
+
+หลักความปลอดภัยระยะแรก:
+
+- ลูกค้าไม่ต้องล็อกอิน และส่งคำขอจองได้เท่านั้น
+- ลูกค้าสาธารณะเห็นเฉพาะบริการ ช่วงเวลา วันที่ปิด และช่วงเวลาที่ไม่ว่าง
+- ข้อมูลชื่อและช่องทางติดต่อของลูกค้าอ่านได้เฉพาะบัญชีเจ้าของร้านที่อยู่ใน `shop_members`
+- ห้ามใส่ `SUPABASE_SERVICE_ROLE_KEY` ในหน้าเว็บหรือ GitHub
 
 ## Google Calendar
 

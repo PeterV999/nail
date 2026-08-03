@@ -192,7 +192,7 @@ function renderMiniCalendar() {
   });
 }
 
-bookingForm.addEventListener("submit", (event) => {
+bookingForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(bookingForm);
 
@@ -206,7 +206,7 @@ bookingForm.addEventListener("submit", (event) => {
     return;
   }
 
-  state.requests.unshift({
+  const request = {
     id: `REQ-${Date.now()}`,
     customerName: formData.get("customerName").trim(),
     contact: formData.get("contact").trim(),
@@ -216,7 +216,9 @@ bookingForm.addEventListener("submit", (event) => {
     note: formData.get("note").trim(),
     status: "pending_request",
     source: "customer_request"
-  });
+  };
+
+  state.requests.unshift(request);
 
   bookingForm.reset();
   bookingDate.value = today;
@@ -224,7 +226,14 @@ bookingForm.addEventListener("submit", (event) => {
   selectedTime = "";
   saveState();
   render();
-  showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
+
+  try {
+    await window.FahNailSupabase?.createBookingRequest(request, state);
+    showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
+  } catch (error) {
+    console.warn("Supabase booking request failed", error);
+    showToast("บันทึกคำขอไว้แล้ว รอเชื่อมต่อระบบกลาง");
+  }
 });
 
 bookingDate.addEventListener("change", render);
@@ -268,6 +277,21 @@ function escapeHtml(value) {
   }[char]));
 }
 
-bookingDate.value = today;
-bookingDate.min = today;
-render();
+async function init() {
+  bookingDate.value = today;
+  bookingDate.min = today;
+
+  try {
+    const remoteState = await window.FahNailSupabase?.loadPublicState(defaultState);
+    if (remoteState) {
+      state = remoteState;
+      saveState();
+    }
+  } catch (error) {
+    console.warn("Supabase public load failed", error);
+  }
+
+  render();
+}
+
+init();
