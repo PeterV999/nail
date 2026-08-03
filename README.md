@@ -31,12 +31,21 @@
 - [Integrations](docs/integrations.md)
 - [UI Guidelines](docs/ui-guidelines.md)
 - [Backlog](docs/backlog.md)
+- [Deployment](docs/deployment.md)
 
 ## หน้าเว็บ Prototype
 
 ไฟล์เริ่มต้นของหน้าเว็บอยู่ที่ [index.html](index.html)
 
-ตอนนี้เป็น static prototype สำหรับตรวจ UX/UI และ flow หลักก่อนเชื่อม Supabase:
+ตอนนี้แยกทางเข้าเป็นรูปแบบเว็บจริงระยะแรก:
+
+- [index.html](index.html) สำหรับลูกค้าสาธารณะ
+- [owner.html](owner.html) สำหรับเจ้าของร้าน
+- [customer.js](customer.js) สำหรับ logic หน้าลูกค้า
+- [owner.js](owner.js) สำหรับ logic หลังบ้าน
+- [supabase/schema.sql](supabase/schema.sql) สำหรับฐานข้อมูลจริง
+
+ฟีเจอร์ที่มีในเว็บระยะแรก:
 
 - หน้าจองคิวลูกค้า
 - เลือกบริการอย่างน้อย 1 รายการ

@@ -36,7 +36,7 @@ const defaultState = {
       services: ["สีเจล", "เพ้นท์ลาย"],
       bookingDate: today,
       timeWindow: "10:00-12:00",
-      note: "อยากได้สีชมพูใส",
+      note: "อยากได้สีฟ้าใส",
       status: "pending_request",
       source: "customer_request"
     }
@@ -56,17 +56,11 @@ const defaultState = {
 };
 
 let state = loadState();
-let selectedServices = new Set();
-let selectedTime = "";
 
-const serviceOptions = document.getElementById("service-options");
-const timeOptions = document.getElementById("time-options");
-const miniCalendar = document.getElementById("mini-calendar");
 const requestList = document.getElementById("request-list");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
 const manualService = document.getElementById("manual-service");
-const bookingDate = document.getElementById("booking-date");
 const manualDate = document.getElementById("manual-date");
 const scheduleDate = document.getElementById("schedule-date");
 const closedDayToggle = document.getElementById("closed-day-toggle");
@@ -75,12 +69,9 @@ const calendarSelect = document.getElementById("calendar-select");
 const connectCalendarButton = document.getElementById("connect-calendar-button");
 const syncCalendarButton = document.getElementById("sync-calendar-button");
 const disconnectCalendarButton = document.getElementById("disconnect-calendar-button");
-const bookingForm = document.getElementById("booking-form");
 const manualForm = document.getElementById("manual-form");
 const serviceForm = document.getElementById("service-form");
 const slotForm = document.getElementById("slot-form");
-const serviceError = document.getElementById("service-error");
-const statusDateTitle = document.getElementById("status-date-title");
 const ownerTimeSlotList = document.getElementById("owner-time-slot-list");
 const toast = document.getElementById("toast");
 
@@ -90,12 +81,15 @@ function loadState() {
 
   try {
     const parsed = JSON.parse(saved);
-    parsed.requests = (parsed.requests || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today }));
-    parsed.appointments = (parsed.appointments || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today }));
-    parsed.timeSlots = normalizeTimeSlots(parsed.timeSlots || defaultTimeSlots);
-    parsed.closedDates = parsed.closedDates || [];
-    parsed.calendarIntegration = parsed.calendarIntegration || structuredClone(defaultState.calendarIntegration);
-    return parsed;
+    return {
+      ...structuredClone(defaultState),
+      ...parsed,
+      requests: (parsed.requests || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today })),
+      appointments: (parsed.appointments || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today })),
+      timeSlots: normalizeTimeSlots(parsed.timeSlots || defaultTimeSlots),
+      closedDates: parsed.closedDates || [],
+      calendarIntegration: parsed.calendarIntegration || structuredClone(defaultState.calendarIntegration)
+    };
   } catch {
     return structuredClone(defaultState);
   }
@@ -105,21 +99,12 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function activeServices() {
-  return state.services.filter((service) => service.active);
-}
-
 function normalizeTimeSlots(slots) {
   return slots
     .map((slot) => {
       if (typeof slot === "string") {
         const [startTime, endTime] = slot.split("-");
-        return {
-          id: `slot-${startTime.replace(":", "")}`,
-          startTime,
-          endTime,
-          active: true
-        };
+        return { id: `slot-${startTime.replace(":", "")}`, startTime, endTime, active: true };
       }
 
       return {
@@ -133,8 +118,8 @@ function normalizeTimeSlots(slots) {
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 
-function timeSlotLabel(slot) {
-  return `${slot.startTime}-${slot.endTime}`;
+function activeServices() {
+  return state.services.filter((service) => service.active);
 }
 
 function timeSlots() {
@@ -142,16 +127,16 @@ function timeSlots() {
   return state.timeSlots;
 }
 
-function selectedBookingDate() {
-  return bookingDate.value || today;
+function timeSlotLabel(slot) {
+  return `${slot.startTime}-${slot.endTime}`;
 }
 
 function selectedManualDate() {
-  return manualDate.value || selectedBookingDate();
+  return manualDate.value || today;
 }
 
 function selectedScheduleDate() {
-  return scheduleDate.value || selectedBookingDate();
+  return scheduleDate.value || selectedManualDate();
 }
 
 function isDayClosed(date) {
@@ -162,88 +147,18 @@ function isSlotOpen(date, slot) {
   return slot.active && !isDayClosed(date);
 }
 
-function busyWindows(date = selectedBookingDate()) {
+function busyWindows(date = selectedManualDate()) {
   return new Set(state.appointments
     .filter((appointment) => appointment.status === "confirmed" && appointment.bookingDate === date)
     .map((appointment) => appointment.timeWindow));
 }
 
 function render() {
-  renderServices();
-  renderTimeWindows();
-  renderMiniCalendar();
   renderOwnerLists();
+  renderOwnerServices();
   renderManualOptions();
   renderTimeManager();
   renderCalendarIntegration();
-}
-
-function renderServices() {
-  serviceOptions.innerHTML = "";
-
-  activeServices().forEach((service) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = selectedServices.has(service.name) ? "choice active" : "choice";
-    button.innerHTML = `<span class="dot" aria-hidden="true"></span><span>${service.name}</span>`;
-    button.addEventListener("click", () => {
-      if (selectedServices.has(service.name)) {
-        selectedServices.delete(service.name);
-      } else {
-        selectedServices.add(service.name);
-      }
-      serviceError.hidden = true;
-      renderServices();
-    });
-    serviceOptions.append(button);
-  });
-}
-
-function renderTimeWindows() {
-  const busy = busyWindows();
-  const date = selectedBookingDate();
-  timeOptions.innerHTML = "";
-
-  timeSlots().forEach((slot) => {
-    const timeWindow = timeSlotLabel(slot);
-    const isBusy = busy.has(timeWindow);
-    const isClosed = !isSlotOpen(date, slot);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = selectedTime === timeWindow ? "choice active" : "choice";
-    button.disabled = isBusy || isClosed;
-    button.innerHTML = `
-      <span class="dot" aria-hidden="true"></span>
-      <span>${timeWindow}<small>${slotStatusText(date, slot, isBusy)}</small></span>
-    `;
-    button.addEventListener("click", () => {
-      selectedTime = timeWindow;
-      renderTimeWindows();
-    });
-    timeOptions.append(button);
-  });
-
-  const selectedSlot = timeSlots().find((slot) => timeSlotLabel(slot) === selectedTime);
-  if (busy.has(selectedTime) || !selectedSlot || !isSlotOpen(date, selectedSlot)) {
-    selectedTime = "";
-  }
-}
-
-function renderMiniCalendar() {
-  const busy = busyWindows();
-  const date = selectedBookingDate();
-  miniCalendar.innerHTML = "";
-  statusDateTitle.textContent = thaiDate(selectedBookingDate());
-
-  timeSlots().forEach((slot) => {
-    const timeWindow = timeSlotLabel(slot);
-    const isClosed = !isSlotOpen(date, slot);
-    const isBusy = busy.has(timeWindow);
-    const row = document.createElement("div");
-    row.className = isBusy || isClosed ? "mini-slot busy" : "mini-slot";
-    row.innerHTML = `<span>${timeWindow}</span><span class="status-pill">${miniSlotStatusText(date, slot, isBusy)}</span>`;
-    miniCalendar.append(row);
-  });
 }
 
 function renderOwnerLists() {
@@ -306,8 +221,6 @@ function renderOwnerLists() {
 
     requestList.append(card);
   });
-
-  renderOwnerServices();
 }
 
 function renderOwnerServices() {
@@ -335,7 +248,6 @@ function renderOwnerServices() {
     remove.title = "ลบบริการ";
     remove.addEventListener("click", () => {
       state.services = state.services.filter((item) => item.id !== service.id);
-      selectedServices.delete(service.name);
       saveState();
       render();
     });
@@ -378,6 +290,74 @@ function renderManualOptions() {
   });
 }
 
+function renderTimeManager() {
+  const date = selectedScheduleDate();
+  closedDayToggle.checked = isDayClosed(date);
+  ownerTimeSlotList.innerHTML = "";
+
+  timeSlots().forEach((slot) => {
+    const row = document.createElement("div");
+    row.className = slot.active ? "time-slot-item" : "time-slot-item off";
+    row.innerHTML = `
+      <span>
+        <strong>${timeSlotLabel(slot)}</strong>
+        <small>${slot.active ? "เปิดรับจอง" : "ปิดรับจอง"}</small>
+      </span>
+    `;
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "icon-button";
+    toggle.textContent = slot.active ? "เปิด" : "ปิด";
+    toggle.title = "เปิดหรือปิดช่วงเวลา";
+    toggle.addEventListener("click", () => {
+      slot.active = !slot.active;
+      saveState();
+      render();
+      showToast(slot.active ? "เปิดช่วงเวลานี้แล้ว" : "ปิดช่วงเวลานี้แล้ว");
+    });
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "icon-button";
+    remove.textContent = "-";
+    remove.title = "ลบช่วงเวลา";
+    remove.addEventListener("click", () => {
+      state.timeSlots = state.timeSlots.filter((item) => item.id !== slot.id);
+      saveState();
+      render();
+      showToast("ลบช่วงเวลาแล้ว");
+    });
+
+    row.append(toggle, remove);
+    ownerTimeSlotList.append(row);
+  });
+}
+
+function renderCalendarIntegration() {
+  const integration = state.calendarIntegration || defaultState.calendarIntegration;
+  calendarSelect.value = integration.calendarId || "fah-nail-main";
+  syncCalendarButton.disabled = !integration.connected;
+  disconnectCalendarButton.disabled = !integration.connected;
+
+  if (integration.connected) {
+    calendarStatus.className = "calendar-status connected";
+    calendarStatus.innerHTML = `
+      <strong>เชื่อมต่อแล้ว</strong>
+      <span>${escapeHtml(integration.calendarName)} · ${escapeHtml(integration.accountEmail)}</span>
+    `;
+    connectCalendarButton.textContent = "เปลี่ยนปฏิทิน";
+    return;
+  }
+
+  calendarStatus.className = "calendar-status";
+  calendarStatus.innerHTML = `
+    <strong>ยังไม่ได้เชื่อมต่อ</strong>
+    <span>เมื่อยืนยันคิวแล้ว ระบบจะส่งเข้าปฏิทินของร้าน</span>
+  `;
+  connectCalendarButton.textContent = "เชื่อมต่อปฏิทิน";
+}
+
 function confirmRequest(id) {
   const request = state.requests.find((item) => item.id === id);
   if (!request) return;
@@ -406,7 +386,7 @@ function confirmRequest(id) {
   state.requests = state.requests.filter((item) => item.id !== id);
   saveState();
   render();
-  showToast("ยืนยันคิวแล้ว และช่วงเวลานี้จะกดไม่ได้ในหน้าลูกค้า");
+  showToast("ยืนยันคิวแล้ว");
 }
 
 function rejectRequest(id) {
@@ -415,41 +395,6 @@ function rejectRequest(id) {
   render();
   showToast("ปฏิเสธคำขอจองแล้ว");
 }
-
-bookingForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const formData = new FormData(bookingForm);
-
-  if (selectedServices.size === 0) {
-    serviceError.hidden = false;
-    return;
-  }
-
-  if (!selectedTime) {
-    showToast("กรุณาเลือกช่วงเวลาที่สะดวก");
-    return;
-  }
-
-  state.requests.unshift({
-    id: `REQ-${Date.now()}`,
-    customerName: formData.get("customerName").trim(),
-    contact: formData.get("contact").trim(),
-    services: Array.from(selectedServices),
-    bookingDate: formData.get("bookingDate"),
-    timeWindow: selectedTime,
-    note: formData.get("note").trim(),
-    status: "pending_request",
-    source: "customer_request"
-  });
-
-  bookingForm.reset();
-  bookingDate.value = today;
-  selectedServices.clear();
-  selectedTime = "";
-  saveState();
-  render();
-  showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
-});
 
 manualForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -493,11 +438,7 @@ serviceForm.addEventListener("submit", (event) => {
 
   if (!serviceName) return;
 
-  state.services.push({
-    id: `service-${Date.now()}`,
-    name: serviceName,
-    active: true
-  });
+  state.services.push({ id: `service-${Date.now()}`, name: serviceName, active: true });
   serviceForm.reset();
   saveState();
   render();
@@ -521,12 +462,7 @@ slotForm.addEventListener("submit", (event) => {
     return;
   }
 
-  state.timeSlots.push({
-    id: `slot-${Date.now()}`,
-    startTime,
-    endTime,
-    active: true
-  });
+  state.timeSlots.push({ id: `slot-${Date.now()}`, startTime, endTime, active: true });
   state.timeSlots = normalizeTimeSlots(state.timeSlots);
   slotForm.reset();
   saveState();
@@ -534,30 +470,14 @@ slotForm.addEventListener("submit", (event) => {
   showToast("เพิ่มช่วงเวลารับจองแล้ว");
 });
 
-document.querySelectorAll("[data-view-link]").forEach((link) => {
-  link.addEventListener("click", (event) => {
-    event.preventDefault();
-    setView(link.dataset.viewLink);
-  });
-});
-
 document.getElementById("seed-button").addEventListener("click", () => {
   state = structuredClone(defaultState);
-  selectedServices.clear();
-  selectedTime = "";
   saveState();
   render();
   showToast("เติมข้อมูลตัวอย่างแล้ว");
 });
 
-bookingDate.addEventListener("change", () => {
-  renderTimeWindows();
-  renderMiniCalendar();
-  renderManualOptions();
-});
-
 manualDate.addEventListener("change", renderManualOptions);
-
 scheduleDate.addEventListener("change", renderTimeManager);
 
 closedDayToggle.addEventListener("change", () => {
@@ -608,12 +528,15 @@ syncCalendarButton.addEventListener("click", () => {
   showToast("ส่งคิวที่ยืนยันแล้วเข้าปฏิทินแล้ว");
 });
 
-function setView(view) {
-  document.querySelectorAll("[data-view-link]").forEach((link) => {
-    link.classList.toggle("active", link.dataset.viewLink === view);
-  });
-  document.getElementById("customer-view").classList.toggle("active", view === "customer");
-  document.getElementById("owner-view").classList.toggle("active", view === "owner");
+function syncCalendarEvent(appointment) {
+  const integration = state.calendarIntegration || defaultState.calendarIntegration;
+  if (!integration.connected) return appointment;
+
+  return {
+    ...appointment,
+    googleCalendarEventId: `gcal-${appointment.id}`,
+    googleCalendarName: integration.calendarName
+  };
 }
 
 function sourceLabel(source) {
@@ -625,101 +548,6 @@ function sourceLabel(source) {
     facebook: "Facebook",
     admin: "เจ้าของร้านลงเอง"
   }[source] || "หลังบ้าน";
-}
-
-function slotStatusText(date, slot, isBusy = false) {
-  if (isDayClosed(date)) return "หยุดร้าน";
-  if (!slot.active) return "ปิดรับจอง";
-  if (isBusy) return "เต็มแล้ว";
-  return "เลือกช่วงนี้";
-}
-
-function miniSlotStatusText(date, slot, isBusy = false) {
-  if (isDayClosed(date)) return "หยุดร้าน";
-  if (!slot.active) return "ปิด";
-  if (isBusy) return "ไม่ว่าง";
-  return "ว่าง";
-}
-
-function renderTimeManager() {
-  const date = selectedScheduleDate();
-  closedDayToggle.checked = isDayClosed(date);
-  ownerTimeSlotList.innerHTML = "";
-
-  timeSlots().forEach((slot) => {
-    const row = document.createElement("div");
-    row.className = slot.active ? "time-slot-item" : "time-slot-item off";
-    row.innerHTML = `
-      <span>
-        <strong>${timeSlotLabel(slot)}</strong>
-        <small>${slot.active ? "เปิดรับจอง" : "ปิดรับจอง"}</small>
-      </span>
-    `;
-
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "icon-button";
-    toggle.textContent = slot.active ? "เปิด" : "ปิด";
-    toggle.title = "เปิดหรือปิดช่วงเวลา";
-    toggle.addEventListener("click", () => {
-      slot.active = !slot.active;
-      saveState();
-      render();
-      showToast(slot.active ? "เปิดช่วงเวลานี้แล้ว" : "ปิดช่วงเวลานี้แล้ว");
-    });
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "icon-button";
-    remove.textContent = "-";
-    remove.title = "ลบช่วงเวลา";
-    remove.addEventListener("click", () => {
-      const label = timeSlotLabel(slot);
-      state.timeSlots = state.timeSlots.filter((item) => item.id !== slot.id);
-      if (selectedTime === label) selectedTime = "";
-      saveState();
-      render();
-      showToast("ลบช่วงเวลาแล้ว");
-    });
-
-    row.append(toggle, remove);
-    ownerTimeSlotList.append(row);
-  });
-}
-
-function renderCalendarIntegration() {
-  const integration = state.calendarIntegration || defaultState.calendarIntegration;
-  calendarSelect.value = integration.calendarId || "fah-nail-main";
-  syncCalendarButton.disabled = !integration.connected;
-  disconnectCalendarButton.disabled = !integration.connected;
-
-  if (integration.connected) {
-    calendarStatus.className = "calendar-status connected";
-    calendarStatus.innerHTML = `
-      <strong>เชื่อมต่อแล้ว</strong>
-      <span>${escapeHtml(integration.calendarName)} · ${escapeHtml(integration.accountEmail)}</span>
-    `;
-    connectCalendarButton.textContent = "เปลี่ยนปฏิทิน";
-    return;
-  }
-
-  calendarStatus.className = "calendar-status";
-  calendarStatus.innerHTML = `
-    <strong>ยังไม่ได้เชื่อมต่อ</strong>
-    <span>เมื่อยืนยันคิวแล้ว ระบบจะส่งเข้าปฏิทินของร้าน</span>
-  `;
-  connectCalendarButton.textContent = "เชื่อมต่อปฏิทิน";
-}
-
-function syncCalendarEvent(appointment) {
-  const integration = state.calendarIntegration || defaultState.calendarIntegration;
-  if (!integration.connected) return appointment;
-
-  return {
-    ...appointment,
-    googleCalendarEventId: `gcal-${appointment.id}`,
-    googleCalendarName: integration.calendarName
-  };
 }
 
 function thaiDate(value) {
@@ -747,10 +575,8 @@ function escapeHtml(value) {
   }[char]));
 }
 
-bookingDate.value = today;
 manualDate.value = today;
 scheduleDate.value = today;
-bookingDate.min = today;
 manualDate.min = today;
 scheduleDate.min = today;
 render();

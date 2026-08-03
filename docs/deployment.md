@@ -1,0 +1,61 @@
+# Deployment
+
+## โครงสร้างเว็บจริงระยะแรก
+
+- `index.html` คือหน้าลูกค้าสาธารณะ
+- `owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
+- `customer.js` ดูแล flow จองคิวฝั่งลูกค้า
+- `owner.js` ดูแล flow หลังบ้าน
+- `supabase/schema.sql` คือ schema สำหรับฐานข้อมูลจริง
+
+## Cloudflare Pages
+
+ตั้งค่า build บน Cloudflare Pages:
+
+```text
+Framework preset: None
+Build command: ไม่ต้องใส่
+Build output directory: /
+```
+
+ตัวแปรที่ต้องเตรียมเมื่อเชื่อม backend จริง:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+GOOGLE_CLIENT_ID
+GOOGLE_REDIRECT_URI
+APP_URL
+```
+
+## GitHub
+
+หลัง commit แล้ว push ขึ้น GitHub:
+
+```bash
+git push -u origin main
+```
+
+จากนั้นเชื่อม repository กับ Cloudflare Pages
+
+## Supabase
+
+1. สร้าง Supabase project
+2. เปิด SQL Editor
+3. วางเนื้อหาใน `supabase/schema.sql`
+4. Run schema
+5. ตรวจว่าเปิด Row Level Security แล้วทุกตาราง
+
+## Google Calendar
+
+ยังไม่ควรเก็บ token ใน frontend
+
+ระบบจริงต้องเพิ่ม backend endpoint:
+
+```text
+/api/google/connect
+/api/google/callback
+/api/calendar/events
+```
+
+เมื่อเจ้าของร้านยืนยันคิว backend จะสร้าง Google Calendar event แล้วบันทึก `google_calendar_event_id` กลับเข้า `appointments`

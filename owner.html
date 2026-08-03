@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>หน้าร้าน Fah Nail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="owner.html" aria-label="Fah Nail">
+          <span class="brand-mark">FN</span>
+          <span>
+            <strong>Fah Nail</strong>
+            <small>หน้าร้าน</small>
+          </span>
+        </a>
+        <a class="owner-link" href="index.html">ดูหน้าลูกค้า</a>
+      </header>
+
+      <main>
+        <section class="owner-layout" aria-labelledby="owner-title">
+          <section class="owner-main">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">หลังบ้าน</p>
+                <h1 id="owner-title">จัดการคำขอและบันทึกคิว</h1>
+              </div>
+              <img class="owner-mascot" src="assets/queue-shell-mascot.svg" alt="" aria-hidden="true">
+              <button class="secondary-button" type="button" id="seed-button">เติมตัวอย่าง</button>
+            </div>
+
+            <div class="queue-list" id="request-list"></div>
+          </section>
+
+          <aside class="owner-side">
+            <section class="side-card">
+              <h2>เชื่อม Google Calendar</h2>
+              <div class="calendar-card" id="calendar-card">
+                <div class="calendar-status" id="calendar-status"></div>
+                <label>
+                  ปฏิทินของร้าน
+                  <select id="calendar-select">
+                    <option value="fah-nail-main">Fah Nail Booking</option>
+                    <option value="owner-main">ปฏิทินหลักของร้าน</option>
+                    <option value="staff-calendar">ตารางคิวช่าง</option>
+                  </select>
+                </label>
+                <div class="calendar-actions">
+                  <button class="primary-button" type="button" id="connect-calendar-button">เชื่อมต่อปฏิทิน</button>
+                  <button class="secondary-button" type="button" id="sync-calendar-button">ส่งคิวที่ยืนยันแล้ว</button>
+                  <button class="secondary-button" type="button" id="disconnect-calendar-button">ยกเลิก</button>
+                </div>
+                <p class="hint">ระบบจะส่งเข้าปฏิทินเฉพาะคิวที่ยืนยันแล้ว</p>
+              </div>
+            </section>
+
+            <section class="side-card">
+              <h2>ลงคิวเอง</h2>
+              <form id="manual-form" class="compact-form">
+                <label>
+                  ชื่อลูกค้า
+                  <input name="customerName" placeholder="หน้าร้าน / โทรจอง" required>
+                </label>
+                <label>
+                  ช่องทางติดต่อ
+                  <input name="contact" placeholder="เบอร์ / LINE / Facebook" required>
+                </label>
+                <label>
+                  วันที่
+                  <input type="date" name="bookingDate" id="manual-date" required>
+                </label>
+                <label>
+                  ช่วงเวลา
+                  <select name="timeWindow" id="manual-time" required></select>
+                </label>
+                <label>
+                  บริการ
+                  <select name="serviceId" id="manual-service" required></select>
+                </label>
+                <button class="primary-button" type="submit">บันทึกคิว</button>
+              </form>
+            </section>
+
+            <section class="side-card">
+              <h2>จัดการเวลารับจอง</h2>
+              <div class="time-manager">
+                <label>
+                  วันที่ตั้งค่า
+                  <input type="date" id="schedule-date" required>
+                </label>
+                <label class="switch-row">
+                  <input type="checkbox" id="closed-day-toggle">
+                  <span>ปิดรับจองทั้งวัน</span>
+                </label>
+                <div class="time-slot-list" id="owner-time-slot-list"></div>
+                <form id="slot-form" class="slot-form">
+                  <label>
+                    เริ่ม
+                    <input type="time" name="startTime" required>
+                  </label>
+                  <label>
+                    สิ้นสุด
+                    <input type="time" name="endTime" required>
+                  </label>
+                  <button class="secondary-button" type="submit">เพิ่มช่วงเวลา</button>
+                </form>
+              </div>
+            </section>
+
+            <section class="side-card">
+              <h2>จัดการบริการ</h2>
+              <form id="service-form" class="inline-form">
+                <input name="serviceName" placeholder="เพิ่มบริการใหม่" required>
+                <button class="secondary-button" type="submit">เพิ่ม</button>
+              </form>
+              <div class="service-list" id="owner-service-list"></div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="owner.js"></script>
+  </body>
+</html>
