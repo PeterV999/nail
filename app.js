@@ -14,6 +14,13 @@ const defaultTimeSlots = [
 const defaultState = {
   timeSlots: defaultTimeSlots,
   closedDates: [],
+  calendarIntegration: {
+    connected: false,
+    provider: "google",
+    accountEmail: "",
+    calendarId: "",
+    calendarName: ""
+  },
   services: [
     { id: "gel", name: "สีเจล", active: true },
     { id: "art", name: "เพ้นท์ลาย", active: true },
@@ -63,6 +70,11 @@ const bookingDate = document.getElementById("booking-date");
 const manualDate = document.getElementById("manual-date");
 const scheduleDate = document.getElementById("schedule-date");
 const closedDayToggle = document.getElementById("closed-day-toggle");
+const calendarStatus = document.getElementById("calendar-status");
+const calendarSelect = document.getElementById("calendar-select");
+const connectCalendarButton = document.getElementById("connect-calendar-button");
+const syncCalendarButton = document.getElementById("sync-calendar-button");
+const disconnectCalendarButton = document.getElementById("disconnect-calendar-button");
 const bookingForm = document.getElementById("booking-form");
 const manualForm = document.getElementById("manual-form");
 const serviceForm = document.getElementById("service-form");
@@ -82,6 +94,7 @@ function loadState() {
     parsed.appointments = (parsed.appointments || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today }));
     parsed.timeSlots = normalizeTimeSlots(parsed.timeSlots || defaultTimeSlots);
     parsed.closedDates = parsed.closedDates || [];
+    parsed.calendarIntegration = parsed.calendarIntegration || structuredClone(defaultState.calendarIntegration);
     return parsed;
   } catch {
     return structuredClone(defaultState);
@@ -162,6 +175,7 @@ function render() {
   renderOwnerLists();
   renderManualOptions();
   renderTimeManager();
+  renderCalendarIntegration();
 }
 
 function renderServices() {
@@ -265,6 +279,7 @@ function renderOwnerLists() {
         <span>${escapeHtml(item.timeWindow)}</span>
         <span>${escapeHtml(item.services.join(", "))}</span>
         <span>${sourceText}</span>
+        ${item.googleCalendarEventId ? "<span>เข้าปฏิทินแล้ว</span>" : ""}
       </div>
       ${item.note ? `<p class="hint">${escapeHtml(item.note)}</p>` : ""}
     `;
@@ -378,7 +393,7 @@ function confirmRequest(id) {
     return;
   }
 
-  state.appointments.push({
+  state.appointments.push(syncCalendarEvent({
     id: `APT-${Date.now()}`,
     customerName: request.customerName,
     contact: request.contact,
@@ -387,7 +402,7 @@ function confirmRequest(id) {
     timeWindow: request.timeWindow,
     status: "confirmed",
     source: "customer_request"
-  });
+  }));
   state.requests = state.requests.filter((item) => item.id !== id);
   saveState();
   render();
@@ -453,7 +468,7 @@ manualForm.addEventListener("submit", (event) => {
     return;
   }
 
-  state.appointments.unshift({
+  state.appointments.unshift(syncCalendarEvent({
     id: `APT-${Date.now()}`,
     customerName: formData.get("customerName").trim(),
     contact: formData.get("contact").trim(),
@@ -462,7 +477,7 @@ manualForm.addEventListener("submit", (event) => {
     timeWindow,
     status: "confirmed",
     source: "admin"
-  });
+  }));
 
   manualForm.reset();
   manualDate.value = today;
@@ -557,6 +572,42 @@ closedDayToggle.addEventListener("change", () => {
   showToast(closedDayToggle.checked ? "ปิดรับจองทั้งวันแล้ว" : "เปิดรับจองวันนี้แล้ว");
 });
 
+connectCalendarButton.addEventListener("click", () => {
+  const selectedOption = calendarSelect.selectedOptions[0];
+  state.calendarIntegration = {
+    connected: true,
+    provider: "google",
+    accountEmail: "fahnail.shop@gmail.com",
+    calendarId: calendarSelect.value,
+    calendarName: selectedOption.textContent
+  };
+  saveState();
+  render();
+  showToast("เชื่อมต่อ Google Calendar แล้ว");
+});
+
+disconnectCalendarButton.addEventListener("click", () => {
+  state.calendarIntegration = structuredClone(defaultState.calendarIntegration);
+  saveState();
+  render();
+  showToast("ยกเลิกการเชื่อมต่อปฏิทินแล้ว");
+});
+
+syncCalendarButton.addEventListener("click", () => {
+  if (!state.calendarIntegration.connected) {
+    showToast("กรุณาเชื่อมต่อ Google Calendar ก่อน");
+    return;
+  }
+
+  state.appointments = state.appointments.map((appointment) => {
+    if (appointment.status !== "confirmed" || appointment.googleCalendarEventId) return appointment;
+    return syncCalendarEvent(appointment);
+  });
+  saveState();
+  render();
+  showToast("ส่งคิวที่ยืนยันแล้วเข้าปฏิทินแล้ว");
+});
+
 function setView(view) {
   document.querySelectorAll("[data-view-link]").forEach((link) => {
     link.classList.toggle("active", link.dataset.viewLink === view);
@@ -634,6 +685,41 @@ function renderTimeManager() {
     row.append(toggle, remove);
     ownerTimeSlotList.append(row);
   });
+}
+
+function renderCalendarIntegration() {
+  const integration = state.calendarIntegration || defaultState.calendarIntegration;
+  calendarSelect.value = integration.calendarId || "fah-nail-main";
+  syncCalendarButton.disabled = !integration.connected;
+  disconnectCalendarButton.disabled = !integration.connected;
+
+  if (integration.connected) {
+    calendarStatus.className = "calendar-status connected";
+    calendarStatus.innerHTML = `
+      <strong>เชื่อมต่อแล้ว</strong>
+      <span>${escapeHtml(integration.calendarName)} · ${escapeHtml(integration.accountEmail)}</span>
+    `;
+    connectCalendarButton.textContent = "เปลี่ยนปฏิทิน";
+    return;
+  }
+
+  calendarStatus.className = "calendar-status";
+  calendarStatus.innerHTML = `
+    <strong>ยังไม่ได้เชื่อมต่อ</strong>
+    <span>เมื่อยืนยันคิวแล้ว ระบบจะส่งเข้าปฏิทินของร้าน</span>
+  `;
+  connectCalendarButton.textContent = "เชื่อมต่อปฏิทิน";
+}
+
+function syncCalendarEvent(appointment) {
+  const integration = state.calendarIntegration || defaultState.calendarIntegration;
+  if (!integration.connected) return appointment;
+
+  return {
+    ...appointment,
+    googleCalendarEventId: `gcal-${appointment.id}`,
+    googleCalendarName: integration.calendarName
+  };
 }
 
 function thaiDate(value) {

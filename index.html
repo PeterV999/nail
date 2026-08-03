@@ -115,6 +115,27 @@
 
             <aside class="owner-side">
               <section class="side-card">
+                <h2>เชื่อม Google Calendar</h2>
+                <div class="calendar-card" id="calendar-card">
+                  <div class="calendar-status" id="calendar-status"></div>
+                  <label>
+                    ปฏิทินของร้าน
+                    <select id="calendar-select">
+                      <option value="fah-nail-main">Fah Nail Booking</option>
+                      <option value="owner-main">ปฏิทินหลักของร้าน</option>
+                      <option value="staff-calendar">ตารางคิวช่าง</option>
+                    </select>
+                  </label>
+                  <div class="calendar-actions">
+                    <button class="primary-button" type="button" id="connect-calendar-button">เชื่อมต่อปฏิทิน</button>
+                    <button class="secondary-button" type="button" id="sync-calendar-button">ส่งคิวที่ยืนยันแล้ว</button>
+                    <button class="secondary-button" type="button" id="disconnect-calendar-button">ยกเลิก</button>
+                  </div>
+                  <p class="hint">ระบบจะส่งเข้าปฏิทินเฉพาะคิวที่ยืนยันแล้ว</p>
+                </div>
+              </section>
+
+              <section class="side-card">
                 <h2>ลงคิวเอง</h2>
                 <form id="manual-form" class="compact-form">
                   <label>

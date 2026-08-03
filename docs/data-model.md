@@ -93,6 +93,7 @@ selected_service_ids
 status
 source
 google_calendar_event_id
+google_calendar_name
 created_by
 created_at
 updated_at

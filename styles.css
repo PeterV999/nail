@@ -549,6 +549,36 @@ textarea {
   margin-top: 12px;
 }
 
+.calendar-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.calendar-status {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--soft-lavender);
+}
+
+.calendar-status.connected {
+  background: linear-gradient(135deg, var(--soft-mint), #e5fbff);
+}
+
+.calendar-status span {
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.calendar-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .switch-row {
   display: flex;
   align-items: center;
@@ -758,11 +788,18 @@ textarea {
     display: grid;
   }
 
-  .primary-button,
-  .secondary-button,
-  .danger-button {
+.primary-button,
+.secondary-button,
+.danger-button {
     min-height: 46px;
   }
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: .56;
 }
 
 @media (max-width: 380px) {
