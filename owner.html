@@ -4,22 +4,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>หน้าร้าน Fah Nail</title>
+    <script>document.write(`<base href="${location.protocol === "file:" ? "./" : "/"}">`);</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="/dashboard/fah-nail" aria-label="Fah Nail">
+        <a class="brand" href="owner.html" aria-label="Fah Nail">
           <span class="brand-mark">FN</span>
           <span>
             <strong>Fah Nail</strong>
             <small>หน้าร้าน</small>
           </span>
         </a>
-        <a class="owner-link" href="/book/fah-nail">ดูหน้าลูกค้า</a>
+        <a class="owner-link" href="index.html">ดูหน้าลูกค้า</a>
       </header>
 
       <main>
@@ -43,7 +44,7 @@
                 <p class="eyebrow">หลังบ้าน</p>
                 <h1 id="owner-title">จัดการคำขอและบันทึกคิว</h1>
               </div>
-              <img class="owner-mascot" src="/assets/queue-shell-mascot.svg" alt="" aria-hidden="true">
+              <img class="owner-mascot" src="assets/queue-shell-mascot.svg" alt="" aria-hidden="true">
               <div class="owner-session">
                 <span id="owner-account">ตรวจสอบบัญชี...</span>
                 <button class="secondary-button" type="button" id="logout-button">ออกจากระบบ</button>
@@ -181,8 +182,8 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/app-config.js"></script>
-    <script src="/supabase-adapter.js"></script>
-    <script src="/owner.js"></script>
+    <script src="app-config.js"></script>
+    <script src="supabase-adapter.js"></script>
+    <script src="owner.js"></script>
   </body>
 </html>

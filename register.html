@@ -4,22 +4,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ลงทะเบียนร้าน | Fah Nail Booking</title>
+    <script>document.write(`<base href="${location.protocol === "file:" ? "./" : "/"}">`);</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="/book/fah-nail" aria-label="Fah Nail Booking">
+        <a class="brand" href="index.html" aria-label="Fah Nail Booking">
           <span class="brand-mark">FN</span>
           <span>
             <strong>Fah Nail Booking</strong>
             <small>ระบบจองคิวสำหรับร้านทำเล็บ</small>
           </span>
         </a>
-        <a class="owner-link" href="/dashboard/fah-nail">เข้าสู่หลังบ้าน</a>
+        <a class="owner-link" href="owner.html">เข้าสู่หลังบ้าน</a>
       </header>
 
       <main>
@@ -64,8 +65,8 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/app-config.js"></script>
-    <script src="/supabase-adapter.js"></script>
-    <script src="/register.js"></script>
+    <script src="app-config.js"></script>
+    <script src="supabase-adapter.js"></script>
+    <script src="register.js"></script>
   </body>
 </html>
