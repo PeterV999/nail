@@ -82,6 +82,9 @@ let state = loadState();
 let remoteMode = false;
 let currentShopSlug = window.FahNailSupabase?.routeShopSlug?.() || "fah-nail";
 let currentOwnerEmail = "";
+let currentOwnerRole = "";
+let currentMemberShops = [];
+let calendarTokenReady = false;
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
@@ -92,6 +95,7 @@ const ownerAccount = document.getElementById("owner-account");
 const authCopy = document.getElementById("auth-copy");
 const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
+const ownerConnectionGrid = document.getElementById("owner-connection-grid");
 const ownerStats = document.getElementById("owner-stats");
 const customerList = document.getElementById("customer-list");
 const ownerServiceList = document.getElementById("owner-service-list");
@@ -115,6 +119,15 @@ const shopLineInput = document.getElementById("shop-line");
 const shopFacebookInput = document.getElementById("shop-facebook");
 const ownerTimeSlotList = document.getElementById("owner-time-slot-list");
 const toast = document.getElementById("toast");
+const ownerDialog = document.getElementById("owner-dialog");
+const ownerDialogBadge = document.getElementById("owner-dialog-badge");
+const ownerDialogTitle = document.getElementById("owner-dialog-title");
+const ownerDialogMessage = document.getElementById("owner-dialog-message");
+const ownerDialogSummary = document.getElementById("owner-dialog-summary");
+const ownerDialogCancel = document.getElementById("owner-dialog-cancel");
+const ownerDialogConfirm = document.getElementById("owner-dialog-confirm");
+let ownerDialogResolve = null;
+let ownerDialogResult = false;
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -197,6 +210,7 @@ function busyWindows(date = selectedManualDate()) {
 }
 
 function render() {
+  renderOwnerConnection();
   renderOwnerStats();
   renderOwnerLists();
   renderCustomers();
@@ -205,6 +219,63 @@ function render() {
   renderTimeManager();
   renderCalendarIntegration();
   renderShopSettings();
+}
+
+function renderOwnerConnection() {
+  if (!ownerConnectionGrid) return;
+
+  const integration = state.calendarIntegration || defaultState.calendarIntegration;
+  const memberShopText = currentMemberShops.length
+    ? currentMemberShops.map((shop) => shop.name || shop.slug).join(", ")
+    : remoteMode ? "เฉพาะร้านนี้" : "โหมดตัวอย่าง";
+  const calendarText = calendarConnectionText(integration);
+
+  ownerConnectionGrid.innerHTML = `
+    <div class="connection-card">
+      <span>บัญชีหลังบ้าน</span>
+      <strong>${escapeHtml(currentOwnerEmail || "โหมดตัวอย่างในเครื่อง")}</strong>
+      <small>${remoteMode ? "เข้าสู่ระบบผ่าน Google / Supabase" : "ข้อมูลตัวอย่าง ไม่ใช่ระบบจริง"}</small>
+    </div>
+    <div class="connection-card">
+      <span>สิทธิ์ร้านนี้</span>
+      <strong>${escapeHtml(remoteMode ? `ผ่าน (${currentOwnerRole || "owner"})` : "โหมดตัวอย่าง")}</strong>
+      <small>ผู้ใช้อื่นต้องมีรายชื่อใน shop_members ก่อนจึงจะเห็นหลังบ้าน</small>
+    </div>
+    <div class="connection-card">
+      <span>ร้านของบัญชีนี้</span>
+      <strong>${escapeHtml(memberShopText)}</strong>
+      <small>แสดงเฉพาะร้านที่บัญชีนี้มีสิทธิ์ดูแล</small>
+    </div>
+    <div class="connection-card ${calendarText.statusClass}">
+      <span>Google Calendar</span>
+      <strong>${escapeHtml(calendarText.title)}</strong>
+      <small>${escapeHtml(calendarText.detail)}</small>
+    </div>
+  `;
+}
+
+function calendarConnectionText(integration) {
+  if (!integration.connected) {
+    return {
+      title: "ยังไม่ได้เลือกปฏิทิน",
+      detail: "เลือกปฏิทินก่อนส่งคิวที่ยืนยันแล้ว",
+      statusClass: ""
+    };
+  }
+
+  if (remoteMode && !calendarTokenReady) {
+    return {
+      title: "ต้องอนุญาต Calendar ใหม่",
+      detail: "ออกจากระบบแล้วเข้าสู่ระบบ Google ใหม่เพื่อให้สิทธิ์ Calendar",
+      statusClass: "warning"
+    };
+  }
+
+  return {
+    title: "พร้อมส่งคิว",
+    detail: integration.calendarName || integration.calendarId || "primary",
+    statusClass: "connected"
+  };
 }
 
 async function initOwnerAccess() {
@@ -218,8 +289,11 @@ async function initOwnerAccess() {
     if (authState?.configured && authState.session && authState.member) {
       remoteMode = true;
       currentOwnerEmail = authState.user?.email || authState.session.user?.email || "";
+      currentOwnerRole = authState.member.role || "owner";
+      currentMemberShops = await safeListMemberShops();
+      calendarTokenReady = await safeCalendarTokenStatus();
       await loadRemoteOwnerState();
-      showOwnerApp("เข้าสู่ระบบแล้ว");
+      showOwnerApp();
       return;
     }
 
@@ -306,9 +380,28 @@ function updateRouteLinks() {
 }
 
 async function reloadAfterRemote(message) {
+  calendarTokenReady = await safeCalendarTokenStatus();
   await loadRemoteOwnerState();
   render();
   if (message) showToast(message);
+}
+
+async function safeListMemberShops() {
+  try {
+    return await window.FahNailSupabase?.listMemberShops?.() || [];
+  } catch (error) {
+    console.warn("List member shops failed", error);
+    return [];
+  }
+}
+
+async function safeCalendarTokenStatus() {
+  try {
+    return await window.FahNailSupabase?.hasGoogleCalendarToken?.() || false;
+  } catch (error) {
+    console.warn("Calendar token check failed", error);
+    return false;
+  }
 }
 
 function renderOwnerStats() {
@@ -519,6 +612,13 @@ async function toggleService(service) {
 }
 
 async function removeService(serviceId) {
+  const confirmed = await confirmOwnerAction({
+    title: "ลบบริการนี้หรือไม่",
+    message: "บริการนี้จะหายจากตัวเลือกหน้าจองของลูกค้า",
+    actionText: "ลบบริการ"
+  });
+  if (!confirmed) return;
+
   try {
     if (remoteMode) {
       await window.FahNailSupabase.deleteService(serviceId);
@@ -621,6 +721,13 @@ async function toggleTimeSlot(slot) {
 }
 
 async function removeTimeSlot(slotId) {
+  const confirmed = await confirmOwnerAction({
+    title: "ลบช่วงเวลานี้หรือไม่",
+    message: "ช่วงเวลานี้จะหายจากตัวเลือกที่ร้านใช้จัดคิว",
+    actionText: "ลบช่วงเวลา"
+  });
+  if (!confirmed) return;
+
   try {
     if (remoteMode) {
       await window.FahNailSupabase.deleteTimeSlot(slotId);
@@ -707,6 +814,13 @@ async function confirmRequest(id) {
 }
 
 async function rejectRequest(id) {
+  const confirmed = await confirmOwnerAction({
+    title: "ปฏิเสธคำขอนี้หรือไม่",
+    message: "คำขอนี้จะถูกนำออกจากรายการรอยืนยันของร้าน",
+    actionText: "ปฏิเสธคำขอ"
+  });
+  if (!confirmed) return;
+
   try {
     if (remoteMode) {
       await window.FahNailSupabase.rejectBookingRequest(id, currentShopSlug);
@@ -896,18 +1010,6 @@ slotForm.addEventListener("submit", async (event) => {
   showToast("เพิ่มช่วงเวลารับจองแล้ว");
 });
 
-document.getElementById("seed-button").addEventListener("click", () => {
-  if (remoteMode) {
-    showToast("โหมดข้อมูลจริงไม่เติมข้อมูลตัวอย่าง");
-    return;
-  }
-
-  state = structuredClone(defaultState);
-  saveState();
-  render();
-  showToast("เติมข้อมูลตัวอย่างแล้ว");
-});
-
 googleLoginButton.addEventListener("click", async () => {
   try {
     await window.FahNailSupabase?.signInWithGoogle();
@@ -918,6 +1020,11 @@ googleLoginButton.addEventListener("click", async () => {
 });
 
 demoLoginButton.addEventListener("click", () => {
+  remoteMode = false;
+  currentOwnerEmail = "";
+  currentOwnerRole = "demo";
+  currentMemberShops = [];
+  calendarTokenReady = false;
   showOwnerApp("เปิดหลังบ้านโหมดตัวอย่าง");
 });
 
@@ -927,6 +1034,11 @@ logoutButton.addEventListener("click", async () => {
   } catch (error) {
     console.warn("Sign out failed", error);
   }
+  remoteMode = false;
+  currentOwnerEmail = "";
+  currentOwnerRole = "";
+  currentMemberShops = [];
+  calendarTokenReady = false;
   showAuthPanel(!window.FahNailSupabase?.isConfigured());
 });
 
@@ -961,6 +1073,13 @@ closedDayToggle.addEventListener("change", async () => {
 });
 
 async function cancelAppointment(id) {
+  const confirmed = await confirmOwnerAction({
+    title: "ยกเลิกคิวนี้หรือไม่",
+    message: "คิวนี้จะไม่ถูกนับเป็นช่วงเวลาที่จองแล้ว",
+    actionText: "ยกเลิกคิว"
+  });
+  if (!confirmed) return;
+
   try {
     if (remoteMode) {
       await window.FahNailSupabase.cancelAppointment(id, currentShopSlug);
@@ -1007,6 +1126,13 @@ connectCalendarButton.addEventListener("click", async () => {
 });
 
 disconnectCalendarButton.addEventListener("click", async () => {
+  const confirmed = await confirmOwnerAction({
+    title: "ยกเลิกการเชื่อมปฏิทินหรือไม่",
+    message: "ระบบจะไม่ส่งคิวใหม่เข้า Google Calendar จนกว่าจะเชื่อมต่ออีกครั้ง",
+    actionText: "ยกเลิกการเชื่อม"
+  });
+  if (!confirmed) return;
+
   try {
     if (remoteMode) {
       await window.FahNailSupabase.removeCalendarIntegration(currentShopSlug);
@@ -1114,11 +1240,115 @@ function thaiDate(value) {
 }
 
 function showToast(message) {
+  if (ownerDialog && ownerDialogTitle && ownerDialogMessage) {
+    showOwnerNotice(message);
+    return;
+  }
+
   toast.textContent = message;
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
+
+function showOwnerNotice(message) {
+  configureOwnerDialog({
+    title: noticeTitle(message),
+    message,
+    badge: noticeBadge(message),
+    confirmText: "",
+    cancelText: "ปิด"
+  });
+  openOwnerDialog();
+}
+
+function confirmOwnerAction({ title, message, actionText }) {
+  if (!ownerDialog || typeof ownerDialog.showModal !== "function") {
+    return Promise.resolve(window.confirm(message));
+  }
+
+  configureOwnerDialog({
+    title,
+    message,
+    badge: "!",
+    confirmText: actionText,
+    cancelText: "กลับ"
+  });
+
+  return new Promise((resolve) => {
+    ownerDialogResolve = resolve;
+    ownerDialogResult = false;
+    openOwnerDialog();
+  });
+}
+
+function configureOwnerDialog({ title, message, badge, confirmText, cancelText }) {
+  if (ownerDialogTitle) ownerDialogTitle.textContent = title;
+  if (ownerDialogMessage) ownerDialogMessage.textContent = message;
+  if (ownerDialogBadge) ownerDialogBadge.textContent = badge || "FN";
+  if (ownerDialogSummary) {
+    ownerDialogSummary.hidden = true;
+    ownerDialogSummary.textContent = "";
+  }
+  if (ownerDialogCancel) ownerDialogCancel.textContent = cancelText || "ปิด";
+  if (ownerDialogConfirm) {
+    ownerDialogConfirm.hidden = !confirmText;
+    ownerDialogConfirm.textContent = confirmText || "ยืนยัน";
+    ownerDialogConfirm.className = confirmText ? "danger-button" : "primary-button";
+  }
+  ownerDialogCancel?.parentElement?.classList.toggle("confirming", Boolean(confirmText));
+}
+
+function openOwnerDialog() {
+  if (!ownerDialog) return;
+  if (ownerDialog.open) ownerDialog.close();
+  if (typeof ownerDialog.showModal === "function") {
+    ownerDialog.showModal();
+    return;
+  }
+  ownerDialog.hidden = false;
+  ownerDialog.classList.add("open");
+}
+
+function closeOwnerDialog(result = false) {
+  ownerDialogResult = result;
+  if (ownerDialog?.open) {
+    ownerDialog.close();
+    return;
+  }
+  ownerDialog?.classList.remove("open");
+  if (ownerDialog) ownerDialog.hidden = true;
+  resolveOwnerDialog(result);
+}
+
+function resolveOwnerDialog(result = false) {
+  if (!ownerDialogResolve) return;
+  const resolve = ownerDialogResolve;
+  ownerDialogResolve = null;
+  resolve(result);
+}
+
+function noticeTitle(message) {
+  if (message.includes("ไม่สำเร็จ") || message.startsWith("ยัง")) return "ยังทำรายการไม่สำเร็จ";
+  if (message.startsWith("กรุณา") || message.includes("ต้อง")) return "ต้องตรวจสอบอีกครั้ง";
+  return "ทำรายการสำเร็จ";
+}
+
+function noticeBadge(message) {
+  if (message.includes("ไม่สำเร็จ") || message.startsWith("ยัง")) return "!";
+  if (message.startsWith("กรุณา") || message.includes("ต้อง")) return "!";
+  return "FN";
+}
+
+ownerDialogCancel?.addEventListener("click", () => closeOwnerDialog(false));
+ownerDialogConfirm?.addEventListener("click", () => closeOwnerDialog(true));
+ownerDialog?.addEventListener("click", (event) => {
+  if (event.target === ownerDialog) closeOwnerDialog(false);
+});
+ownerDialog?.addEventListener("close", () => {
+  resolveOwnerDialog(ownerDialogResult);
+  ownerDialogResult = false;
+});
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({

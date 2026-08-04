@@ -48,10 +48,10 @@
               <div class="owner-session">
                 <span id="owner-account">ตรวจสอบบัญชี...</span>
                 <button class="secondary-button" type="button" id="logout-button">ออกจากระบบ</button>
-                <button class="secondary-button" type="button" id="seed-button">เติมตัวอย่าง</button>
               </div>
             </div>
 
+            <div class="connection-grid" id="owner-connection-grid" aria-label="สถานะการเชื่อมต่อ"></div>
             <div class="owner-stats" id="owner-stats"></div>
             <div class="queue-list" id="request-list"></div>
           </section>
@@ -179,6 +179,19 @@
         </section>
       </main>
     </div>
+
+    <dialog class="owner-dialog" id="owner-dialog" aria-labelledby="owner-dialog-title">
+      <div class="owner-dialog-card">
+        <div class="dialog-badge" id="owner-dialog-badge" aria-hidden="true">FN</div>
+        <h2 id="owner-dialog-title">ทำรายการแล้ว</h2>
+        <p id="owner-dialog-message"></p>
+        <div class="dialog-summary" id="owner-dialog-summary" hidden></div>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" id="owner-dialog-cancel">ปิด</button>
+          <button class="primary-button" type="button" id="owner-dialog-confirm" hidden>ยืนยัน</button>
+        </div>
+      </div>
+    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -665,6 +665,10 @@
     return data.session?.provider_token || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY) || "";
   }
 
+  async function hasGoogleCalendarToken() {
+    return Boolean(await googleProviderToken());
+  }
+
   function calendarEventPayload(appointment, shopName) {
     const [startTime, endTime] = appointment.timeWindow.split("-");
     const services = (appointment.services || []).join(", ");
@@ -716,6 +720,7 @@
     createOwnerAppointment,
     cancelAppointment,
     syncAppointmentToGoogleCalendar,
+    hasGoogleCalendarToken,
     setCalendarIntegration,
     removeCalendarIntegration,
     createService,

@@ -534,6 +534,51 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.connection-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.connection-card {
+  display: grid;
+  gap: 4px;
+  min-height: 96px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(231, 251, 255, .9));
+}
+
+.connection-card span {
+  color: var(--primary-dark);
+  font-size: .78rem;
+  font-weight: 900;
+}
+
+.connection-card strong {
+  color: var(--ink);
+  font-size: .95rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.connection-card small {
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.connection-card.connected {
+  background: linear-gradient(145deg, #ecfffb, var(--soft-mint));
+}
+
+.connection-card.warning {
+  background: linear-gradient(145deg, #fffaf0, var(--soft-peach));
+}
+
 .queue-list,
 .service-list,
 .customer-list {
@@ -806,7 +851,8 @@ textarea {
   transform: translateX(-50%) translateY(0);
 }
 
-.booking-dialog {
+.booking-dialog,
+.owner-dialog {
   width: min(390px, calc(100% - 30px));
   padding: 0;
   border: 0;
@@ -815,12 +861,14 @@ textarea {
   background: transparent;
 }
 
-.booking-dialog::backdrop {
+.booking-dialog::backdrop,
+.owner-dialog::backdrop {
   background: rgba(32, 61, 72, .34);
   backdrop-filter: blur(6px);
 }
 
-.booking-dialog-card {
+.booking-dialog-card,
+.owner-dialog-card {
   display: grid;
   gap: 12px;
   padding: 24px;
@@ -846,13 +894,15 @@ textarea {
   box-shadow: 0 14px 26px rgba(20, 169, 191, .28);
 }
 
-.booking-dialog h2 {
+.booking-dialog h2,
+.owner-dialog h2 {
   margin: 0;
   font-size: 1.4rem;
   line-height: 1.2;
 }
 
-.booking-dialog p {
+.booking-dialog p,
+.owner-dialog p {
   margin: 0;
   color: var(--muted);
   line-height: 1.65;
@@ -871,6 +921,23 @@ textarea {
 .booking-dialog .primary-button {
   width: 100%;
   margin-top: 2px;
+}
+
+.dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.dialog-actions.confirming {
+  grid-template-columns: 1fr 1fr;
+}
+
+.owner-dialog .primary-button,
+.owner-dialog .secondary-button,
+.owner-dialog .danger-button {
+  width: 100%;
 }
 
 @media (max-width: 900px) {
@@ -954,6 +1021,10 @@ textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .connection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .slot-form button {
     grid-column: auto;
   }
@@ -1014,6 +1085,10 @@ textarea {
   }
 
   .owner-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .connection-grid {
     grid-template-columns: 1fr;
   }
 
