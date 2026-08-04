@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-type CalendarAction = "connect" | "status" | "syncAppointment";
+type CalendarAction = "connect" | "status" | "syncAppointment" | "cancelAppointment";
 
 type RequestBody = {
   action?: CalendarAction;
@@ -53,6 +53,10 @@ serve(async (request) => {
 
     if (body.action === "syncAppointment") {
       return json(await syncAppointment(admin, shop, member.role, body));
+    }
+
+    if (body.action === "cancelAppointment") {
+      return json(await cancelAppointment(admin, shop, body));
     }
 
     throw httpError("UNKNOWN_ACTION", "Unsupported calendar action", 400);
@@ -232,6 +236,72 @@ async function syncAppointment(admin: any, shop: any, _role: string, body: Reque
     ok: true,
     eventId: event.id,
     calendarId
+  };
+}
+
+async function cancelAppointment(admin: any, shop: any, body: RequestBody) {
+  if (!body.appointmentId) {
+    throw httpError("APPOINTMENT_ID_REQUIRED", "appointmentId is required", 400);
+  }
+
+  const { data: appointment, error: appointmentError } = await admin
+    .from("appointments")
+    .select("id,status,google_calendar_event_id,google_calendar_name")
+    .eq("id", body.appointmentId)
+    .eq("shop_id", shop.id)
+    .single();
+
+  if (appointmentError || !appointment) {
+    throw httpError("APPOINTMENT_NOT_FOUND", "Appointment not found", 404);
+  }
+
+  let deletedEvent = false;
+
+  if (appointment.google_calendar_event_id) {
+    const integration = await getIntegration(admin, shop.id);
+    if (!integration?.refresh_token_encrypted) {
+      throw httpError("GOOGLE_REFRESH_TOKEN_REQUIRED", "Connect Google Calendar again", 400);
+    }
+
+    const accessToken = await refreshGoogleAccessToken(admin, integration);
+    const calendarId = appointment.google_calendar_name || integration.calendar_id || "primary";
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(appointment.google_calendar_event_id)}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    if (!response.ok && response.status !== 404 && response.status !== 410) {
+      const detail = await response.text().catch(() => "");
+      await saveSyncError(admin, integration.id, detail || "Google Calendar delete failed");
+      throw httpError("GOOGLE_CALENDAR_DELETE_FAILED", "Google Calendar delete failed", 502);
+    }
+
+    deletedEvent = response.ok;
+    await saveSyncError(admin, integration.id, null);
+  }
+
+  const { error: updateError } = await admin
+    .from("appointments")
+    .update({
+      status: "cancelled",
+      google_calendar_event_id: null,
+      google_calendar_name: null,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", appointment.id)
+    .eq("shop_id", shop.id);
+
+  if (updateError) throw updateError;
+
+  return {
+    ok: true,
+    cancelled: true,
+    deletedEvent
   };
 }
 

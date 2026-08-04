@@ -484,15 +484,11 @@
     const db = client();
     if (!db) return false;
 
-    const shop = await getShop(slug);
-    const { error } = await db
-      .from("appointments")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("id", appointmentId)
-      .eq("shop_id", shop.id);
-
-    if (error) throw error;
-    return true;
+    return await invokeCalendarFunction({
+      action: "cancelAppointment",
+      shopSlug: slug,
+      appointmentId
+    });
   }
 
   async function setCalendarIntegration(calendarId, slug = routeShopSlug()) {

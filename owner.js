@@ -1108,7 +1108,7 @@ async function cancelAppointment(id) {
     showToast("ยกเลิกคิวแล้ว");
   } catch (error) {
     console.warn("Cancel appointment failed", error);
-    showToast("ยังยกเลิกคิวไม่สำเร็จ");
+    showToast(error?.message?.startsWith("GOOGLE_") ? calendarErrorMessage(error) : "ยังยกเลิกคิวไม่สำเร็จ");
   }
 }
 
@@ -1236,6 +1236,10 @@ function calendarErrorMessage(error) {
 
   if (error?.message === "GOOGLE_CALENDAR_API_FAILED") {
     return "ยังส่งเข้า Google Calendar ไม่สำเร็จ กรุณาตรวจสิทธิ์ Calendar";
+  }
+
+  if (error?.message === "GOOGLE_CALENDAR_DELETE_FAILED") {
+    return "ยังลบคิวออกจาก Google Calendar ไม่สำเร็จ กรุณาตรวจสิทธิ์ Calendar";
   }
 
   return "ยังส่งคิวเข้าปฏิทินไม่สำเร็จ";
