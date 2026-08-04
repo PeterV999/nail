@@ -44,8 +44,11 @@
                 <h1 id="owner-title">จัดการคำขอและบันทึกคิว</h1>
               </div>
               <img class="owner-mascot" src="/assets/queue-shell-mascot.svg" alt="" aria-hidden="true">
-              <button class="secondary-button" type="button" id="logout-button">ออกจากระบบ</button>
-              <button class="secondary-button" type="button" id="seed-button">เติมตัวอย่าง</button>
+              <div class="owner-session">
+                <span id="owner-account">ตรวจสอบบัญชี...</span>
+                <button class="secondary-button" type="button" id="logout-button">ออกจากระบบ</button>
+                <button class="secondary-button" type="button" id="seed-button">เติมตัวอย่าง</button>
+              </div>
             </div>
 
             <div class="owner-stats" id="owner-stats"></div>
@@ -60,9 +63,7 @@
                 <label>
                   ปฏิทินของร้าน
                   <select id="calendar-select">
-                    <option value="fah-nail-main">Fah Nail Booking</option>
-                    <option value="owner-main">ปฏิทินหลักของร้าน</option>
-                    <option value="staff-calendar">ตารางคิวช่าง</option>
+                    <option value="primary">ปฏิทินหลักของ Google</option>
                   </select>
                 </label>
                 <div class="calendar-actions">

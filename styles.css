@@ -517,6 +517,23 @@ textarea {
   margin-bottom: 16px;
 }
 
+.owner-session {
+  display: grid;
+  gap: 8px;
+  min-width: min(100%, 210px);
+}
+
+.owner-session span {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  background: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .queue-list,
 .service-list,
 .customer-list {
@@ -904,6 +921,10 @@ textarea {
   .queue-top,
   .section-head {
     display: grid;
+  }
+
+  .owner-session {
+    width: 100%;
   }
 
   .primary-button,

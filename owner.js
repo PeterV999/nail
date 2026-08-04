@@ -81,12 +81,14 @@ const defaultState = {
 let state = loadState();
 let remoteMode = false;
 let currentShopSlug = window.FahNailSupabase?.routeShopSlug?.() || "fah-nail";
+let currentOwnerEmail = "";
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
 const googleLoginButton = document.getElementById("google-login-button");
 const demoLoginButton = document.getElementById("demo-login-button");
 const logoutButton = document.getElementById("logout-button");
+const ownerAccount = document.getElementById("owner-account");
 const authCopy = document.getElementById("auth-copy");
 const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
@@ -215,6 +217,7 @@ async function initOwnerAccess() {
     const authState = await window.FahNailSupabase?.ownerSession(currentShopSlug);
     if (authState?.configured && authState.session && authState.member) {
       remoteMode = true;
+      currentOwnerEmail = authState.user?.email || authState.session.user?.email || "";
       await loadRemoteOwnerState();
       showOwnerApp("เข้าสู่ระบบแล้ว");
       return;
@@ -233,10 +236,12 @@ async function initOwnerAccess() {
     }
   } catch (error) {
     console.warn("Owner auth check failed", error);
-    authStatus.textContent = "ยังเชื่อมต่อ Supabase ไม่สำเร็จ ใช้โหมดตัวอย่างได้ชั่วคราว";
+    authStatus.textContent = isLocalPreview()
+      ? "ยังเชื่อมต่อ Supabase ไม่สำเร็จ ใช้โหมดตัวอย่างได้เฉพาะในเครื่อง"
+      : "ยังตรวจสอบสิทธิ์เจ้าของร้านไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
   }
 
-  showAuthPanel(true);
+  showAuthPanel(isLocalPreview() && !window.FahNailSupabase?.isConfigured?.());
 }
 
 async function loadRemoteOwnerState() {
@@ -264,9 +269,22 @@ function showOwnerApp(message) {
   ownerAuthPanel.hidden = true;
   ownerApp.hidden = false;
   logoutButton.hidden = !window.FahNailSupabase?.isConfigured();
+  demoLoginButton.hidden = true;
+  if (ownerAccount) {
+    ownerAccount.textContent = currentOwnerEmail
+      ? `เข้าสู่ระบบ: ${currentOwnerEmail}`
+      : remoteMode
+        ? "เข้าสู่ระบบเจ้าของร้านแล้ว"
+        : "โหมดตัวอย่างในเครื่อง";
+  }
   updateRouteLinks();
   render();
   if (message) showToast(message);
+}
+
+function isLocalPreview() {
+  return ["file:", "http:"].includes(window.location.protocol)
+    && ["", "localhost", "127.0.0.1"].includes(window.location.hostname);
 }
 
 function updateRouteLinks() {
@@ -967,7 +985,7 @@ connectCalendarButton.addEventListener("click", async () => {
   try {
     if (remoteMode) {
       await window.FahNailSupabase.setCalendarIntegration(calendarSelect.value, currentShopSlug);
-      await reloadAfterRemote("บันทึกค่าปฏิทินแล้ว");
+      await reloadAfterRemote("บันทึกค่าปฏิทินแล้ว ถ้าส่งไม่ได้ให้เข้าสู่ระบบ Google ใหม่เพื่ออนุญาต Calendar");
       return;
     }
   } catch (error) {
@@ -1007,24 +1025,39 @@ disconnectCalendarButton.addEventListener("click", async () => {
   showToast("ยกเลิกการเชื่อมต่อปฏิทินแล้ว");
 });
 
-syncCalendarButton.addEventListener("click", () => {
-  if (remoteMode) {
-    showToast("ขั้นต่อไปต้องต่อ Google OAuth/Edge Function ก่อนส่งเข้าปฏิทินจริง");
-    return;
-  }
-
+syncCalendarButton.addEventListener("click", async () => {
   if (!state.calendarIntegration.connected) {
     showToast("กรุณาเชื่อมต่อ Google Calendar ก่อน");
     return;
   }
 
-  state.appointments = state.appointments.map((appointment) => {
-    if (appointment.status !== "confirmed" || appointment.googleCalendarEventId) return appointment;
-    return syncCalendarEvent(appointment);
-  });
-  saveState();
-  render();
-  showToast("ส่งคิวที่ยืนยันแล้วเข้าปฏิทินแล้ว");
+  try {
+    if (remoteMode) {
+      const pendingAppointments = state.appointments.filter((appointment) => appointment.status === "confirmed" && !appointment.googleCalendarEventId);
+      if (!pendingAppointments.length) {
+        showToast("ไม่มีคิวใหม่ที่ต้องส่งเข้าปฏิทิน");
+        return;
+      }
+
+      for (const appointment of pendingAppointments) {
+        await window.FahNailSupabase.syncAppointmentToGoogleCalendar(appointment, state.calendarIntegration, currentShopSlug);
+      }
+
+      await reloadAfterRemote("ส่งคิวที่ยืนยันแล้วเข้าปฏิทินแล้ว");
+      return;
+    }
+
+    state.appointments = state.appointments.map((appointment) => {
+      if (appointment.status !== "confirmed" || appointment.googleCalendarEventId) return appointment;
+      return syncCalendarEvent(appointment);
+    });
+    saveState();
+    render();
+    showToast("ส่งคิวที่ยืนยันแล้วเข้าปฏิทินแล้ว");
+  } catch (error) {
+    console.warn("Sync calendar failed", error);
+    showToast(calendarErrorMessage(error));
+  }
 });
 
 function syncCalendarEvent(appointment) {
@@ -1036,6 +1069,18 @@ function syncCalendarEvent(appointment) {
     googleCalendarEventId: `gcal-${appointment.id}`,
     googleCalendarName: integration.calendarName
   };
+}
+
+function calendarErrorMessage(error) {
+  if (error?.message === "GOOGLE_CALENDAR_TOKEN_REQUIRED") {
+    return "กรุณาออกจากระบบ แล้วเข้าสู่ระบบ Google ใหม่เพื่ออนุญาต Calendar";
+  }
+
+  if (error?.message === "GOOGLE_CALENDAR_API_FAILED") {
+    return "ยังส่งเข้า Google Calendar ไม่สำเร็จ กรุณาตรวจสิทธิ์ Calendar";
+  }
+
+  return "ยังส่งคิวเข้าปฏิทินไม่สำเร็จ";
 }
 
 function sourceLabel(source) {

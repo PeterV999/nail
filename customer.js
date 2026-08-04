@@ -250,11 +250,28 @@ bookingForm.addEventListener("submit", async (event) => {
     showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
   } catch (error) {
     console.warn("Supabase booking request failed", error);
-    if (error?.code === "23505") {
+    const errorText = `${error?.message || ""} ${error?.details || ""}`;
+    if (error?.code === "23505" || errorText.includes("DUPLICATE_BOOKING_REQUEST")) {
       state.requests = state.requests.filter((item) => item.id !== request.id);
       saveState();
       render();
       showToast("คุณส่งคำขอช่วงเวลานี้ไว้แล้ว ร้านจะติดต่อกลับ");
+      return;
+    }
+
+    if (errorText.includes("BOOKING_REQUEST_RATE_LIMITED")) {
+      state.requests = state.requests.filter((item) => item.id !== request.id);
+      saveState();
+      render();
+      showToast("ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่");
+      return;
+    }
+
+    if (errorText.includes("BOOKING_SLOT_NOT_AVAILABLE")) {
+      state.requests = state.requests.filter((item) => item.id !== request.id);
+      saveState();
+      await init();
+      showToast("ช่วงเวลานี้ไม่ว่างแล้ว กรุณาเลือกช่วงใหม่");
       return;
     }
 

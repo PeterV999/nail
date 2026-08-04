@@ -394,6 +394,155 @@ revoke all on function public.register_shop(text, text) from anon;
 revoke all on function public.register_shop(text, text) from authenticated;
 grant execute on function public.register_shop(text, text) to authenticated;
 
+create or replace function public.create_booking_request(
+  shop_slug text,
+  customer_name text,
+  contact_snapshot text,
+  booking_date date,
+  preferred_time_window text,
+  selected_service_ids uuid[],
+  customer_note text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_shop_id uuid;
+  clean_name text := nullif(btrim(customer_name), '');
+  clean_contact text := lower(nullif(btrim(contact_snapshot), ''));
+  clean_window text := nullif(btrim(preferred_time_window), '');
+  clean_services uuid[] := coalesce(selected_service_ids, '{}'::uuid[]);
+  new_request_id uuid;
+begin
+  select shops.id
+  into target_shop_id
+  from public.shops
+  where shops.slug = btrim(shop_slug)
+    and shops.status = 'active';
+
+  if target_shop_id is null then
+    raise exception 'SHOP_NOT_AVAILABLE' using errcode = 'P0001';
+  end if;
+
+  if clean_name is null or clean_contact is null or clean_window is null then
+    raise exception 'BOOKING_REQUEST_REQUIRED_FIELDS' using errcode = 'P0001';
+  end if;
+
+  if array_length(clean_services, 1) is null then
+    raise exception 'BOOKING_REQUEST_SERVICE_REQUIRED' using errcode = 'P0001';
+  end if;
+
+  if booking_date < current_date then
+    raise exception 'BOOKING_DATE_IN_PAST' using errcode = 'P0001';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(clean_services) as requested_service_id
+    where not exists (
+      select 1
+      from public.services
+      where services.id = requested_service_id
+        and services.shop_id = target_shop_id
+        and services.is_active = true
+    )
+  ) then
+    raise exception 'BOOKING_REQUEST_INVALID_SERVICE' using errcode = 'P0001';
+  end if;
+
+  if exists (
+    select 1
+    from public.booking_day_overrides
+    where booking_day_overrides.shop_id = target_shop_id
+      and booking_day_overrides.date = booking_date
+      and booking_day_overrides.is_closed = true
+  ) then
+    raise exception 'BOOKING_SLOT_NOT_AVAILABLE' using errcode = 'P0001';
+  end if;
+
+  if not exists (
+    select 1
+    from public.booking_time_slots
+    where booking_time_slots.shop_id = target_shop_id
+      and booking_time_slots.is_active = true
+      and to_char(booking_time_slots.start_time, 'HH24:MI') || '-' || to_char(booking_time_slots.end_time, 'HH24:MI') = clean_window
+  ) then
+    raise exception 'BOOKING_SLOT_NOT_AVAILABLE' using errcode = 'P0001';
+  end if;
+
+  if exists (
+    select 1
+    from public.appointments
+    where appointments.shop_id = target_shop_id
+      and appointments.appointment_date = booking_date
+      and appointments.status = 'confirmed'
+      and to_char(appointments.start_time, 'HH24:MI') || '-' || to_char(appointments.end_time, 'HH24:MI') = clean_window
+  ) then
+    raise exception 'BOOKING_SLOT_NOT_AVAILABLE' using errcode = 'P0001';
+  end if;
+
+  if exists (
+    select 1
+    from public.booking_requests
+    where booking_requests.shop_id = target_shop_id
+      and booking_requests.booking_date = create_booking_request.booking_date
+      and booking_requests.preferred_time_window = clean_window
+      and lower(btrim(booking_requests.contact_snapshot)) = clean_contact
+      and booking_requests.status in ('pending_request', 'contacted', 'no_answer')
+  ) then
+    raise exception 'DUPLICATE_BOOKING_REQUEST' using errcode = 'P0001';
+  end if;
+
+  if (
+    select count(*)
+    from public.booking_requests
+    where booking_requests.shop_id = target_shop_id
+      and lower(btrim(booking_requests.contact_snapshot)) = clean_contact
+      and booking_requests.created_at > now() - interval '15 minutes'
+      and booking_requests.status in ('pending_request', 'contacted', 'no_answer')
+  ) >= 3 then
+    raise exception 'BOOKING_REQUEST_RATE_LIMITED' using errcode = 'P0001';
+  end if;
+
+  insert into public.booking_requests (
+    shop_id,
+    customer_name,
+    contact_snapshot,
+    booking_date,
+    preferred_time_window,
+    selected_service_ids,
+    customer_note,
+    status,
+    source
+  )
+  values (
+    target_shop_id,
+    clean_name,
+    btrim(contact_snapshot),
+    create_booking_request.booking_date,
+    clean_window,
+    clean_services,
+    nullif(btrim(customer_note), ''),
+    'pending_request',
+    'customer_request'
+  )
+  returning id into new_request_id;
+
+  return new_request_id;
+end;
+$$;
+
+revoke all on function public.create_booking_request(text, text, text, date, text, uuid[], text) from public;
+revoke all on function public.create_booking_request(text, text, text, date, text, uuid[], text) from anon;
+revoke all on function public.create_booking_request(text, text, text, date, text, uuid[], text) from authenticated;
+grant execute on function public.create_booking_request(text, text, text, date, text, uuid[], text) to anon, authenticated;
+
+drop policy if exists "public can create booking requests" on public.booking_requests;
+revoke insert on public.booking_requests from anon;
+revoke insert on public.booking_requests from authenticated;
+
 create index if not exists shop_members_user_id_idx on public.shop_members (user_id);
 create index if not exists booking_requests_shop_status_date_idx on public.booking_requests (shop_id, status, booking_date);
 create index if not exists appointments_shop_date_status_idx on public.appointments (shop_id, appointment_date, status);

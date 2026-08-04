@@ -7,7 +7,10 @@
   });
 
   let cachedClient = null;
+  let authTokenListenerAttached = false;
   const cachedShops = new Map();
+  const GOOGLE_PROVIDER_TOKEN_KEY = "fah_nail_google_provider_token";
+  const GOOGLE_CALENDAR_SCOPES = "email profile https://www.googleapis.com/auth/calendar.events";
 
   function config() {
     return window.FAH_NAIL_CONFIG || {};
@@ -22,8 +25,23 @@
     if (!isConfigured()) return null;
     if (!cachedClient) {
       cachedClient = window.supabase.createClient(config().supabaseUrl, config().supabaseAnonKey);
+      attachAuthTokenStorage(cachedClient);
     }
     return cachedClient;
+  }
+
+  function attachAuthTokenStorage(db) {
+    if (authTokenListenerAttached) return;
+    authTokenListenerAttached = true;
+    db.auth.onAuthStateChange((event, session) => {
+      if (session?.provider_token) {
+        window.localStorage.setItem(GOOGLE_PROVIDER_TOKEN_KEY, session.provider_token);
+      }
+
+      if (event === "SIGNED_OUT") {
+        window.localStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
+      }
+    });
   }
 
   function routeShopSlug() {
@@ -105,16 +123,14 @@
       .map((service) => service.id)
       .filter(Boolean);
 
-    const { error } = await db.from("booking_requests").insert({
-      shop_id: shop.id,
+    const { error } = await db.rpc("create_booking_request", {
+      shop_slug: shop.slug,
       customer_name: request.customerName,
       contact_snapshot: request.contact,
       booking_date: request.bookingDate,
       preferred_time_window: request.timeWindow,
       selected_service_ids: serviceIds,
-      customer_note: request.note,
-      status: "pending_request",
-      source: "customer_request"
+      customer_note: request.note
     });
 
     if (error) throw error;
@@ -139,10 +155,13 @@
   async function ownerSession(slug = routeShopSlug()) {
     const db = client();
     if (!db) return { configured: false, session: null };
-    const { data, error } = await db.auth.getSession();
-    if (error) throw error;
+    const [{ data: sessionData, error: sessionError }, { data: userData, error: userError }] = await Promise.all([
+      db.auth.getSession(),
+      db.auth.getUser()
+    ]);
+    if (sessionError || userError) throw sessionError || userError;
 
-    if (!data.session) {
+    if (!sessionData.session || !userData.user) {
       return { configured: true, session: null, member: null };
     }
 
@@ -151,11 +170,11 @@
       .from("shop_members")
       .select("shop_id,role")
       .eq("shop_id", shop.id)
-      .eq("user_id", data.session.user.id)
+      .eq("user_id", userData.user.id)
       .maybeSingle();
 
     if (membershipError) throw membershipError;
-    return { configured: true, session: data.session, member: membership, shop };
+    return { configured: true, session: sessionData.session, user: userData.user, member: membership, shop };
   }
 
   async function signInWithGoogle() {
@@ -165,7 +184,12 @@
     await db.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: config().ownerRedirectUrl || window.location.href
+        redirectTo: config().ownerRedirectUrl || window.location.href,
+        scopes: GOOGLE_CALENDAR_SCOPES,
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent"
+        }
       }
     });
   }
@@ -339,6 +363,48 @@
 
     if (error) throw error;
     return true;
+  }
+
+  async function syncAppointmentToGoogleCalendar(appointment, integration, slug = routeShopSlug()) {
+    const db = client();
+    if (!db) return false;
+
+    const shop = await getShop(slug);
+    const calendarId = integration?.calendarId || "primary";
+    const token = await googleProviderToken();
+
+    if (!token) {
+      throw new Error("GOOGLE_CALENDAR_TOKEN_REQUIRED");
+    }
+
+    const eventPayload = calendarEventPayload(appointment, shop.name);
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(eventPayload)
+    });
+
+    if (!response.ok) {
+      console.warn("Google Calendar API failed", await response.text().catch(() => ""));
+      throw new Error("GOOGLE_CALENDAR_API_FAILED");
+    }
+
+    const event = await response.json();
+    const { error } = await db
+      .from("appointments")
+      .update({
+        google_calendar_event_id: event.id,
+        google_calendar_name: calendarId,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", appointment.id)
+      .eq("shop_id", shop.id);
+
+    if (error) throw error;
+    return event;
   }
 
   async function updateBookingRequestStatus(requestId, status, slug = routeShopSlug()) {
@@ -593,6 +659,37 @@
     return customer.phone || customer.line_id || customer.facebook_name || customer.note || fallback || "";
   }
 
+  async function googleProviderToken() {
+    const db = client();
+    const { data } = await db.auth.getSession();
+    return data.session?.provider_token || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY) || "";
+  }
+
+  function calendarEventPayload(appointment, shopName) {
+    const [startTime, endTime] = appointment.timeWindow.split("-");
+    const services = (appointment.services || []).join(", ");
+    const title = `${shopName || "Fah Nail"} - ${appointment.customerName || "ลูกค้า"}`;
+    const description = [
+      services ? `บริการ: ${services}` : "",
+      appointment.contact ? `ติดต่อ: ${appointment.contact}` : "",
+      appointment.note ? `หมายเหตุ: ${appointment.note}` : "",
+      "สร้างจากระบบจองคิว Fah Nail"
+    ].filter(Boolean).join("\n");
+
+    return {
+      summary: title,
+      description,
+      start: {
+        dateTime: `${appointment.bookingDate}T${startTime}:00+07:00`,
+        timeZone: "Asia/Bangkok"
+      },
+      end: {
+        dateTime: `${appointment.bookingDate}T${endTime}:00+07:00`,
+        timeZone: "Asia/Bangkok"
+      }
+    };
+  }
+
   function normalizeTime(value) {
     if (!value) return "";
     if (typeof value === "string") return value.slice(0, 5);
@@ -618,6 +715,7 @@
     updateShopSettings,
     createOwnerAppointment,
     cancelAppointment,
+    syncAppointmentToGoogleCalendar,
     setCalendarIntegration,
     removeCalendarIntegration,
     createService,
