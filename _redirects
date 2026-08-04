@@ -1,0 +1,4 @@
+/book/:shopSlug /index.html 200
+/dashboard/:shopSlug /owner.html 200
+/register /register.html 200
+/owner.html /dashboard/fah-nail 302

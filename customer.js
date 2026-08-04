@@ -35,6 +35,7 @@ const defaultState = {
 let state = loadState();
 let selectedServices = new Set();
 let selectedTime = "";
+let currentShopSlug = window.FahNailSupabase?.routeShopSlug?.() || "fah-nail";
 
 const serviceOptions = document.getElementById("service-options");
 const timeOptions = document.getElementById("time-options");
@@ -119,9 +120,26 @@ function busyWindows(date = selectedBookingDate()) {
 }
 
 function render() {
+  renderShopChrome();
   renderServices();
   renderTimeWindows();
   renderMiniCalendar();
+}
+
+function renderShopChrome() {
+  const shop = state.shop || { name: "Fah Nail", slug: currentShopSlug };
+  const urls = window.FahNailSupabase?.shopUrls?.(shop.slug || currentShopSlug) || {
+    booking: "index.html",
+    dashboard: "owner.html",
+    register: "register.html"
+  };
+  const brand = document.querySelector(".brand");
+  const brandName = document.querySelector(".brand strong");
+  const heroEyebrow = document.querySelector(".hero-copy .eyebrow");
+  if (brand) brand.href = urls.booking;
+  if (brandName) brandName.textContent = shop.name || "Fah Nail";
+  if (heroEyebrow) heroEyebrow.textContent = shop.name || "Fah Nail";
+  document.title = `จองคิว ${shop.name || "Fah Nail"}`;
 }
 
 function renderServices() {
@@ -232,6 +250,22 @@ bookingForm.addEventListener("submit", async (event) => {
     showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
   } catch (error) {
     console.warn("Supabase booking request failed", error);
+    if (error?.code === "23505") {
+      state.requests = state.requests.filter((item) => item.id !== request.id);
+      saveState();
+      render();
+      showToast("คุณส่งคำขอช่วงเวลานี้ไว้แล้ว ร้านจะติดต่อกลับ");
+      return;
+    }
+
+    if (window.FahNailSupabase?.isConfigured?.()) {
+      state.requests = state.requests.filter((item) => item.id !== request.id);
+      saveState();
+      render();
+      showToast("ยังส่งคำขอไม่สำเร็จ กรุณาลองอีกครั้ง");
+      return;
+    }
+
     showToast("บันทึกคำขอไว้แล้ว รอเชื่อมต่อระบบกลาง");
   }
 });
@@ -285,6 +319,7 @@ async function init() {
     const remoteState = await window.FahNailSupabase?.loadPublicState(defaultState);
     if (remoteState) {
       state = remoteState;
+      currentShopSlug = remoteState.shop?.slug || currentShopSlug;
       saveState();
     }
   } catch (error) {

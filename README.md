@@ -37,12 +37,16 @@
 
 ไฟล์เริ่มต้นของหน้าเว็บอยู่ที่ [index.html](index.html)
 
-ตอนนี้แยกทางเข้าเป็นรูปแบบเว็บจริงระยะแรก:
+ตอนนี้แยกทางเข้าเป็นรูปแบบเว็บจริงระยะแรก โดย URL ที่ใช้กับลูกค้าและเจ้าของร้านควรเป็น route ของแพลตฟอร์ม ไม่ใช่ชื่อไฟล์ HTML:
 
-- [index.html](index.html) สำหรับลูกค้าสาธารณะ
-- [owner.html](owner.html) สำหรับเจ้าของร้าน
+- `/book/fah-nail` สำหรับลูกค้าสาธารณะของร้าน Fah Nail
+- `/dashboard/fah-nail` สำหรับเจ้าของร้าน Fah Nail
+- `/register` สำหรับร้านใหม่ที่ต้องการลงทะเบียน
+- [index.html](index.html) เป็นไฟล์ implementation ของหน้าลูกค้า
+- [owner.html](owner.html) เป็นไฟล์ implementation ของหลังบ้าน
 - [customer.js](customer.js) สำหรับ logic หน้าลูกค้า
 - [owner.js](owner.js) สำหรับ logic หลังบ้าน
+- [register.js](register.js) สำหรับ logic ลงทะเบียนร้านใหม่
 - [supabase/schema.sql](supabase/schema.sql) สำหรับฐานข้อมูลจริง
 
 ฟีเจอร์ที่มีในเว็บระยะแรก:
@@ -60,3 +64,4 @@
 - ปิดช่วงเวลาที่มีคิว confirmed แล้วในหน้าลูกค้า
 - ตัวอย่างหน้าตั้งค่าเชื่อม Google Calendar
 - แสดงสถานะคิวที่ส่งเข้าปฏิทินแล้ว
+- ลงทะเบียนร้านใหม่ผ่าน Supabase RPC และสร้าง URL ตาม `shopSlug`

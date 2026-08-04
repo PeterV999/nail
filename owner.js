@@ -12,6 +12,13 @@ const defaultTimeSlots = [
 ];
 
 const defaultState = {
+  shop: {
+    name: "Fah Nail",
+    slug: "fah-nail",
+    phone: "",
+    lineId: "",
+    facebookPage: ""
+  },
   timeSlots: defaultTimeSlots,
   closedDates: [],
   calendarIntegration: {
@@ -52,10 +59,28 @@ const defaultState = {
       status: "confirmed",
       source: "phone"
     }
+  ],
+  customers: [
+    {
+      id: "CUS-3001",
+      name: "คุณแพรว",
+      contact: "โทร 08x-xxx-1234",
+      note: "ลูกค้าจองทางโทรศัพท์",
+      createdAt: today
+    },
+    {
+      id: "CUS-3002",
+      name: "คุณมายด์",
+      contact: "LINE mind.nail",
+      note: "ชอบโทนสีฟ้าใส",
+      createdAt: today
+    }
   ]
 };
 
 let state = loadState();
+let remoteMode = false;
+let currentShopSlug = window.FahNailSupabase?.routeShopSlug?.() || "fah-nail";
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
@@ -65,6 +90,8 @@ const logoutButton = document.getElementById("logout-button");
 const authCopy = document.getElementById("auth-copy");
 const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
+const ownerStats = document.getElementById("owner-stats");
+const customerList = document.getElementById("customer-list");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
 const manualService = document.getElementById("manual-service");
@@ -79,6 +106,11 @@ const disconnectCalendarButton = document.getElementById("disconnect-calendar-bu
 const manualForm = document.getElementById("manual-form");
 const serviceForm = document.getElementById("service-form");
 const slotForm = document.getElementById("slot-form");
+const shopForm = document.getElementById("shop-form");
+const shopNameInput = document.getElementById("shop-name");
+const shopPhoneInput = document.getElementById("shop-phone");
+const shopLineInput = document.getElementById("shop-line");
+const shopFacebookInput = document.getElementById("shop-facebook");
 const ownerTimeSlotList = document.getElementById("owner-time-slot-list");
 const toast = document.getElementById("toast");
 
@@ -93,6 +125,7 @@ function loadState() {
       ...parsed,
       requests: (parsed.requests || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today })),
       appointments: (parsed.appointments || []).map((item) => ({ ...item, bookingDate: item.bookingDate || today })),
+      customers: parsed.customers || structuredClone(defaultState.customers),
       timeSlots: normalizeTimeSlots(parsed.timeSlots || defaultTimeSlots),
       closedDates: parsed.closedDates || [],
       calendarIntegration: parsed.calendarIntegration || structuredClone(defaultState.calendarIntegration)
@@ -103,6 +136,7 @@ function loadState() {
 }
 
 function saveState() {
+  if (remoteMode) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -161,11 +195,14 @@ function busyWindows(date = selectedManualDate()) {
 }
 
 function render() {
+  renderOwnerStats();
   renderOwnerLists();
+  renderCustomers();
   renderOwnerServices();
   renderManualOptions();
   renderTimeManager();
   renderCalendarIntegration();
+  renderShopSettings();
 }
 
 async function initOwnerAccess() {
@@ -175,15 +212,18 @@ async function initOwnerAccess() {
   scheduleDate.min = today;
 
   try {
-    const authState = await window.FahNailSupabase?.ownerSession();
+    const authState = await window.FahNailSupabase?.ownerSession(currentShopSlug);
     if (authState?.configured && authState.session && authState.member) {
+      remoteMode = true;
+      await loadRemoteOwnerState();
       showOwnerApp("เข้าสู่ระบบแล้ว");
       return;
     }
 
     if (authState?.configured && authState.session && !authState.member) {
       showAuthPanel(false);
-      authStatus.textContent = "บัญชีนี้ยังไม่มีสิทธิ์หลังบ้าน กรุณาเพิ่มใน shop_members ก่อน";
+      const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || { register: "/register" };
+      authStatus.innerHTML = `บัญชีนี้ยังไม่มีสิทธิ์หลังบ้านสำหรับร้านนี้ <a href="${urls.register}">ลงทะเบียนร้านใหม่</a>`;
       return;
     }
 
@@ -197,6 +237,13 @@ async function initOwnerAccess() {
   }
 
   showAuthPanel(true);
+}
+
+async function loadRemoteOwnerState() {
+  const remoteState = await window.FahNailSupabase?.loadOwnerState(defaultState, currentShopSlug);
+  if (!remoteState) return;
+  state = remoteState;
+  currentShopSlug = remoteState.shop?.slug || currentShopSlug;
 }
 
 function showAuthPanel(allowDemo) {
@@ -217,8 +264,59 @@ function showOwnerApp(message) {
   ownerAuthPanel.hidden = true;
   ownerApp.hidden = false;
   logoutButton.hidden = !window.FahNailSupabase?.isConfigured();
+  updateRouteLinks();
   render();
   if (message) showToast(message);
+}
+
+function updateRouteLinks() {
+  const shop = state.shop || { name: "Fah Nail", slug: currentShopSlug };
+  const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || {
+    booking: "index.html",
+    dashboard: "owner.html",
+    register: "register.html"
+  };
+  const customerLink = document.querySelector(".owner-link");
+  const brand = document.querySelector(".brand");
+  const brandName = document.querySelector(".brand strong");
+  const ownerEyebrow = document.querySelector(".section-head .eyebrow");
+  if (customerLink) customerLink.href = urls.booking;
+  if (brand) brand.href = urls.dashboard;
+  if (brandName) brandName.textContent = shop.name || "Fah Nail";
+  if (ownerEyebrow) ownerEyebrow.textContent = shop.name || "หลังบ้าน";
+  document.title = `หลังบ้าน ${shop.name || "Fah Nail"}`;
+}
+
+async function reloadAfterRemote(message) {
+  await loadRemoteOwnerState();
+  render();
+  if (message) showToast(message);
+}
+
+function renderOwnerStats() {
+  if (!ownerStats) return;
+  const todayRequests = state.requests.filter((item) => item.bookingDate === today).length;
+  const todayAppointments = state.appointments.filter((item) => item.bookingDate === today && item.status === "confirmed").length;
+  const waiting = state.requests.filter((item) => item.status === "pending_request").length;
+  const totalCustomers = state.customers?.length || 0;
+
+  const stats = [
+    { label: "คำขอวันนี้", value: todayRequests },
+    { label: "คิวยืนยันวันนี้", value: todayAppointments },
+    { label: "รอติดต่อ", value: waiting },
+    { label: "ลูกค้าที่บันทึก", value: totalCustomers }
+  ];
+
+  ownerStats.innerHTML = "";
+  stats.forEach((stat) => {
+    const item = document.createElement("div");
+    item.className = "stat-chip";
+    item.innerHTML = `
+      <strong>${stat.value}</strong>
+      <span>${stat.label}</span>
+    `;
+    ownerStats.append(item);
+  });
 }
 
 function renderOwnerLists() {
@@ -239,7 +337,7 @@ function renderOwnerLists() {
   items.forEach((item) => {
     const card = document.createElement("article");
     card.className = item.status === "confirmed" ? "queue-card confirmed" : "queue-card";
-    const statusText = item.status === "confirmed" ? "ยืนยันแล้ว" : "รอยืนยัน";
+    const statusText = statusLabel(item.status);
     const sourceText = sourceLabel(item.source);
     card.innerHTML = `
       <div class="queue-top">
@@ -275,12 +373,86 @@ function renderOwnerLists() {
       reject.textContent = "ปฏิเสธ";
       reject.addEventListener("click", () => rejectRequest(item.id));
 
-      actions.append(confirm, reject);
+      const contacted = document.createElement("button");
+      contacted.type = "button";
+      contacted.className = "secondary-button";
+      contacted.textContent = "โทรกลับแล้ว";
+      contacted.disabled = item.status === "contacted";
+      contacted.addEventListener("click", () => updateRequestStatus(item.id, "contacted"));
+
+      const noAnswer = document.createElement("button");
+      noAnswer.type = "button";
+      noAnswer.className = "secondary-button";
+      noAnswer.textContent = "ลูกค้าไม่ตอบ";
+      noAnswer.disabled = item.status === "no_answer";
+      noAnswer.addEventListener("click", () => updateRequestStatus(item.id, "no_answer"));
+
+      actions.append(confirm, reject, contacted, noAnswer);
+      card.append(actions);
+    }
+
+    if (item.kind === "appointment") {
+      const actions = document.createElement("div");
+      actions.className = "queue-actions";
+
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "secondary-button";
+      cancel.textContent = "ยกเลิกคิว";
+      cancel.addEventListener("click", () => cancelAppointment(item.id));
+
+      actions.append(cancel);
       card.append(actions);
     }
 
     requestList.append(card);
   });
+}
+
+function renderCustomers() {
+  if (!customerList) return;
+  customerList.innerHTML = "";
+
+  const customers = state.customers || [];
+  if (!customers.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "ยังไม่มีข้อมูลลูกค้า";
+    customerList.append(empty);
+    return;
+  }
+
+  customers.slice(0, 8).forEach((customer) => {
+    const item = document.createElement("div");
+    item.className = "customer-item";
+    item.innerHTML = `
+      <span>
+        <strong>${escapeHtml(customer.name || "ลูกค้า")}</strong>
+        <small>${escapeHtml(customer.contact || customer.note || "ไม่มีช่องทางติดต่อ")}</small>
+      </span>
+    `;
+    customerList.append(item);
+  });
+}
+
+function renderShopSettings() {
+  const shop = state.shop || {};
+  if (!shopForm) return;
+  shopNameInput.value = shop.name || "Fah Nail";
+  shopPhoneInput.value = shop.phone || "";
+  shopLineInput.value = shop.lineId || "";
+  shopFacebookInput.value = shop.facebookPage || "";
+}
+
+function rememberCustomerFromBooking(booking, note = "") {
+  const customer = {
+    id: `CUS-${Date.now()}`,
+    name: booking.customerName,
+    contact: booking.contact,
+    note,
+    createdAt: booking.bookingDate || today
+  };
+  state.customers = [customer, ...(state.customers || [])].slice(0, 30);
 }
 
 function renderOwnerServices() {
@@ -296,9 +468,7 @@ function renderOwnerServices() {
     toggle.textContent = service.active ? "เปิด" : "ปิด";
     toggle.title = "เปิดหรือปิดบริการ";
     toggle.addEventListener("click", () => {
-      service.active = !service.active;
-      saveState();
-      render();
+      toggleService(service);
     });
 
     const remove = document.createElement("button");
@@ -306,15 +476,45 @@ function renderOwnerServices() {
     remove.className = "icon-button";
     remove.textContent = "-";
     remove.title = "ลบบริการ";
-    remove.addEventListener("click", () => {
-      state.services = state.services.filter((item) => item.id !== service.id);
-      saveState();
-      render();
-    });
+    remove.addEventListener("click", () => removeService(service.id));
 
     row.append(toggle, remove);
     ownerServiceList.append(row);
   });
+}
+
+async function toggleService(service) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.updateService(service.id, { active: !service.active });
+      await reloadAfterRemote(service.active ? "ปิดบริการแล้ว" : "เปิดบริการแล้ว");
+      return;
+    }
+
+    service.active = !service.active;
+    saveState();
+    render();
+  } catch (error) {
+    console.warn("Toggle service failed", error);
+    showToast("ยังอัปเดตบริการไม่สำเร็จ");
+  }
+}
+
+async function removeService(serviceId) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.deleteService(serviceId);
+      await reloadAfterRemote("ลบบริการแล้ว");
+      return;
+    }
+
+    state.services = state.services.filter((item) => item.id !== serviceId);
+    saveState();
+    render();
+  } catch (error) {
+    console.warn("Remove service failed", error);
+    showToast("ยังลบบริการไม่สำเร็จ");
+  }
 }
 
 function renderManualOptions() {
@@ -325,7 +525,7 @@ function renderManualOptions() {
 
   activeServices().forEach((service) => {
     const option = document.createElement("option");
-    option.value = service.name;
+    option.value = service.id;
     option.textContent = service.name;
     manualService.append(option);
   });
@@ -370,28 +570,54 @@ function renderTimeManager() {
     toggle.className = "icon-button";
     toggle.textContent = slot.active ? "เปิด" : "ปิด";
     toggle.title = "เปิดหรือปิดช่วงเวลา";
-    toggle.addEventListener("click", () => {
-      slot.active = !slot.active;
-      saveState();
-      render();
-      showToast(slot.active ? "เปิดช่วงเวลานี้แล้ว" : "ปิดช่วงเวลานี้แล้ว");
-    });
+    toggle.addEventListener("click", () => toggleTimeSlot(slot));
 
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "icon-button";
     remove.textContent = "-";
     remove.title = "ลบช่วงเวลา";
-    remove.addEventListener("click", () => {
-      state.timeSlots = state.timeSlots.filter((item) => item.id !== slot.id);
-      saveState();
-      render();
-      showToast("ลบช่วงเวลาแล้ว");
-    });
+    remove.addEventListener("click", () => removeTimeSlot(slot.id));
 
     row.append(toggle, remove);
     ownerTimeSlotList.append(row);
   });
+}
+
+async function toggleTimeSlot(slot) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.updateTimeSlot(slot.id, { active: !slot.active });
+      await reloadAfterRemote(slot.active ? "ปิดช่วงเวลานี้แล้ว" : "เปิดช่วงเวลานี้แล้ว");
+      return;
+    }
+
+    slot.active = !slot.active;
+    saveState();
+    render();
+    showToast(slot.active ? "เปิดช่วงเวลานี้แล้ว" : "ปิดช่วงเวลานี้แล้ว");
+  } catch (error) {
+    console.warn("Toggle time slot failed", error);
+    showToast("ยังอัปเดตช่วงเวลาไม่สำเร็จ");
+  }
+}
+
+async function removeTimeSlot(slotId) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.deleteTimeSlot(slotId);
+      await reloadAfterRemote("ลบช่วงเวลาแล้ว");
+      return;
+    }
+
+    state.timeSlots = state.timeSlots.filter((item) => item.id !== slotId);
+    saveState();
+    render();
+    showToast("ลบช่วงเวลาแล้ว");
+  } catch (error) {
+    console.warn("Remove time slot failed", error);
+    showToast("ยังลบช่วงเวลาไม่สำเร็จ");
+  }
 }
 
 function renderCalendarIntegration() {
@@ -418,7 +644,7 @@ function renderCalendarIntegration() {
   connectCalendarButton.textContent = "เชื่อมต่อปฏิทิน";
 }
 
-function confirmRequest(id) {
+async function confirmRequest(id) {
   const request = state.requests.find((item) => item.id === id);
   if (!request) return;
   const requestSlot = timeSlots().find((slot) => timeSlotLabel(slot) === request.timeWindow);
@@ -433,6 +659,18 @@ function confirmRequest(id) {
     return;
   }
 
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.confirmBookingRequest(request, currentShopSlug);
+      await reloadAfterRemote("ยืนยันคิวแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Confirm request failed", error);
+    showToast("ยังยืนยันคิวไม่สำเร็จ");
+    return;
+  }
+
   state.appointments.push(syncCalendarEvent({
     id: `APT-${Date.now()}`,
     customerName: request.customerName,
@@ -443,20 +681,52 @@ function confirmRequest(id) {
     status: "confirmed",
     source: "customer_request"
   }));
+  rememberCustomerFromBooking(request, request.note || "คำขอจองจากลูกค้า");
   state.requests = state.requests.filter((item) => item.id !== id);
   saveState();
   render();
   showToast("ยืนยันคิวแล้ว");
 }
 
-function rejectRequest(id) {
+async function rejectRequest(id) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.rejectBookingRequest(id, currentShopSlug);
+      await reloadAfterRemote("ปฏิเสธคำขอจองแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Reject request failed", error);
+    showToast("ยังปฏิเสธคำขอจองไม่สำเร็จ");
+    return;
+  }
+
   state.requests = state.requests.filter((item) => item.id !== id);
   saveState();
   render();
   showToast("ปฏิเสธคำขอจองแล้ว");
 }
 
-manualForm.addEventListener("submit", (event) => {
+async function updateRequestStatus(id, status) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.updateBookingRequestStatus(id, status, currentShopSlug);
+      await reloadAfterRemote(status === "contacted" ? "บันทึกว่าโทรกลับแล้ว" : "บันทึกว่าลูกค้าไม่ตอบ");
+      return;
+    }
+
+    const request = state.requests.find((item) => item.id === id);
+    if (request) request.status = status;
+    saveState();
+    render();
+    showToast(status === "contacted" ? "บันทึกว่าโทรกลับแล้ว" : "บันทึกว่าลูกค้าไม่ตอบ");
+  } catch (error) {
+    console.warn("Update request status failed", error);
+    showToast("ยังอัปเดตสถานะไม่สำเร็จ");
+  }
+}
+
+manualForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(manualForm);
   const bookingDateValue = formData.get("bookingDate");
@@ -473,16 +743,35 @@ manualForm.addEventListener("submit", (event) => {
     return;
   }
 
-  state.appointments.unshift(syncCalendarEvent({
+  const selectedService = state.services.find((service) => service.id === formData.get("serviceId"));
+  const appointment = {
     id: `APT-${Date.now()}`,
     customerName: formData.get("customerName").trim(),
     contact: formData.get("contact").trim(),
-    services: [formData.get("serviceId")],
+    services: [selectedService?.name || formData.get("serviceId")],
+    serviceId: formData.get("serviceId"),
     bookingDate: bookingDateValue,
     timeWindow,
     status: "confirmed",
-    source: "admin"
-  }));
+    source: formData.get("source") || "admin"
+  };
+
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.createOwnerAppointment(appointment, currentShopSlug);
+      manualForm.reset();
+      manualDate.value = today;
+      await reloadAfterRemote("บันทึกคิวโดยเจ้าของร้านแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Create owner appointment failed", error);
+    showToast("ยังบันทึกคิวไม่สำเร็จ");
+    return;
+  }
+
+  state.appointments.unshift(syncCalendarEvent(appointment));
+  rememberCustomerFromBooking(appointment, "เจ้าของร้านลงคิวเอง");
 
   manualForm.reset();
   manualDate.value = today;
@@ -491,12 +780,25 @@ manualForm.addEventListener("submit", (event) => {
   showToast("บันทึกคิวโดยเจ้าของร้านแล้ว");
 });
 
-serviceForm.addEventListener("submit", (event) => {
+serviceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(serviceForm);
   const serviceName = formData.get("serviceName").trim();
 
   if (!serviceName) return;
+
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.createService(serviceName, currentShopSlug);
+      serviceForm.reset();
+      await reloadAfterRemote("เพิ่มบริการแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Create service failed", error);
+    showToast("ยังเพิ่มบริการไม่สำเร็จ");
+    return;
+  }
 
   state.services.push({ id: `service-${Date.now()}`, name: serviceName, active: true });
   serviceForm.reset();
@@ -505,7 +807,40 @@ serviceForm.addEventListener("submit", (event) => {
   showToast("เพิ่มบริการแล้ว");
 });
 
-slotForm.addEventListener("submit", (event) => {
+shopForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(shopForm);
+  const changes = {
+    name: formData.get("shopName").trim(),
+    phone: formData.get("shopPhone").trim(),
+    lineId: formData.get("shopLine").trim(),
+    facebookPage: formData.get("shopFacebook").trim()
+  };
+
+  if (!changes.name) {
+    showToast("กรุณากรอกชื่อร้าน");
+    return;
+  }
+
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.updateShopSettings(changes, currentShopSlug);
+      await reloadAfterRemote("บันทึกข้อมูลร้านแล้ว");
+      return;
+    }
+
+    state.shop = { ...(state.shop || { slug: currentShopSlug }), ...changes };
+    saveState();
+    updateRouteLinks();
+    render();
+    showToast("บันทึกข้อมูลร้านแล้ว");
+  } catch (error) {
+    console.warn("Update shop settings failed", error);
+    showToast("ยังบันทึกข้อมูลร้านไม่สำเร็จ");
+  }
+});
+
+slotForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(slotForm);
   const startTime = formData.get("startTime");
@@ -522,6 +857,19 @@ slotForm.addEventListener("submit", (event) => {
     return;
   }
 
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.createTimeSlot(startTime, endTime, currentShopSlug);
+      slotForm.reset();
+      await reloadAfterRemote("เพิ่มช่วงเวลารับจองแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Create time slot failed", error);
+    showToast("ยังเพิ่มช่วงเวลาไม่สำเร็จ");
+    return;
+  }
+
   state.timeSlots.push({ id: `slot-${Date.now()}`, startTime, endTime, active: true });
   state.timeSlots = normalizeTimeSlots(state.timeSlots);
   slotForm.reset();
@@ -531,6 +879,11 @@ slotForm.addEventListener("submit", (event) => {
 });
 
 document.getElementById("seed-button").addEventListener("click", () => {
+  if (remoteMode) {
+    showToast("โหมดข้อมูลจริงไม่เติมข้อมูลตัวอย่าง");
+    return;
+  }
+
   state = structuredClone(defaultState);
   saveState();
   render();
@@ -562,8 +915,23 @@ logoutButton.addEventListener("click", async () => {
 manualDate.addEventListener("change", renderManualOptions);
 scheduleDate.addEventListener("change", renderTimeManager);
 
-closedDayToggle.addEventListener("change", () => {
+closedDayToggle.addEventListener("change", async () => {
   const date = selectedScheduleDate();
+
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.setDayClosed(date, closedDayToggle.checked, currentShopSlug);
+      await reloadAfterRemote(closedDayToggle.checked ? "ปิดรับจองทั้งวันแล้ว" : "เปิดรับจองวันนี้แล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Set closed day failed", error);
+    showToast("ยังอัปเดตวันหยุดไม่สำเร็จ");
+    await loadRemoteOwnerState();
+    render();
+    return;
+  }
+
   if (closedDayToggle.checked) {
     if (!state.closedDates.includes(date)) state.closedDates.push(date);
   } else {
@@ -574,8 +942,40 @@ closedDayToggle.addEventListener("change", () => {
   showToast(closedDayToggle.checked ? "ปิดรับจองทั้งวันแล้ว" : "เปิดรับจองวันนี้แล้ว");
 });
 
-connectCalendarButton.addEventListener("click", () => {
+async function cancelAppointment(id) {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.cancelAppointment(id, currentShopSlug);
+      await reloadAfterRemote("ยกเลิกคิวแล้ว");
+      return;
+    }
+
+    const appointment = state.appointments.find((item) => item.id === id);
+    if (appointment) appointment.status = "cancelled";
+    saveState();
+    render();
+    showToast("ยกเลิกคิวแล้ว");
+  } catch (error) {
+    console.warn("Cancel appointment failed", error);
+    showToast("ยังยกเลิกคิวไม่สำเร็จ");
+  }
+}
+
+connectCalendarButton.addEventListener("click", async () => {
   const selectedOption = calendarSelect.selectedOptions[0];
+
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.setCalendarIntegration(calendarSelect.value, currentShopSlug);
+      await reloadAfterRemote("บันทึกค่าปฏิทินแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Set calendar integration failed", error);
+    showToast("ยังบันทึกค่าปฏิทินไม่สำเร็จ");
+    return;
+  }
+
   state.calendarIntegration = {
     connected: true,
     provider: "google",
@@ -588,7 +988,19 @@ connectCalendarButton.addEventListener("click", () => {
   showToast("เชื่อมต่อ Google Calendar แล้ว");
 });
 
-disconnectCalendarButton.addEventListener("click", () => {
+disconnectCalendarButton.addEventListener("click", async () => {
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.removeCalendarIntegration(currentShopSlug);
+      await reloadAfterRemote("ยกเลิกค่าปฏิทินแล้ว");
+      return;
+    }
+  } catch (error) {
+    console.warn("Remove calendar integration failed", error);
+    showToast("ยังยกเลิกค่าปฏิทินไม่สำเร็จ");
+    return;
+  }
+
   state.calendarIntegration = structuredClone(defaultState.calendarIntegration);
   saveState();
   render();
@@ -596,6 +1008,11 @@ disconnectCalendarButton.addEventListener("click", () => {
 });
 
 syncCalendarButton.addEventListener("click", () => {
+  if (remoteMode) {
+    showToast("ขั้นต่อไปต้องต่อ Google OAuth/Edge Function ก่อนส่งเข้าปฏิทินจริง");
+    return;
+  }
+
   if (!state.calendarIntegration.connected) {
     showToast("กรุณาเชื่อมต่อ Google Calendar ก่อน");
     return;
@@ -630,6 +1047,17 @@ function sourceLabel(source) {
     facebook: "Facebook",
     admin: "เจ้าของร้านลงเอง"
   }[source] || "หลังบ้าน";
+}
+
+function statusLabel(status) {
+  return {
+    pending_request: "รอยืนยัน",
+    contacted: "โทรกลับแล้ว",
+    no_answer: "ลูกค้าไม่ตอบ",
+    confirmed: "ยืนยันแล้ว",
+    rejected: "ปฏิเสธแล้ว",
+    cancelled: "ยกเลิกแล้ว"
+  }[status] || "รอยืนยัน";
 }
 
 function thaiDate(value) {

@@ -301,7 +301,112 @@ grant select on public.public_booking_day_overrides to anon, authenticated;
 grant select on public.public_busy_time_windows to anon, authenticated;
 grant insert on public.booking_requests to anon;
 grant insert on public.booking_requests to authenticated;
+grant select, update on public.shops to authenticated;
+grant select, insert, update, delete on public.services to authenticated;
+grant select, insert, update, delete on public.customers to authenticated;
+grant select, insert, update, delete on public.booking_time_slots to authenticated;
+grant select, insert, update, delete on public.booking_day_overrides to authenticated;
+grant select, update, delete on public.booking_requests to authenticated;
+grant select, insert, update, delete on public.appointments to authenticated;
+grant select, insert, update, delete on public.calendar_integrations to authenticated;
+grant select, insert, update, delete on public.portfolio_items to authenticated;
 grant select on public.shop_members to authenticated;
+
+create or replace function public.register_shop(
+  shop_name text,
+  requested_slug text
+)
+returns table(id uuid, name text, slug text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  actor_id uuid := auth.uid();
+  clean_name text := nullif(trim(shop_name), '');
+  clean_slug text := lower(trim(requested_slug));
+  candidate_slug text;
+  suffix integer := 0;
+  created_shop_id uuid;
+begin
+  if actor_id is null then
+    raise exception 'Authentication required' using errcode = '28000';
+  end if;
+
+  if clean_name is null then
+    raise exception 'Shop name is required' using errcode = '22023';
+  end if;
+
+  clean_slug := regexp_replace(coalesce(clean_slug, ''), '[^a-z0-9-]+', '-', 'g');
+  clean_slug := regexp_replace(clean_slug, '(^-+|-+$)', '', 'g');
+  clean_slug := regexp_replace(clean_slug, '-{2,}', '-', 'g');
+
+  if length(clean_slug) < 3 then
+    clean_slug := 'shop-' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8);
+  end if;
+
+  if length(clean_slug) > 48 then
+    clean_slug := substr(clean_slug, 1, 48);
+    clean_slug := regexp_replace(clean_slug, '(-+$)', '', 'g');
+  end if;
+
+  candidate_slug := clean_slug;
+
+  while exists (select 1 from public.shops where shops.slug = candidate_slug) loop
+    suffix := suffix + 1;
+    candidate_slug := substr(clean_slug, 1, 44) || '-' || suffix::text;
+  end loop;
+
+  insert into public.shops (name, slug, status)
+  values (clean_name, candidate_slug, 'active')
+  returning shops.id into created_shop_id;
+
+  insert into public.shop_members (shop_id, user_id, role)
+  values (created_shop_id, actor_id, 'owner');
+
+  insert into public.services (shop_id, name, sort_order)
+  values
+    (created_shop_id, 'สีเจล', 10),
+    (created_shop_id, 'เพ้นท์ลาย', 20),
+    (created_shop_id, 'ต่อเล็บ', 30),
+    (created_shop_id, 'สปามือ', 40),
+    (created_shop_id, 'สปาเท้า', 50);
+
+  insert into public.booking_time_slots (shop_id, start_time, end_time, sort_order)
+  values
+    (created_shop_id, '08:00'::time, '10:00'::time, 10),
+    (created_shop_id, '10:00'::time, '12:00'::time, 20),
+    (created_shop_id, '12:00'::time, '14:00'::time, 30),
+    (created_shop_id, '14:00'::time, '16:00'::time, 40),
+    (created_shop_id, '16:00'::time, '18:00'::time, 50),
+    (created_shop_id, '18:00'::time, '20:00'::time, 60),
+    (created_shop_id, '20:00'::time, '22:00'::time, 70);
+
+  return query
+  select shops.id, shops.name, shops.slug
+  from public.shops
+  where shops.id = created_shop_id;
+end;
+$$;
+
+revoke all on function public.register_shop(text, text) from public;
+revoke all on function public.register_shop(text, text) from anon;
+revoke all on function public.register_shop(text, text) from authenticated;
+grant execute on function public.register_shop(text, text) to authenticated;
+
+create index if not exists shop_members_user_id_idx on public.shop_members (user_id);
+create index if not exists booking_requests_shop_status_date_idx on public.booking_requests (shop_id, status, booking_date);
+create index if not exists appointments_shop_date_status_idx on public.appointments (shop_id, appointment_date, status);
+create index if not exists services_shop_sort_idx on public.services (shop_id, sort_order);
+create index if not exists booking_time_slots_shop_sort_idx on public.booking_time_slots (shop_id, sort_order);
+create unique index if not exists booking_requests_pending_dedupe_idx
+on public.booking_requests (
+  shop_id,
+  booking_date,
+  preferred_time_window,
+  lower(btrim(contact_snapshot))
+)
+where status in ('pending_request', 'contacted', 'no_answer');
 
 insert into public.shops (name, slug, phone, line_id)
 values ('Fah Nail', 'fah-nail', '08x-xxx-xxxx', '@fahnail')

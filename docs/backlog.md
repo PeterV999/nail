@@ -19,11 +19,8 @@
 
 ## ขั้นตอนต่อไปก่อนใช้ข้อมูลจริง
 
-- สร้าง Supabase project และ run `supabase/schema.sql`
-- ใส่ `Project URL` และ `anon public key` ใน `app-config.js`
-- เปิด Google provider ใน Supabase Auth
-- เพิ่ม user id ของเจ้าของร้านใน `shop_members`
 - เชื่อม Cloudflare Pages กับ GitHub auto deploy หลัง Cloudflare แสดง repo `PeterV999/nail`
+- ต่อ Google Calendar แบบ server-side ด้วย OAuth/Edge Function ก่อนสร้าง event จริง
 
 ## Phase 2: Google Calendar
 

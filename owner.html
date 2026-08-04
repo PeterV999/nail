@@ -12,14 +12,14 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="owner.html" aria-label="Fah Nail">
+        <a class="brand" href="/dashboard/fah-nail" aria-label="Fah Nail">
           <span class="brand-mark">FN</span>
           <span>
             <strong>Fah Nail</strong>
             <small>หน้าร้าน</small>
           </span>
         </a>
-        <a class="owner-link" href="index.html">ดูหน้าลูกค้า</a>
+        <a class="owner-link" href="/book/fah-nail">ดูหน้าลูกค้า</a>
       </header>
 
       <main>
@@ -48,6 +48,7 @@
               <button class="secondary-button" type="button" id="seed-button">เติมตัวอย่าง</button>
             </div>
 
+            <div class="owner-stats" id="owner-stats"></div>
             <div class="queue-list" id="request-list"></div>
           </section>
 
@@ -74,6 +75,34 @@
             </section>
 
             <section class="side-card">
+              <h2>ข้อมูลร้าน</h2>
+              <form id="shop-form" class="compact-form">
+                <label>
+                  ชื่อร้าน
+                  <input name="shopName" id="shop-name" autocomplete="organization" required>
+                </label>
+                <label>
+                  เบอร์โทร
+                  <input name="shopPhone" id="shop-phone" autocomplete="tel" placeholder="เช่น 08x-xxx-xxxx">
+                </label>
+                <label>
+                  LINE
+                  <input name="shopLine" id="shop-line" placeholder="เช่น @fahnail">
+                </label>
+                <label>
+                  Facebook
+                  <input name="shopFacebook" id="shop-facebook" placeholder="เช่น Fah Nail">
+                </label>
+                <button class="secondary-button" type="submit">บันทึกข้อมูลร้าน</button>
+              </form>
+            </section>
+
+            <section class="side-card">
+              <h2>ลูกค้าล่าสุด</h2>
+              <div class="customer-list" id="customer-list"></div>
+            </section>
+
+            <section class="side-card">
               <h2>ลงคิวเอง</h2>
               <form id="manual-form" class="compact-form">
                 <label>
@@ -95,6 +124,16 @@
                 <label>
                   บริการ
                   <select name="serviceId" id="manual-service" required></select>
+                </label>
+                <label>
+                  แหล่งที่มา
+                  <select name="source">
+                    <option value="admin">เจ้าของร้านลงเอง</option>
+                    <option value="walk_in">หน้าร้าน</option>
+                    <option value="phone">โทรจอง</option>
+                    <option value="line">LINE</option>
+                    <option value="facebook">Facebook</option>
+                  </select>
                 </label>
                 <button class="primary-button" type="submit">บันทึกคิว</button>
               </form>

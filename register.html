@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ลงทะเบียนร้าน | Fah Nail Booking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/book/fah-nail" aria-label="Fah Nail Booking">
+          <span class="brand-mark">FN</span>
+          <span>
+            <strong>Fah Nail Booking</strong>
+            <small>ระบบจองคิวสำหรับร้านทำเล็บ</small>
+          </span>
+        </a>
+        <a class="owner-link" href="/dashboard/fah-nail">เข้าสู่หลังบ้าน</a>
+      </header>
+
+      <main>
+        <section class="auth-panel register-panel" aria-labelledby="register-title">
+          <div>
+            <p class="eyebrow">สำหรับร้านใหม่</p>
+            <h1 id="register-title">สร้างหน้าจองคิวของร้าน</h1>
+            <p class="lead">ลงทะเบียนร้านหนึ่งครั้ง ระบบจะสร้าง URL จองคิวและหลังบ้านให้พร้อมบริการเริ่มต้นกับช่วงเวลามาตรฐาน</p>
+          </div>
+
+          <div class="register-route-card">
+            <span>รูปแบบ URL</span>
+            <strong>/book/<span id="slug-preview">your-shop</span></strong>
+            <small>/dashboard/<span id="dashboard-preview">your-shop</span></small>
+          </div>
+
+          <div class="auth-actions" id="register-auth-actions">
+            <button class="primary-button" type="button" id="register-login-button">เข้าสู่ระบบด้วย Google</button>
+          </div>
+
+          <form id="register-form" class="booking-form register-form" hidden>
+            <fieldset>
+              <legend><span>1</span> ข้อมูลร้าน</legend>
+              <label>
+                ชื่อร้าน
+                <input name="shopName" id="shop-name" autocomplete="organization" placeholder="เช่น Fah Nail" required>
+              </label>
+              <label>
+                ชื่อ URL ร้าน
+                <input name="shopSlug" id="shop-slug" inputmode="url" pattern="[a-z0-9-]{3,48}" placeholder="เช่น fah-nail" required>
+              </label>
+              <p class="hint">ใช้ตัวอักษรอังกฤษพิมพ์เล็ก ตัวเลข และขีดกลาง 3-48 ตัวอักษร</p>
+            </fieldset>
+
+            <button class="primary-button" type="submit">สร้างร้าน</button>
+          </form>
+
+          <p class="hint" id="register-status">ต้องเข้าสู่ระบบก่อนสร้างร้าน เพื่อผูกสิทธิ์เจ้าของร้านอย่างปลอดภัย</p>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app-config.js"></script>
+    <script src="supabase-adapter.js"></script>
+    <script src="register.js"></script>
+  </body>
+</html>

@@ -4,8 +4,10 @@
 
 - `index.html` คือหน้าลูกค้าสาธารณะ
 - `owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
+- `_redirects` ทำให้ URL production ใช้ `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/register`
 - `customer.js` ดูแล flow จองคิวฝั่งลูกค้า
 - `owner.js` ดูแล flow หลังบ้าน
+- `register.js` ดูแล flow ลงทะเบียนร้านใหม่
 - `supabase/schema.sql` คือ schema สำหรับฐานข้อมูลจริง
 
 ## Cloudflare Pages
@@ -37,6 +39,14 @@ GOOGLE_REDIRECT_URI
 APP_URL
 ```
 
+URL ที่ใช้จริง:
+
+```text
+Public booking: /book/fah-nail
+Owner dashboard: /dashboard/fah-nail
+New shop registration: /register
+```
+
 ## GitHub
 
 หลัง commit แล้ว push ขึ้น GitHub:
@@ -65,7 +75,7 @@ window.FAH_NAIL_CONFIG = {
   shopSlug: "fah-nail",
   supabaseUrl: "https://your-project.supabase.co",
   supabaseAnonKey: "your-public-anon-key",
-  ownerRedirectUrl: "https://fah-nail-booking.pages.dev/owner.html"
+  ownerRedirectUrl: "https://fah-nail-booking.pages.dev/dashboard/fah-nail"
 };
 ```
 
@@ -77,6 +87,8 @@ select id, 'OWNER_USER_ID_FROM_AUTH_USERS', 'owner'
 from public.shops
 where slug = 'fah-nail';
 ```
+
+สำหรับร้านใหม่ในระบบหลายร้าน ให้ใช้หน้า `/register` หลัง login ด้วย Google ระบบจะเรียก `register_shop(shop_name, requested_slug)` เพื่อสร้างร้าน, เพิ่มสมาชิกเจ้าของร้าน, seed บริการเริ่มต้น และ seed ช่วงเวลารับจอง
 
 หลักความปลอดภัยระยะแรก:
 
