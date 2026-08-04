@@ -23,6 +23,7 @@ __MACOSX/
 .env.local
 .env*.local
 *.pem
+supabase/.temp/
 
 # debug
 npm-debug.log*
