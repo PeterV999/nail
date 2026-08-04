@@ -45,6 +45,9 @@ const bookingForm = document.getElementById("booking-form");
 const serviceError = document.getElementById("service-error");
 const statusDateTitle = document.getElementById("status-date-title");
 const toast = document.getElementById("toast");
+const bookingSuccessDialog = document.getElementById("booking-success-dialog");
+const bookingSuccessSummary = document.getElementById("booking-success-summary");
+const bookingDialogClose = document.getElementById("booking-dialog-close");
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -247,7 +250,7 @@ bookingForm.addEventListener("submit", async (event) => {
 
   try {
     await window.FahNailSupabase?.createBookingRequest(request, state);
-    showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
+    showBookingSuccessDialog(request);
   } catch (error) {
     console.warn("Supabase booking request failed", error);
     const errorText = `${error?.message || ""} ${error?.details || ""}`;
@@ -283,11 +286,15 @@ bookingForm.addEventListener("submit", async (event) => {
       return;
     }
 
-    showToast("บันทึกคำขอไว้แล้ว รอเชื่อมต่อระบบกลาง");
+    showBookingSuccessDialog(request);
   }
 });
 
 bookingDate.addEventListener("change", render);
+bookingDialogClose?.addEventListener("click", closeBookingSuccessDialog);
+bookingSuccessDialog?.addEventListener("click", (event) => {
+  if (event.target === bookingSuccessDialog) closeBookingSuccessDialog();
+});
 
 function slotStatusText(date, slot, isBusy = false) {
   if (isDayClosed(date)) return "หยุดร้าน";
@@ -316,6 +323,37 @@ function showToast(message) {
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
+function showBookingSuccessDialog(request) {
+  if (bookingSuccessSummary) {
+    bookingSuccessSummary.textContent = `${thaiDate(request.bookingDate)} | ${request.timeWindow} | ${request.services.join(", ")}`;
+  }
+
+  if (!bookingSuccessDialog) {
+    showToast("ส่งคำขอจองแล้ว ร้านจะติดต่อกลับ");
+    return;
+  }
+
+  if (typeof bookingSuccessDialog.showModal === "function") {
+    bookingSuccessDialog.showModal();
+    return;
+  }
+
+  bookingSuccessDialog.hidden = false;
+  bookingSuccessDialog.classList.add("open");
+}
+
+function closeBookingSuccessDialog() {
+  if (!bookingSuccessDialog) return;
+
+  if (bookingSuccessDialog.open && typeof bookingSuccessDialog.close === "function") {
+    bookingSuccessDialog.close();
+    return;
+  }
+
+  bookingSuccessDialog.classList.remove("open");
+  bookingSuccessDialog.hidden = true;
 }
 
 function escapeHtml(value) {

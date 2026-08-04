@@ -97,6 +97,16 @@
       </main>
     </div>
 
+    <dialog class="booking-dialog" id="booking-success-dialog" aria-labelledby="booking-success-title">
+      <div class="booking-dialog-card">
+        <div class="dialog-badge" aria-hidden="true">FN</div>
+        <h2 id="booking-success-title">ส่งคำขอจองแล้ว</h2>
+        <p>ร้านจะติดต่อกลับเพื่อยืนยันเวลาอีกครั้ง คำขอนี้ยังไม่ใช่การจองที่ยืนยันแล้ว</p>
+        <div class="dialog-summary" id="booking-success-summary"></div>
+        <button class="primary-button" type="button" id="booking-dialog-close">ปิด</button>
+      </div>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app-config.js"></script>
