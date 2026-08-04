@@ -2,6 +2,7 @@
 .codex/
 .DS_Store
 __MACOSX/
+.wrangler/
 
 # dependencies
 /node_modules
