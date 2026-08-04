@@ -18,13 +18,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 
-const supabaseUrl = requiredEnv("SUPABASE_URL");
-const anonKey = requiredEnv("SUPABASE_ANON_KEY");
-const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
-const googleClientId = requiredEnv("GOOGLE_OAUTH_CLIENT_ID");
-const googleClientSecret = requiredEnv("GOOGLE_OAUTH_CLIENT_SECRET");
-const tokenSecret = requiredEnv("GOOGLE_TOKEN_ENCRYPTION_KEY");
-
 serve(async (request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -37,6 +30,7 @@ serve(async (request) => {
 
     const authHeader = request.headers.get("Authorization") || "";
     const body = await readBody(request);
+    const { supabaseUrl, anonKey, serviceRoleKey } = supabaseEnv();
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } }
     });
@@ -255,6 +249,7 @@ async function getIntegration(admin: any, shopId: string) {
 
 async function refreshGoogleAccessToken(admin: any, integration: any) {
   const refreshToken = await decrypt(integration.refresh_token_encrypted);
+  const { googleClientId, googleClientSecret } = googleOAuthEnv();
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -365,6 +360,7 @@ async function decrypt(value: string) {
 }
 
 async function encryptionKey() {
+  const tokenSecret = requiredEnv("GOOGLE_TOKEN_ENCRYPTION_KEY");
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(tokenSecret));
   return crypto.subtle.importKey("raw", digest, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
@@ -403,4 +399,19 @@ function requiredEnv(name: string) {
   const value = Deno.env.get(name);
   if (!value) throw new Error(`${name} is required`);
   return value;
+}
+
+function supabaseEnv() {
+  return {
+    supabaseUrl: requiredEnv("SUPABASE_URL"),
+    anonKey: requiredEnv("SUPABASE_ANON_KEY"),
+    serviceRoleKey: requiredEnv("SUPABASE_SERVICE_ROLE_KEY")
+  };
+}
+
+function googleOAuthEnv() {
+  return {
+    googleClientId: requiredEnv("GOOGLE_OAUTH_CLIENT_ID"),
+    googleClientSecret: requiredEnv("GOOGLE_OAUTH_CLIENT_SECRET")
+  };
 }
