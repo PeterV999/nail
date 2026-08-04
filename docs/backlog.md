@@ -20,13 +20,17 @@
 ## ขั้นตอนต่อไปก่อนใช้ข้อมูลจริง
 
 - เชื่อม Cloudflare Pages กับ GitHub auto deploy หลัง Cloudflare แสดง repo `PeterV999/nail`
-- ต่อ Google Calendar แบบ server-side ด้วย OAuth/Edge Function ก่อนสร้าง event จริง
+- Run `supabase/calendar-sync.sql` บน Supabase SQL Editor
+- ตั้ง Supabase Edge Function secrets สำหรับ Google OAuth และ token encryption
+- Deploy Supabase Edge Function `google-calendar-sync`
+- ทดสอบ flow เชื่อม Google Calendar, ตรวจ status, และส่งคิว confirmed เข้า Calendar
+- หลังทดสอบ Supabase สำเร็จแล้วค่อย deploy frontend เวอร์ชันนี้ขึ้น Cloudflare
 
 ## Phase 2: Google Calendar
 
-- เชื่อม Google OAuth
-- เลือก Calendar ของร้าน
-- สร้าง event เมื่อยืนยันคิว
+- เชื่อม Google OAuth ผ่าน Supabase Edge Function
+- เลือก Calendar ของร้านและเก็บ refresh token ฝั่ง server
+- สร้าง event เมื่อเจ้าของร้านกดส่งคิว confirmed
 - ส่งคิวที่ยืนยันแล้วเข้าปฏิทินย้อนหลัง หลังเชื่อมต่อครั้งแรก
 - อัปเดต event เมื่อแก้ไขคิว
 - ยกเลิก event เมื่อยกเลิกคิว

@@ -119,6 +119,11 @@ create table public.calendar_integrations (
   calendar_id text not null,
   access_token_encrypted text,
   refresh_token_encrypted text,
+  token_type text,
+  scope text,
+  access_token_expires_at timestamptz,
+  connected_by uuid references auth.users(id) on delete set null,
+  last_sync_error text,
   connected_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (shop_id, provider)
@@ -311,6 +316,26 @@ grant select, insert, update, delete on public.appointments to authenticated;
 grant select, insert, update, delete on public.calendar_integrations to authenticated;
 grant select, insert, update, delete on public.portfolio_items to authenticated;
 grant select on public.shop_members to authenticated;
+
+revoke select, insert, update
+on public.calendar_integrations
+from authenticated;
+
+grant select (
+  id,
+  shop_id,
+  provider,
+  calendar_id,
+  token_type,
+  scope,
+  access_token_expires_at,
+  connected_by,
+  last_sync_error,
+  connected_at,
+  updated_at
+)
+on public.calendar_integrations
+to authenticated;
 
 create or replace function public.register_shop(
   shop_name text,
@@ -544,6 +569,7 @@ revoke insert on public.booking_requests from anon;
 revoke insert on public.booking_requests from authenticated;
 
 create index if not exists shop_members_user_id_idx on public.shop_members (user_id);
+create index if not exists calendar_integrations_connected_by_idx on public.calendar_integrations (connected_by);
 create index if not exists booking_requests_shop_status_date_idx on public.booking_requests (shop_id, status, booking_date);
 create index if not exists appointments_shop_date_status_idx on public.appointments (shop_id, appointment_date, status);
 create index if not exists services_shop_sort_idx on public.services (shop_id, sort_order);

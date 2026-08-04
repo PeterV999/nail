@@ -10,7 +10,14 @@
   let authTokenListenerAttached = false;
   const cachedShops = new Map();
   const GOOGLE_PROVIDER_TOKEN_KEY = "fah_nail_google_provider_token";
-  const GOOGLE_CALENDAR_SCOPES = "email profile https://www.googleapis.com/auth/calendar.events";
+  const GOOGLE_PROVIDER_REFRESH_TOKEN_KEY = "fah_nail_google_provider_refresh_token";
+  const PENDING_GOOGLE_CALENDAR_ID_KEY = "fah_nail_pending_google_calendar_id";
+  const GOOGLE_LOGIN_SCOPES = "email profile";
+  const GOOGLE_CALENDAR_SCOPES = `${GOOGLE_LOGIN_SCOPES} https://www.googleapis.com/auth/calendar.events`;
+  const latestProviderTokens = {
+    accessToken: "",
+    refreshToken: ""
+  };
 
   function config() {
     return window.FAH_NAIL_CONFIG || {};
@@ -35,13 +42,33 @@
     authTokenListenerAttached = true;
     db.auth.onAuthStateChange((event, session) => {
       if (session?.provider_token) {
-        window.localStorage.setItem(GOOGLE_PROVIDER_TOKEN_KEY, session.provider_token);
+        rememberProviderTokens({
+          accessToken: session.provider_token,
+          refreshToken: session.provider_refresh_token || ""
+        });
       }
 
       if (event === "SIGNED_OUT") {
         window.localStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
+        window.sessionStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
+        window.sessionStorage.removeItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY);
+        latestProviderTokens.accessToken = "";
+        latestProviderTokens.refreshToken = "";
       }
     });
+  }
+
+  function rememberProviderTokens({ accessToken, refreshToken }) {
+    if (accessToken) {
+      latestProviderTokens.accessToken = accessToken;
+      window.localStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
+      window.sessionStorage.setItem(GOOGLE_PROVIDER_TOKEN_KEY, accessToken);
+    }
+
+    if (refreshToken) {
+      latestProviderTokens.refreshToken = refreshToken;
+      window.sessionStorage.setItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY, refreshToken);
+    }
   }
 
   function routeShopSlug() {
@@ -177,21 +204,28 @@
     return { configured: true, session: sessionData.session, user: userData.user, member: membership, shop };
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(options = {}) {
     const db = client();
     if (!db) return;
+    const calendarAccess = Boolean(options.calendarAccess);
 
     await db.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: config().ownerRedirectUrl || window.location.href,
-        scopes: GOOGLE_CALENDAR_SCOPES,
-        queryParams: {
+        scopes: calendarAccess ? GOOGLE_CALENDAR_SCOPES : GOOGLE_LOGIN_SCOPES,
+        queryParams: calendarAccess ? {
           access_type: "offline",
-          prompt: "consent"
-        }
+          prompt: "consent",
+          include_granted_scopes: "true"
+        } : undefined
       }
     });
+  }
+
+  async function startGoogleCalendarAuthorization(calendarId = "primary") {
+    window.sessionStorage.setItem(PENDING_GOOGLE_CALENDAR_ID_KEY, calendarId || "primary");
+    await signInWithGoogle({ calendarAccess: true });
   }
 
   async function signOut() {
@@ -369,42 +403,14 @@
     const db = client();
     if (!db) return false;
 
-    const shop = await getShop(slug);
-    const calendarId = integration?.calendarId || "primary";
-    const token = await googleProviderToken();
-
-    if (!token) {
-      throw new Error("GOOGLE_CALENDAR_TOKEN_REQUIRED");
-    }
-
-    const eventPayload = calendarEventPayload(appointment, shop.name);
-    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(eventPayload)
+    const data = await invokeCalendarFunction({
+      action: "syncAppointment",
+      shopSlug: slug,
+      appointmentId: appointment.id,
+      calendarId: integration?.calendarId || "primary"
     });
 
-    if (!response.ok) {
-      console.warn("Google Calendar API failed", await response.text().catch(() => ""));
-      throw new Error("GOOGLE_CALENDAR_API_FAILED");
-    }
-
-    const event = await response.json();
-    const { error } = await db
-      .from("appointments")
-      .update({
-        google_calendar_event_id: event.id,
-        google_calendar_name: calendarId,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", appointment.id)
-      .eq("shop_id", shop.id);
-
-    if (error) throw error;
-    return event;
+    return data;
   }
 
   async function updateBookingRequestStatus(requestId, status, slug = routeShopSlug()) {
@@ -493,16 +499,34 @@
     const db = client();
     if (!db) return false;
 
-    const shop = await getShop(slug);
-    const { error } = await db.from("calendar_integrations").upsert({
-      shop_id: shop.id,
-      provider: "google",
-      calendar_id: calendarId,
-      updated_at: new Date().toISOString()
-    }, { onConflict: "shop_id,provider" });
+    const tokens = await googleProviderTokens();
+    const data = await invokeCalendarFunction({
+      action: "connect",
+      shopSlug: slug,
+      calendarId,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken
+    });
 
-    if (error) throw error;
+    if (data?.ok && tokens.refreshToken) {
+      window.sessionStorage.removeItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY);
+      latestProviderTokens.refreshToken = "";
+    }
+
+    return data;
+  }
+
+  async function completePendingGoogleCalendarConnection(slug = routeShopSlug()) {
+    const pendingCalendarId = window.sessionStorage.getItem(PENDING_GOOGLE_CALENDAR_ID_KEY);
+    if (!pendingCalendarId || !hasTransientGoogleRefreshToken()) return false;
+
+    await setCalendarIntegration(pendingCalendarId, slug);
+    window.sessionStorage.removeItem(PENDING_GOOGLE_CALENDAR_ID_KEY);
     return true;
+  }
+
+  function hasTransientGoogleRefreshToken() {
+    return Boolean(latestProviderTokens.refreshToken || window.sessionStorage.getItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY));
   }
 
   async function removeCalendarIntegration(slug = routeShopSlug()) {
@@ -659,14 +683,72 @@
     return customer.phone || customer.line_id || customer.facebook_name || customer.note || fallback || "";
   }
 
+  async function invokeCalendarFunction(body) {
+    const db = client();
+    if (!db) return null;
+
+    const { data, error } = await db.functions.invoke("google-calendar-sync", {
+      body
+    });
+
+    if (error) {
+      const details = await edgeFunctionErrorDetails(error);
+      const code = details?.code || error.name || "GOOGLE_CALENDAR_SYNC_FAILED";
+      throw new Error(code);
+    }
+
+    if (data?.ok === false) {
+      throw new Error(data.code || "GOOGLE_CALENDAR_SYNC_FAILED");
+    }
+
+    return data;
+  }
+
+  async function edgeFunctionErrorDetails(error) {
+    try {
+      return await error.context?.json?.();
+    } catch {
+      return null;
+    }
+  }
+
   async function googleProviderToken() {
     const db = client();
     const { data } = await db.auth.getSession();
-    return data.session?.provider_token || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY) || "";
+    const accessToken = data.session?.provider_token
+      || latestProviderTokens.accessToken
+      || window.sessionStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
+      || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
+      || "";
+    const refreshToken = data.session?.provider_refresh_token || window.sessionStorage.getItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY) || "";
+    rememberProviderTokens({ accessToken, refreshToken });
+    return accessToken;
   }
 
-  async function hasGoogleCalendarToken() {
-    return Boolean(await googleProviderToken());
+  async function googleProviderTokens() {
+    const db = client();
+    const { data } = await db.auth.getSession();
+    const accessToken = data.session?.provider_token
+      || latestProviderTokens.accessToken
+      || window.sessionStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
+      || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
+      || "";
+    const refreshToken = data.session?.provider_refresh_token
+      || latestProviderTokens.refreshToken
+      || window.sessionStorage.getItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY)
+      || "";
+    rememberProviderTokens({ accessToken, refreshToken });
+    return { accessToken, refreshToken };
+  }
+
+  async function hasGoogleCalendarToken(slug = routeShopSlug()) {
+    try {
+      const data = await invokeCalendarFunction({ action: "status", shopSlug: slug });
+      return Boolean(data?.hasRefreshToken && !data?.needsReconnect);
+    } catch (error) {
+      console.warn("Calendar status function failed", error);
+      return false;
+    }
   }
 
   function calendarEventPayload(appointment, shopName) {
@@ -711,6 +793,7 @@
     listMemberShops,
     ownerSession,
     signInWithGoogle,
+    startGoogleCalendarAuthorization,
     signOut,
     loadOwnerState,
     confirmBookingRequest,
@@ -722,6 +805,8 @@
     syncAppointmentToGoogleCalendar,
     hasGoogleCalendarToken,
     setCalendarIntegration,
+    completePendingGoogleCalendarConnection,
+    hasTransientGoogleRefreshToken,
     removeCalendarIntegration,
     createService,
     updateService,

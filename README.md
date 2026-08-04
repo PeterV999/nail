@@ -48,6 +48,7 @@
 - [owner.js](owner.js) สำหรับ logic หลังบ้าน
 - [register.js](register.js) สำหรับ logic ลงทะเบียนร้านใหม่
 - [supabase/schema.sql](supabase/schema.sql) สำหรับฐานข้อมูลจริง
+- [supabase/functions/google-calendar-sync](supabase/functions/google-calendar-sync) สำหรับส่งคิวเข้า Google Calendar ผ่าน server
 
 ฟีเจอร์ที่มีในเว็บระยะแรก:
 
@@ -62,6 +63,6 @@
 - เพิ่ม ลบ เปิด หรือปิดช่วงเวลารับจอง
 - ปิดรับจองทั้งวันตามวันที่เลือก
 - ปิดช่วงเวลาที่มีคิว confirmed แล้วในหน้าลูกค้า
-- ตัวอย่างหน้าตั้งค่าเชื่อม Google Calendar
+- เชื่อม Google Calendar ผ่าน Supabase Edge Function
 - แสดงสถานะคิวที่ส่งเข้าปฏิทินแล้ว
 - ลงทะเบียนร้านใหม่ผ่าน Supabase RPC และสร้าง URL ตาม `shopSlug`

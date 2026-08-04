@@ -29,14 +29,16 @@ Supabase เป็นฐานข้อมูลหลัก ส่วน Google
 - สร้าง event ใน Google Calendar
 - เก็บ google_calendar_event_id กลับมาใน appointment
 
-ใน prototype ปัจจุบันจะแสดงเป็นการจำลอง:
+ระบบ production ต้องส่ง Calendar ผ่าน Supabase Edge Function เท่านั้น:
 
-- เจ้าของร้านกดเชื่อมต่อ Google Calendar
-- เลือกปฏิทินของร้าน
-- เมื่อยืนยันคิวหรือเจ้าของร้านลงคิวเอง ระบบใส่สถานะว่าเข้าปฏิทินแล้ว
-- ถ้าเชื่อม Calendar หลังจากมีคิวแล้ว เจ้าของร้านกดส่งคิวที่ยืนยันแล้วได้
+- `google-calendar-sync` action `connect` บันทึก `calendar_id` และ refresh token ที่เข้ารหัสไว้ใน `calendar_integrations`
+- `google-calendar-sync` action `status` ตรวจว่าร้านนี้มี refresh token พร้อมใช้งานหรือไม่
+- `google-calendar-sync` action `syncAppointment` refresh access token และเรียก Google Calendar API จากฝั่ง server
+- หน้าเว็บไม่เรียก `www.googleapis.com/calendar` โดยตรง และไม่เก็บ refresh token ถาวรใน browser
 
-ระบบจริงต้องทำผ่าน backend เท่านั้น เพราะต้องเก็บ OAuth token อย่างปลอดภัย ห้ามเก็บ token ใน browser หรือ localStorage
+refresh token จะถูกส่งจาก browser ไปยัง Edge Function เฉพาะหลัง Google OAuth redirect ที่ให้สิทธิ์ `offline` แล้ว จากนั้นลบออกจาก `sessionStorage`
+
+การเข้าสู่ระบบหลังบ้านปกติขอแค่ `email profile` ส่วน scope ของ Calendar จะขอเฉพาะตอนเจ้าของร้านกดเชื่อม Google Calendar
 
 ## เมื่อแก้ไขคิว
 

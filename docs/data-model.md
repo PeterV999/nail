@@ -179,6 +179,13 @@ provider
 calendar_id
 access_token_encrypted
 refresh_token_encrypted
+token_type
+scope
+access_token_expires_at
+connected_by
+last_sync_error
 connected_at
 updated_at
 ```
+
+หมายเหตุ: คอลัมน์ token ใช้โดย Supabase Edge Function เท่านั้น frontend role จะอ่านหรือเขียน token โดยตรงไม่ได้

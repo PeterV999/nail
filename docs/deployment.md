@@ -34,8 +34,9 @@ Production branch: main
 ```text
 SUPABASE_URL
 SUPABASE_ANON_KEY
-GOOGLE_CLIENT_ID
-GOOGLE_REDIRECT_URI
+GOOGLE_OAUTH_CLIENT_ID
+GOOGLE_OAUTH_CLIENT_SECRET
+GOOGLE_TOKEN_ENCRYPTION_KEY
 APP_URL
 ```
 
@@ -99,14 +100,32 @@ where slug = 'fah-nail';
 
 ## Google Calendar
 
-ยังไม่ควรเก็บ token ใน frontend
+ใช้ Supabase Edge Function ชื่อ `google-calendar-sync` สำหรับเชื่อมและส่งคิวเข้า Google Calendar
 
-ระบบจริงต้องเพิ่ม backend endpoint:
+ก่อน deploy function ให้คัดลอกเนื้อหาใน `supabase/calendar-sync.sql` ไปวางใน Supabase SQL Editor แล้วกด Run
 
-```text
-/api/google/connect
-/api/google/callback
-/api/calendar/events
+ตั้งค่า secrets ให้ Edge Function:
+
+```bash
+supabase secrets set \
+  GOOGLE_OAUTH_CLIENT_ID="..." \
+  GOOGLE_OAUTH_CLIENT_SECRET="..." \
+  GOOGLE_TOKEN_ENCRYPTION_KEY="สุ่มอย่างน้อย-32-ตัวอักษร" \
+  --project-ref punzqhfrhdgimvmczspv
 ```
 
-เมื่อเจ้าของร้านยืนยันคิว backend จะสร้าง Google Calendar event แล้วบันทึก `google_calendar_event_id` กลับเข้า `appointments`
+deploy function:
+
+```bash
+supabase functions deploy google-calendar-sync --project-ref punzqhfrhdgimvmczspv --use-api
+```
+
+ใน Google Cloud OAuth ต้องมี callback ของ Supabase Auth:
+
+```text
+https://punzqhfrhdgimvmczspv.supabase.co/auth/v1/callback
+```
+
+เมื่อเจ้าของร้านกดเชื่อม Google Calendar ระบบจะขอ `offline access` เพื่อรับ refresh token แล้ว Edge Function จะเข้ารหัสเก็บไว้ใน `calendar_integrations.refresh_token_encrypted`
+
+เมื่อเจ้าของร้านกด “ส่งคิวที่ยืนยันแล้ว” หน้าเว็บจะเรียก Edge Function ให้สร้าง Google Calendar event แล้วบันทึก `google_calendar_event_id` กลับเข้า `appointments`

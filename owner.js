@@ -266,13 +266,13 @@ function calendarConnectionText(integration) {
   if (remoteMode && !calendarTokenReady) {
     return {
       title: "ต้องอนุญาต Calendar ใหม่",
-      detail: "ออกจากระบบแล้วเข้าสู่ระบบ Google ใหม่เพื่อให้สิทธิ์ Calendar",
+      detail: "กดเชื่อมต่อปฏิทินเพื่อเก็บสิทธิ์ระยะยาวบน server",
       statusClass: "warning"
     };
   }
 
   return {
-    title: "พร้อมส่งคิว",
+    title: "พร้อมส่งผ่าน server",
     detail: integration.calendarName || integration.calendarId || "primary",
     statusClass: "connected"
   };
@@ -293,7 +293,12 @@ async function initOwnerAccess() {
       currentMemberShops = await safeListMemberShops();
       calendarTokenReady = await safeCalendarTokenStatus();
       await loadRemoteOwnerState();
-      showOwnerApp();
+      const completedCalendarConnect = await safeCompletePendingCalendarConnection();
+      if (completedCalendarConnect) {
+        await loadRemoteOwnerState();
+        calendarTokenReady = await safeCalendarTokenStatus();
+      }
+      showOwnerApp(completedCalendarConnect ? "เชื่อม Google Calendar แล้ว" : "");
       return;
     }
 
@@ -397,9 +402,18 @@ async function safeListMemberShops() {
 
 async function safeCalendarTokenStatus() {
   try {
-    return await window.FahNailSupabase?.hasGoogleCalendarToken?.() || false;
+    return await window.FahNailSupabase?.hasGoogleCalendarToken?.(currentShopSlug) || false;
   } catch (error) {
     console.warn("Calendar token check failed", error);
+    return false;
+  }
+}
+
+async function safeCompletePendingCalendarConnection() {
+  try {
+    return await window.FahNailSupabase?.completePendingGoogleCalendarConnection?.(currentShopSlug) || false;
+  } catch (error) {
+    console.warn("Complete pending calendar connection failed", error);
     return false;
   }
 }
@@ -754,10 +768,10 @@ function renderCalendarIntegration() {
   if (integration.connected) {
     calendarStatus.className = "calendar-status connected";
     calendarStatus.innerHTML = `
-      <strong>เชื่อมต่อแล้ว</strong>
-      <span>${escapeHtml(integration.calendarName)} · ${escapeHtml(integration.accountEmail)}</span>
+      <strong>${calendarTokenReady || !remoteMode ? "เชื่อมต่อแล้ว" : "ต้องเชื่อมใหม่"}</strong>
+      <span>${escapeHtml(integration.calendarName)} · ${escapeHtml(calendarTokenReady || !remoteMode ? "พร้อมส่งผ่าน server" : "รอสิทธิ์ Calendar ระยะยาว")}</span>
     `;
-    connectCalendarButton.textContent = "เปลี่ยนปฏิทิน";
+    connectCalendarButton.textContent = calendarTokenReady || !remoteMode ? "เปลี่ยนปฏิทิน" : "เชื่อม Calendar ใหม่";
     return;
   }
 
@@ -1103,13 +1117,18 @@ connectCalendarButton.addEventListener("click", async () => {
 
   try {
     if (remoteMode) {
+      if (!calendarTokenReady && !window.FahNailSupabase?.hasTransientGoogleRefreshToken?.()) {
+        await window.FahNailSupabase.startGoogleCalendarAuthorization(calendarSelect.value);
+        return;
+      }
+
       await window.FahNailSupabase.setCalendarIntegration(calendarSelect.value, currentShopSlug);
-      await reloadAfterRemote("บันทึกค่าปฏิทินแล้ว ถ้าส่งไม่ได้ให้เข้าสู่ระบบ Google ใหม่เพื่ออนุญาต Calendar");
+      await reloadAfterRemote("เชื่อม Google Calendar แล้ว ระบบจะส่งคิวผ่าน server");
       return;
     }
   } catch (error) {
     console.warn("Set calendar integration failed", error);
-    showToast("ยังบันทึกค่าปฏิทินไม่สำเร็จ");
+    showToast(calendarErrorMessage(error));
     return;
   }
 
@@ -1182,6 +1201,11 @@ syncCalendarButton.addEventListener("click", async () => {
     showToast("ส่งคิวที่ยืนยันแล้วเข้าปฏิทินแล้ว");
   } catch (error) {
     console.warn("Sync calendar failed", error);
+    if (["GOOGLE_REFRESH_TOKEN_REQUIRED", "GOOGLE_TOKEN_REFRESH_FAILED"].includes(error?.message)) {
+      calendarTokenReady = false;
+      renderOwnerConnection();
+      renderCalendarIntegration();
+    }
     showToast(calendarErrorMessage(error));
   }
 });
@@ -1198,8 +1222,16 @@ function syncCalendarEvent(appointment) {
 }
 
 function calendarErrorMessage(error) {
-  if (error?.message === "GOOGLE_CALENDAR_TOKEN_REQUIRED") {
-    return "กรุณาออกจากระบบ แล้วเข้าสู่ระบบ Google ใหม่เพื่ออนุญาต Calendar";
+  if (error?.message === "GOOGLE_REFRESH_TOKEN_REQUIRED") {
+    return "กรุณาเชื่อม Google Calendar ใหม่เพื่ออนุญาตแบบใช้งานระยะยาว";
+  }
+
+  if (error?.message === "GOOGLE_TOKEN_REFRESH_FAILED") {
+    return "สิทธิ์ Google Calendar หมดอายุ กรุณาเชื่อมปฏิทินใหม่";
+  }
+
+  if (error?.message === "GOOGLE_CALENDAR_SYNC_FAILED") {
+    return "ระบบส่งคิวผ่าน server ยังไม่สำเร็จ กรุณาตรวจ Edge Function";
   }
 
   if (error?.message === "GOOGLE_CALENDAR_API_FAILED") {

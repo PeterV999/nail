@@ -1,6 +1,7 @@
 # local app data
 .codex/
 .DS_Store
+__MACOSX/
 
 # dependencies
 /node_modules
