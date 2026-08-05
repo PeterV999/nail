@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const STATIC_CACHE = `fah-nail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `fah-nail-pages-${CACHE_VERSION}`;
 

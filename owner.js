@@ -308,7 +308,7 @@ async function initOwnerAccess() {
     }
 
     if (authState?.configured) {
-      showAuthPanel(false);
+      showAuthPanel(isLocalPreview());
       return;
     }
   } catch (error) {
@@ -318,7 +318,7 @@ async function initOwnerAccess() {
       : "ยังตรวจสอบสิทธิ์เจ้าของร้านไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
   }
 
-  showAuthPanel(isLocalPreview() && !window.FahNailSupabase?.isConfigured?.());
+  showAuthPanel(isLocalPreview());
 }
 
 async function loadRemoteOwnerState() {
@@ -329,16 +329,17 @@ async function loadRemoteOwnerState() {
 }
 
 function showAuthPanel(allowDemo) {
+  const configured = Boolean(window.FahNailSupabase?.isConfigured?.());
   ownerAuthPanel.hidden = false;
   ownerApp.hidden = true;
   demoLoginButton.hidden = !allowDemo;
-  googleLoginButton.hidden = allowDemo;
+  googleLoginButton.hidden = !configured;
 
   authCopy.textContent = allowDemo
-    ? "ตอนนี้ยังไม่ได้เชื่อมข้อมูลจริง จึงเปิดดูหลังบ้านในโหมดตัวอย่างได้"
+    ? "เปิดดูต้นแบบในเครื่องได้ทันที หรือเข้าสู่ระบบ Google เพื่อดูข้อมูลจริง"
     : "กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าของร้าน";
   authStatus.textContent = allowDemo
-    ? "โหมดตัวอย่างใช้ข้อมูลในเครื่องสำหรับทดลองเท่านั้น"
+    ? "โหมดตัวอย่างใช้ข้อมูลในเครื่องสำหรับดู layout เท่านั้น"
     : "ข้อมูลหลังบ้านจะแสดงเฉพาะบัญชีที่มีสิทธิ์ดูแลร้าน";
 }
 
@@ -1018,7 +1019,7 @@ logoutButton.addEventListener("click", async () => {
   currentOwnerRole = "";
   currentMemberShops = [];
   calendarTokenReady = false;
-  showAuthPanel(!window.FahNailSupabase?.isConfigured());
+  showAuthPanel(isLocalPreview());
 });
 
 manualDate.addEventListener("change", renderManualOptions);

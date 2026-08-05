@@ -28,6 +28,18 @@
     return Boolean(window.supabase && current.supabaseUrl && current.supabaseAnonKey);
   }
 
+  function isLocalPreview() {
+    return ["file:", "http:"].includes(window.location.protocol)
+      && ["", "localhost", "127.0.0.1"].includes(window.location.hostname);
+  }
+
+  function localPageUrl(fileName, slug) {
+    const url = new URL(fileName, window.location.href);
+    if (slug) url.searchParams.set("shop", slug);
+    url.hash = "";
+    return url.href;
+  }
+
   function client() {
     if (!isConfigured()) return null;
     if (!cachedClient) {
@@ -80,6 +92,14 @@
   }
 
   function shopUrls(slug = routeShopSlug()) {
+    if (isLocalPreview()) {
+      return {
+        booking: localPageUrl("index.html", slug),
+        dashboard: localPageUrl("owner.html", slug),
+        register: localPageUrl("register.html")
+      };
+    }
+
     return {
       booking: `/book/${encodeURIComponent(slug)}`,
       dashboard: `/dashboard/${encodeURIComponent(slug)}`,
@@ -231,11 +251,14 @@
     const db = client();
     if (!db) return;
     const calendarAccess = Boolean(options.calendarAccess);
+    const redirectTo = options.redirectTo
+      || (isLocalPreview() ? localPageUrl("owner.html", routeShopSlug()) : config().ownerRedirectUrl)
+      || window.location.href;
 
     await db.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: config().ownerRedirectUrl || window.location.href,
+        redirectTo,
         scopes: calendarAccess ? GOOGLE_CALENDAR_SCOPES : GOOGLE_LOGIN_SCOPES,
         queryParams: calendarAccess ? {
           access_type: "offline",

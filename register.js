@@ -55,10 +55,12 @@ async function initRegister() {
 
 registerLoginButton.addEventListener("click", async () => {
   try {
+    const isLocalPreview = ["file:", "http:"].includes(window.location.protocol)
+      && ["", "localhost", "127.0.0.1"].includes(window.location.hostname);
     await window.FahNailSupabase.client().auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/register`
+        redirectTo: isLocalPreview ? `${window.location.origin}/register.html` : `${window.location.origin}/register`
       }
     });
   } catch (error) {
