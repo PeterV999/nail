@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>หลังบ้านกลาง | Fah Nail Booking</title>
+    <script>document.write(`<base href="${location.protocol === "file:" ? "./" : "/"}">`);</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell admin-shell">
+      <header class="topbar">
+        <a class="brand" href="/admin" aria-label="Booking Admin">
+          <span class="brand-mark">BA</span>
+          <span>
+            <strong>Booking Admin</strong>
+            <small>ภาพรวมร้านค้า</small>
+          </span>
+        </a>
+        <nav class="admin-nav" aria-label="ทางลัด">
+          <a class="owner-link" href="/dashboard/fah-nail">Fah Nail</a>
+          <a class="owner-link" href="/register">เพิ่มร้าน</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="auth-panel" id="admin-auth-panel" aria-labelledby="admin-auth-title">
+          <div>
+            <p class="eyebrow">ผู้ดูแลระบบ</p>
+            <h1 id="admin-auth-title">เข้าสู่หลังบ้านกลาง</h1>
+            <p class="lead" id="admin-auth-copy">ใช้บัญชีที่ได้รับสิทธิ์ global admin เพื่อดูภาพรวมร้านค้า</p>
+          </div>
+          <div class="auth-actions">
+            <button class="primary-button" type="button" id="admin-google-login-button">เข้าสู่ระบบด้วย Google</button>
+            <button class="secondary-button" type="button" id="admin-auth-logout-button" hidden>ออกจากระบบ</button>
+          </div>
+          <p class="hint" id="admin-auth-status">บัญชีที่ไม่มีสิทธิ์ global admin จะไม่เห็นข้อมูลร้านค้า</p>
+        </section>
+
+        <section class="admin-dashboard" id="admin-app" aria-labelledby="admin-title" hidden>
+          <div class="admin-hero">
+            <div>
+              <p class="eyebrow">ภาพรวมระบบ</p>
+              <h1 id="admin-title">ดูร้านทั้งหมดโดยไม่ยุ่งกับงานหน้าร้าน</h1>
+              <p class="lead">หน้านี้ใช้ติดตามสถานะร้าน เปิดหลังบ้านรายร้าน และแก้ข้อมูลติดต่อพื้นฐานเท่านั้น</p>
+            </div>
+            <div class="owner-session admin-session">
+              <span id="admin-account">ตรวจสอบบัญชี...</span>
+              <button class="secondary-button" type="button" id="admin-logout-button">ออกจากระบบ</button>
+            </div>
+          </div>
+
+          <div class="admin-stats" id="admin-stats" aria-label="ตัวเลขรวม"></div>
+
+          <section class="admin-section" aria-labelledby="shop-list-title">
+            <div class="admin-section-head">
+              <div>
+                <h2 id="shop-list-title">ร้านค้า</h2>
+                <p class="hint">แก้ได้เฉพาะชื่อ เบอร์ LINE Facebook และสถานะร้าน</p>
+              </div>
+              <button class="secondary-button" type="button" id="refresh-admin-button">รีเฟรช</button>
+            </div>
+            <div class="admin-shop-list" id="admin-shop-list"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="owner-dialog admin-dialog" id="admin-shop-dialog" aria-labelledby="admin-dialog-title">
+      <form class="owner-dialog-card admin-dialog-card" id="admin-shop-form">
+        <div class="dialog-badge" aria-hidden="true">ร้าน</div>
+        <h2 id="admin-dialog-title">แก้ข้อมูลร้าน</h2>
+        <p id="admin-dialog-message">แก้เฉพาะข้อมูลที่ใช้แสดงในหน้าร้านและหน้าจอง</p>
+        <label>
+          ชื่อร้าน
+          <input name="shopName" id="admin-shop-name" autocomplete="organization" required>
+        </label>
+        <label>
+          เบอร์โทร
+          <input name="shopPhone" id="admin-shop-phone" autocomplete="tel">
+        </label>
+        <label>
+          LINE
+          <input name="shopLine" id="admin-shop-line">
+        </label>
+        <label>
+          Facebook
+          <input name="shopFacebook" id="admin-shop-facebook">
+        </label>
+        <label>
+          สถานะร้าน
+          <select name="shopStatus" id="admin-shop-status">
+            <option value="active">เปิดใช้งาน</option>
+            <option value="inactive">ปิดใช้งาน</option>
+          </select>
+        </label>
+        <div class="dialog-actions confirming">
+          <button class="secondary-button" type="button" id="admin-dialog-cancel">ปิด</button>
+          <button class="primary-button" type="submit" id="admin-dialog-save">บันทึก</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app-config.js"></script>
+    <script src="supabase-adapter.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>

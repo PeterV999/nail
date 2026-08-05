@@ -30,6 +30,7 @@
 - [Data Model](docs/data-model.md)
 - [Integrations](docs/integrations.md)
 - [UI Guidelines](docs/ui-guidelines.md)
+- [Platform Admin](docs/admin.md)
 - [Backlog](docs/backlog.md)
 - [Deployment](docs/deployment.md)
 

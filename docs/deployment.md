@@ -46,6 +46,7 @@ URL ที่ใช้จริง:
 Public booking: /book/fah-nail
 Owner dashboard: /dashboard/fah-nail
 New shop registration: /register
+Platform admin: /admin
 ```
 
 ## GitHub

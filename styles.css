@@ -138,6 +138,13 @@ button {
   text-decoration: none;
 }
 
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .view {
   display: none;
 }
@@ -671,6 +678,155 @@ textarea {
   display: none;
 }
 
+.admin-dashboard[hidden] {
+  display: none;
+}
+
+.admin-shell {
+  width: min(1240px, calc(100% - 28px));
+}
+
+.admin-dashboard {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-hero,
+.admin-section,
+.admin-shop-card {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--shadow);
+}
+
+.admin-hero {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px;
+}
+
+.admin-session {
+  min-width: min(100%, 260px);
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-stat-chip {
+  min-height: 86px;
+  background:
+    linear-gradient(135deg, #ffffff, rgba(221, 251, 243, .76)),
+    var(--surface-strong);
+}
+
+.admin-section {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.admin-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-shop-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-shop-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  box-shadow: none;
+}
+
+.admin-shop-top {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-shop-top h3 {
+  margin: 8px 0 2px;
+  font-size: 1.16rem;
+  line-height: 1.25;
+}
+
+.admin-shop-top p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+  overflow-wrap: anywhere;
+}
+
+.status-pill.muted {
+  color: #637789;
+  background: #d9e6ef;
+}
+
+.admin-shop-metrics,
+.admin-shop-contact,
+.admin-shop-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-shop-metrics span,
+.admin-shop-contact span {
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  background: #fff;
+  font-size: .88rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.admin-shop-metrics strong {
+  color: var(--primary-dark);
+}
+
+.admin-shop-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-shop-actions .primary-button,
+.admin-shop-actions .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}
+
+.admin-dialog {
+  width: min(460px, calc(100% - 30px));
+}
+
+.admin-dialog-card {
+  text-align: left;
+}
+
+.admin-dialog-card .dialog-badge,
+.admin-dialog-card h2,
+.admin-dialog-card p {
+  text-align: center;
+}
+
 .auth-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -946,6 +1102,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .admin-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   h1 {
     font-size: 1.9rem;
   }
@@ -967,6 +1127,11 @@ textarea {
     gap: 10px;
   }
 
+  .admin-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .view-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -984,6 +1149,29 @@ textarea {
   .auth-panel {
     border-radius: 18px;
     padding: 14px;
+  }
+
+  .admin-hero,
+  .admin-section,
+  .admin-shop-card {
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .admin-hero,
+  .admin-section-head,
+  .admin-shop-top {
+    display: grid;
+  }
+
+  .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-shop-metrics,
+  .admin-shop-contact,
+  .admin-shop-actions {
+    grid-template-columns: 1fr;
   }
 
   .customer-hero {
@@ -1085,6 +1273,10 @@ textarea {
   }
 
   .owner-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stats {
     grid-template-columns: 1fr;
   }
 

@@ -97,9 +97,18 @@ async function requireShopMember(admin: any, shopSlug = "", userId: string) {
     .maybeSingle();
 
   if (memberError) throw memberError;
-  if (!member) throw httpError("SHOP_MEMBER_REQUIRED", "No access to this shop", 403);
+  if (member) return { shop, member };
 
-  return { shop, member };
+  const { data: platformAdmin, error: platformAdminError } = await admin
+    .from("platform_admins")
+    .select("role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (platformAdminError) throw platformAdminError;
+  if (!platformAdmin) throw httpError("SHOP_MEMBER_REQUIRED", "No access to this shop", 403);
+
+  return { shop, member: { role: "platform_admin" } };
 }
 
 async function calendarStatus(admin: any, shopId: string) {

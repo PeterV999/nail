@@ -168,13 +168,16 @@
     const db = client();
     if (!db) return [];
 
-    const { data, error } = await db
+    const { data, error } = await db.rpc("list_accessible_shops");
+    if (!error) return (data || []).map(mapAccessibleShop);
+
+    const { data: memberships, error: membershipError } = await db
       .from("shop_members")
       .select("role, shops(id,name,slug,status)")
       .order("created_at", { ascending: true });
 
-    if (error) throw error;
-    return (data || [])
+    if (membershipError) throw membershipError;
+    return (memberships || [])
       .map((item) => ({ role: item.role, ...(item.shops || {}) }))
       .filter((shop) => shop.id);
   }
@@ -190,6 +193,26 @@
 
     if (!sessionData.session || !userData.user) {
       return { configured: true, session: null, member: null };
+    }
+
+    const { data: access, error: accessError } = await db
+      .rpc("get_shop_access", { shop_slug: slug })
+      .maybeSingle();
+
+    if (!accessError) {
+      const shop = access ? {
+        id: access.id,
+        name: access.name,
+        slug: access.slug,
+        status: access.status
+      } : await getShop(slug).catch(() => null);
+      return {
+        configured: true,
+        session: sessionData.session,
+        user: userData.user,
+        member: access ? { shop_id: access.id, role: access.role } : null,
+        shop
+      };
     }
 
     const shop = await getShop(slug);
@@ -658,6 +681,69 @@
     return data;
   }
 
+  async function isPlatformAdmin() {
+    const db = client();
+    if (!db) return false;
+    const { data, error } = await db.rpc("current_user_is_platform_admin");
+    if (error) throw error;
+    return Boolean(data);
+  }
+
+  async function loadPlatformAdminOverview() {
+    const db = client();
+    if (!db) return null;
+
+    const [{ data: userData, error: userError }, { data: adminData, error: adminError }, { data: shops, error: shopsError }] = await Promise.all([
+      db.auth.getUser(),
+      db.rpc("current_user_is_platform_admin"),
+      db.rpc("list_accessible_shops")
+    ]);
+
+    if (userError || adminError || shopsError) throw userError || adminError || shopsError;
+
+    const mappedShops = (shops || []).map(mapAccessibleShop);
+    const platformAdmin = Boolean(adminData);
+    const visibleShops = platformAdmin ? mappedShops : [];
+
+    return {
+      user: userData.user,
+      isPlatformAdmin: platformAdmin,
+      shops: visibleShops,
+      stats: platformAdmin ? platformAdminStats(visibleShops) : platformAdminStats([])
+    };
+  }
+
+  async function updatePlatformShopSettings(shopId, changes) {
+    const db = client();
+    if (!db) return null;
+
+    const { data, error } = await db
+      .rpc("update_platform_shop_settings", {
+        target_shop_id: shopId,
+        shop_name: changes.name,
+        shop_phone: changes.phone || null,
+        shop_line_id: changes.lineId || null,
+        shop_facebook_page: changes.facebookPage || null,
+        shop_status: changes.status || "active"
+      })
+      .single();
+
+    if (error) throw error;
+    if (data?.slug) {
+      cachedShops.set(data.slug, { id: data.id, name: data.name, slug: data.slug });
+    }
+    return {
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      status: data.status,
+      phone: data.phone || "",
+      lineId: data.line_id || "",
+      facebookPage: data.facebook_page || "",
+      updatedAt: data.updated_at
+    };
+  }
+
   async function createCustomer(shopId, name, contact) {
     const db = client();
     const { data, error } = await db
@@ -677,6 +763,33 @@
   function customerContact(customer, fallback = "") {
     if (!customer) return fallback || "";
     return customer.phone || customer.line_id || customer.facebook_name || customer.note || fallback || "";
+  }
+
+  function mapAccessibleShop(item) {
+    return {
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+      status: item.status,
+      phone: item.phone || "",
+      lineId: item.line_id || "",
+      facebookPage: item.facebook_page || "",
+      role: item.role || "owner",
+      pendingRequests: Number(item.pending_requests || 0),
+      todayAppointments: Number(item.today_appointments || 0),
+      calendarConnected: Boolean(item.calendar_connected),
+      updatedAt: item.updated_at || ""
+    };
+  }
+
+  function platformAdminStats(shops) {
+    return {
+      totalShops: shops.length,
+      activeShops: shops.filter((shop) => shop.status === "active").length,
+      pendingRequests: shops.reduce((sum, shop) => sum + Number(shop.pendingRequests || 0), 0),
+      todayAppointments: shops.reduce((sum, shop) => sum + Number(shop.todayAppointments || 0), 0),
+      calendarConnected: shops.filter((shop) => shop.calendarConnected).length
+    };
   }
 
   async function invokeCalendarFunction(body) {
@@ -811,6 +924,9 @@
     updateTimeSlot,
     deleteTimeSlot,
     setDayClosed,
-    registerShop
+    registerShop,
+    isPlatformAdmin,
+    loadPlatformAdminOverview,
+    updatePlatformShopSettings
   };
 }());
