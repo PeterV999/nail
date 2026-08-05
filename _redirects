@@ -1,3 +1,4 @@
+/admin /admin/ 301
 /book/:shopSlug / 200
 /dashboard/:shopSlug /owner 200
 /owner.html /dashboard/fah-nail 302
