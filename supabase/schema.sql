@@ -408,6 +408,8 @@ as $$
   limit 1;
 $$;
 
+drop function if exists public.list_accessible_shops();
+
 create or replace function public.list_accessible_shops()
 returns table(
   id uuid,
