@@ -6,6 +6,9 @@ const shopName = document.getElementById("shop-name");
 const shopSlug = document.getElementById("shop-slug");
 const slugPreview = document.getElementById("slug-preview");
 const dashboardPreview = document.getElementById("dashboard-preview");
+const pageLoader = document.getElementById("page-loader");
+const pageLoaderTitle = document.getElementById("page-loader-title");
+const pageLoaderCopy = document.getElementById("page-loader-copy");
 const toast = document.getElementById("toast");
 
 function normalizeSlug(value) {
@@ -33,28 +36,42 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
+function setPageLoading(active, title = "", copy = "") {
+  if (!pageLoader) return;
+  if (title && pageLoaderTitle) pageLoaderTitle.textContent = title;
+  if (copy && pageLoaderCopy) pageLoaderCopy.textContent = copy;
+  pageLoader.hidden = !active;
+}
+
 async function initRegister() {
+  setPageLoading(true, "กำลังตรวจสอบบัญชี", "กำลังดูสถานะเข้าสู่ระบบก่อนสร้างร้าน");
   if (!window.FahNailSupabase?.isConfigured()) {
     registerStatus.textContent = "ยังไม่ได้ตั้งค่า Supabase จึงยังลงทะเบียนร้านจริงไม่ได้";
     registerLoginButton.disabled = true;
+    setPageLoading(false);
     return;
   }
 
-  const { data, error } = await window.FahNailSupabase.client().auth.getSession();
-  if (error) {
-    registerStatus.textContent = "ยังตรวจสอบสถานะเข้าสู่ระบบไม่สำเร็จ";
-    return;
-  }
+  try {
+    const { data, error } = await window.FahNailSupabase.client().auth.getSession();
+    if (error) {
+      registerStatus.textContent = "ยังตรวจสอบสถานะเข้าสู่ระบบไม่สำเร็จ";
+      return;
+    }
 
-  if (data.session) {
-    registerAuthActions.hidden = true;
-    registerForm.hidden = false;
-    registerStatus.textContent = "กรอกชื่อร้านและ URL ที่ต้องการได้เลย";
+    if (data.session) {
+      registerAuthActions.hidden = true;
+      registerForm.hidden = false;
+      registerStatus.textContent = "กรอกชื่อร้านและ URL ที่ต้องการได้เลย";
+    }
+  } finally {
+    setPageLoading(false);
   }
 }
 
 registerLoginButton.addEventListener("click", async () => {
   try {
+    setPageLoading(true, "กำลังเปิด Google Login", "กำลังส่งคุณไปยืนยันบัญชี Google");
     const isLocalPreview = ["file:", "http:"].includes(window.location.protocol)
       && ["", "localhost", "127.0.0.1"].includes(window.location.hostname);
     await window.FahNailSupabase.client().auth.signInWithOAuth({
@@ -64,6 +81,7 @@ registerLoginButton.addEventListener("click", async () => {
       }
     });
   } catch (error) {
+    setPageLoading(false);
     console.warn("Register login failed", error);
     showToast("ยังเข้าสู่ระบบไม่สำเร็จ");
   }
@@ -81,11 +99,13 @@ registerForm.addEventListener("submit", async (event) => {
   }
 
   try {
+    setPageLoading(true, "กำลังสร้างร้าน", "กำลังบันทึกข้อมูลและเตรียมหลังบ้านร้านใหม่");
     registerStatus.textContent = "กำลังสร้างร้าน...";
     const shop = await window.FahNailSupabase.registerShop(name, slug);
     showToast("สร้างร้านสำเร็จ");
     window.location.href = window.FahNailSupabase.shopUrls(shop.slug).dashboard;
   } catch (error) {
+    setPageLoading(false);
     console.warn("Register shop failed", error);
     registerStatus.textContent = "ยังสร้างร้านไม่สำเร็จ กรุณาลอง URL อื่นหรือตรวจสิทธิ์ Supabase";
   }

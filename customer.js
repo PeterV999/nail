@@ -44,6 +44,9 @@ const bookingDate = document.getElementById("booking-date");
 const bookingForm = document.getElementById("booking-form");
 const serviceError = document.getElementById("service-error");
 const statusDateTitle = document.getElementById("status-date-title");
+const pageLoader = document.getElementById("page-loader");
+const pageLoaderTitle = document.getElementById("page-loader-title");
+const pageLoaderCopy = document.getElementById("page-loader-copy");
 const toast = document.getElementById("toast");
 const bookingSuccessDialog = document.getElementById("booking-success-dialog");
 const bookingSuccessSummary = document.getElementById("booking-success-summary");
@@ -70,6 +73,13 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function setPageLoading(active, title = "", copy = "") {
+  if (!pageLoader) return;
+  if (title && pageLoaderTitle) pageLoaderTitle.textContent = title;
+  if (copy && pageLoaderCopy) pageLoaderCopy.textContent = copy;
+  pageLoader.hidden = !active;
 }
 
 function normalizeTimeSlots(slots) {
@@ -249,9 +259,12 @@ bookingForm.addEventListener("submit", async (event) => {
   render();
 
   try {
+    setPageLoading(true, "กำลังส่งคำขอจอง", "กำลังบันทึกข้อมูลและตรวจสอบช่วงเวลาล่าสุด");
     await window.FahNailSupabase?.createBookingRequest(request, state);
+    setPageLoading(false);
     showBookingSuccessDialog(request);
   } catch (error) {
+    setPageLoading(false);
     console.warn("Supabase booking request failed", error);
     const errorText = `${error?.message || ""} ${error?.details || ""}`;
     if (error?.code === "23505" || errorText.includes("DUPLICATE_BOOKING_REQUEST")) {
@@ -367,6 +380,7 @@ function escapeHtml(value) {
 }
 
 async function init() {
+  setPageLoading(true, "กำลังโหลดข้อมูลร้าน", "กำลังดึงบริการ เวลา และคิวล่าสุด");
   bookingDate.value = today;
   bookingDate.min = today;
 
@@ -379,6 +393,8 @@ async function init() {
     }
   } catch (error) {
     console.warn("Supabase public load failed", error);
+  } finally {
+    setPageLoading(false);
   }
 
   render();

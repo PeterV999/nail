@@ -22,6 +22,9 @@ const adminShopFacebook = document.getElementById("admin-shop-facebook");
 const adminShopStatus = document.getElementById("admin-shop-status");
 const adminDialogCancel = document.getElementById("admin-dialog-cancel");
 const adminDialogSave = document.getElementById("admin-dialog-save");
+const pageLoader = document.getElementById("page-loader");
+const pageLoaderTitle = document.getElementById("page-loader-title");
+const pageLoaderCopy = document.getElementById("page-loader-copy");
 const toast = document.getElementById("toast");
 
 const adminState = {
@@ -42,6 +45,13 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
+function setPageLoading(active, title = "", copy = "") {
+  if (!pageLoader) return;
+  if (title && pageLoaderTitle) pageLoaderTitle.textContent = title;
+  if (copy && pageLoaderCopy) pageLoaderCopy.textContent = copy;
+  pageLoader.hidden = !active;
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -52,17 +62,20 @@ function escapeHtml(value) {
 }
 
 function showAuth(message = "") {
+  setPageLoading(false);
   adminAuthPanel.hidden = false;
   adminApp.hidden = true;
   if (message) adminAuthStatus.textContent = message;
 }
 
 function showApp() {
+  setPageLoading(false);
   adminAuthPanel.hidden = true;
   adminApp.hidden = false;
 }
 
 async function initAdmin() {
+  setPageLoading(true, "กำลังโหลดหลังบ้านกลาง", "กำลังตรวจสิทธิ์และดึงภาพรวมร้านค้า");
   if (!window.FahNailSupabase?.isConfigured()) {
     adminGoogleLoginButton.disabled = true;
     showAuth("ยังไม่ได้ตั้งค่า Supabase จึงเปิดหลังบ้านกลางไม่ได้");
@@ -88,6 +101,7 @@ async function initAdmin() {
 }
 
 async function loadAdminState() {
+  setPageLoading(true, "กำลังโหลดข้อมูลร้านค้า", "กำลังดึงตัวเลขรวม สถานะ Calendar และรายการร้าน");
   refreshAdminButton.disabled = true;
   try {
     const overview = await window.FahNailSupabase.loadPlatformAdminOverview();
@@ -108,6 +122,7 @@ async function loadAdminState() {
     adminShopList.innerHTML = `<p class="empty-state">ยังโหลดข้อมูลร้านค้าไม่สำเร็จ ตรวจสิทธิ์บัญชีและการเชื่อมต่อ Supabase แล้วรีเฟรชอีกครั้ง</p>`;
     showToast("ยังโหลดข้อมูลร้านค้าไม่สำเร็จ");
   } finally {
+    setPageLoading(false);
     refreshAdminButton.disabled = false;
   }
 }

@@ -121,6 +121,9 @@ const shopPhoneInput = document.getElementById("shop-phone");
 const shopLineInput = document.getElementById("shop-line");
 const shopFacebookInput = document.getElementById("shop-facebook");
 const ownerTimeSlotList = document.getElementById("owner-time-slot-list");
+const pageLoader = document.getElementById("page-loader");
+const pageLoaderTitle = document.getElementById("page-loader-title");
+const pageLoaderCopy = document.getElementById("page-loader-copy");
 const toast = document.getElementById("toast");
 const ownerDialog = document.getElementById("owner-dialog");
 const ownerDialogBadge = document.getElementById("owner-dialog-badge");
@@ -156,6 +159,13 @@ function loadState() {
 function saveState() {
   if (remoteMode) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function setPageLoading(active, title = "", copy = "") {
+  if (!pageLoader) return;
+  if (title && pageLoaderTitle) pageLoaderTitle.textContent = title;
+  if (copy && pageLoaderCopy) pageLoaderCopy.textContent = copy;
+  pageLoader.hidden = !active;
 }
 
 function normalizeTimeSlots(slots) {
@@ -277,6 +287,7 @@ function calendarDisplayName(integration) {
 }
 
 async function initOwnerAccess() {
+  setPageLoading(true, "กำลังโหลดหลังบ้านร้าน", "กำลังตรวจสิทธิ์และดึงคิวล่าสุด");
   manualDate.value = today;
   scheduleDate.value = today;
   manualDate.min = today;
@@ -329,6 +340,7 @@ async function loadRemoteOwnerState() {
 }
 
 function showAuthPanel(allowDemo) {
+  setPageLoading(false);
   const configured = Boolean(window.FahNailSupabase?.isConfigured?.());
   ownerAuthPanel.hidden = false;
   ownerApp.hidden = true;
@@ -344,6 +356,7 @@ function showAuthPanel(allowDemo) {
 }
 
 function showOwnerApp(message) {
+  setPageLoading(false);
   ownerAuthPanel.hidden = true;
   ownerApp.hidden = false;
   logoutButton.hidden = !window.FahNailSupabase?.isConfigured();
@@ -384,10 +397,15 @@ function updateRouteLinks() {
 }
 
 async function reloadAfterRemote(message) {
-  calendarTokenReady = await safeCalendarTokenStatus();
-  await loadRemoteOwnerState();
-  render();
-  if (message) showToast(message);
+  setPageLoading(true, "กำลังโหลดข้อมูลล่าสุด", "กำลังดึงคิวและสถานะร้านจากฐานข้อมูล");
+  try {
+    calendarTokenReady = await safeCalendarTokenStatus();
+    await loadRemoteOwnerState();
+    render();
+    if (message) showToast(message);
+  } finally {
+    setPageLoading(false);
+  }
 }
 
 async function safeListMemberShops() {

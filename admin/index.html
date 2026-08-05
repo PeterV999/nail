@@ -18,6 +18,13 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
+      <div class="page-loader-card">
+        <span class="loader-ring" aria-hidden="true"></span>
+        <strong id="page-loader-title">กำลังโหลดหลังบ้านกลาง</strong>
+        <span id="page-loader-copy">กำลังตรวจสิทธิ์และดึงภาพรวมร้านค้า</span>
+      </div>
+    </div>
     <div class="app-shell admin-shell">
       <header class="topbar">
         <a class="brand" href="/admin" aria-label="Booking Admin">
