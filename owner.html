@@ -3,8 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#14a9bf">
+    <meta name="application-name" content="Fah Nail">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Fah Nail">
     <title>หน้าร้าน Fah Nail</title>
     <script>document.write(`<base href="${location.protocol === "file:" ? "./" : "/"}">`);</script>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="assets/app-icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,11 +41,11 @@
             <button class="primary-button" type="button" id="google-login-button">เข้าสู่ระบบด้วย Google</button>
             <button class="secondary-button" type="button" id="demo-login-button">ดูโหมดตัวอย่าง</button>
           </div>
-          <p class="hint" id="auth-status">ข้อมูลหลังบ้านจริงจะแสดงเฉพาะบัญชีเจ้าของร้านที่กำหนดใน Supabase</p>
+          <p class="hint" id="auth-status">ข้อมูลหลังบ้านจะแสดงเฉพาะบัญชีที่มีสิทธิ์ดูแลร้าน</p>
         </section>
 
         <section class="owner-layout" id="owner-app" aria-labelledby="owner-title" hidden>
-          <section class="owner-main">
+          <section class="owner-main owner-header-panel">
             <div class="section-head">
               <div>
                 <p class="eyebrow">หลังบ้าน</p>
@@ -51,12 +58,22 @@
               </div>
             </div>
 
+            <div class="owner-tabs" role="tablist" aria-label="เมนูหลังบ้าน">
+              <button class="owner-tab is-active" type="button" id="owner-tab-queue" role="tab" aria-selected="true" aria-controls="owner-panel-queue" data-owner-tab="queue">จัดการคิว</button>
+              <button class="owner-tab" type="button" id="owner-tab-calendar" role="tab" aria-selected="false" aria-controls="owner-panel-calendar" data-owner-tab="calendar">ปฏิทิน / ร้าน</button>
+              <button class="owner-tab" type="button" id="owner-tab-manual" role="tab" aria-selected="false" aria-controls="owner-panel-manual" data-owner-tab="manual">ลงคิว / ลูกค้า</button>
+              <button class="owner-tab" type="button" id="owner-tab-settings" role="tab" aria-selected="false" aria-controls="owner-panel-settings" data-owner-tab="settings">เวลา / บริการ</button>
+            </div>
+          </section>
+
+          <section class="owner-tab-panel" id="owner-panel-queue" role="tabpanel" aria-labelledby="owner-tab-queue" data-owner-panel="queue">
             <div class="connection-grid" id="owner-connection-grid" aria-label="สถานะการเชื่อมต่อ"></div>
             <div class="owner-stats" id="owner-stats"></div>
             <div class="queue-list" id="request-list"></div>
           </section>
 
-          <aside class="owner-side">
+          <section class="owner-tab-panel" id="owner-panel-calendar" role="tabpanel" aria-labelledby="owner-tab-calendar" data-owner-panel="calendar" hidden>
+            <div class="owner-panel-grid">
             <section class="side-card">
               <h2>เชื่อม Google Calendar</h2>
               <div class="calendar-card" id="calendar-card">
@@ -98,7 +115,11 @@
                 <button class="secondary-button" type="submit">บันทึกข้อมูลร้าน</button>
               </form>
             </section>
+            </div>
+          </section>
 
+          <section class="owner-tab-panel" id="owner-panel-manual" role="tabpanel" aria-labelledby="owner-tab-manual" data-owner-panel="manual" hidden>
+            <div class="owner-panel-grid">
             <section class="side-card">
               <h2>ลูกค้าล่าสุด</h2>
               <div class="customer-list" id="customer-list"></div>
@@ -140,7 +161,11 @@
                 <button class="primary-button" type="submit">บันทึกคิว</button>
               </form>
             </section>
+            </div>
+          </section>
 
+          <section class="owner-tab-panel" id="owner-panel-settings" role="tabpanel" aria-labelledby="owner-tab-settings" data-owner-panel="settings" hidden>
+            <div class="owner-panel-grid">
             <section class="side-card">
               <h2>จัดการเวลารับจอง</h2>
               <div class="time-manager">
@@ -175,7 +200,8 @@
               </form>
               <div class="service-list" id="owner-service-list"></div>
             </section>
-          </aside>
+            </div>
+          </section>
         </section>
       </main>
     </div>
@@ -197,6 +223,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app-config.js"></script>
     <script src="supabase-adapter.js"></script>
+    <script src="pwa.js"></script>
     <script src="owner.js"></script>
   </body>
 </html>

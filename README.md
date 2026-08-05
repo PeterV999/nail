@@ -42,6 +42,7 @@
 
 - `/book/fah-nail` สำหรับลูกค้าสาธารณะของร้าน Fah Nail
 - `/dashboard/fah-nail` สำหรับเจ้าของร้าน Fah Nail
+- `/admin/` สำหรับหลังบ้านกลางของ global admin และเป็นหน้าเริ่มต้นเมื่อเปิดแบบ PWA
 - `/register` สำหรับร้านใหม่ที่ต้องการลงทะเบียน
 - [index.html](index.html) เป็นไฟล์ implementation ของหน้าลูกค้า
 - [owner.html](owner.html) เป็นไฟล์ implementation ของหลังบ้าน

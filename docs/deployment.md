@@ -49,6 +49,24 @@ New shop registration: /register
 Platform admin: /admin
 ```
 
+## PWA + Admin Deployment Notes
+
+After updating the PWA/admin dashboard files, run `supabase/platform-admin.sql` again in the Supabase SQL Editor for project `punzqhfrhdgimvmczspv`. This refreshes the `list_accessible_shops()` RPC so `/admin/` can show the new summary fields:
+
+- tomorrow appointments
+- upcoming 7-day appointments
+- confirmed appointments not yet synced to Google Calendar
+- Calendar last sync error
+- Calendar updated time
+
+Then deploy the frontend to Cloudflare Pages as usual. After deployment, verify:
+
+- `/admin/` opens and shows the richer dashboard.
+- `/manifest.webmanifest` returns valid JSON.
+- `/service-worker.js` returns the latest worker.
+- `/book/fah-nail` and `/dashboard/fah-nail` still route correctly.
+- Installing the PWA starts at `/admin/`.
+
 ## GitHub
 
 หลัง commit แล้ว push ขึ้น GitHub:

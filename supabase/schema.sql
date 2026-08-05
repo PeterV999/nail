@@ -420,7 +420,13 @@ returns table(
   role text,
   pending_requests integer,
   today_appointments integer,
+  tomorrow_appointments integer,
+  upcoming_appointments integer,
+  unsynced_appointments integer,
   calendar_connected boolean,
+  calendar_last_sync_error text,
+  calendar_updated_at timestamptz,
+  created_at timestamptz,
   updated_at timestamptz
 )
 language sql
@@ -442,13 +448,13 @@ as $$
     case when actor.is_admin then 'platform_admin' else shop_members.role end as role,
     coalesce(request_counts.pending_requests, 0)::integer as pending_requests,
     coalesce(appointment_counts.today_appointments, 0)::integer as today_appointments,
-    exists (
-      select 1
-      from public.calendar_integrations
-      where calendar_integrations.shop_id = shops.id
-        and calendar_integrations.provider = 'google'
-        and calendar_integrations.refresh_token_encrypted is not null
-    ) as calendar_connected,
+    coalesce(appointment_counts.tomorrow_appointments, 0)::integer as tomorrow_appointments,
+    coalesce(appointment_counts.upcoming_appointments, 0)::integer as upcoming_appointments,
+    coalesce(appointment_counts.unsynced_appointments, 0)::integer as unsynced_appointments,
+    coalesce(calendar_state.calendar_connected, false) as calendar_connected,
+    calendar_state.last_sync_error as calendar_last_sync_error,
+    calendar_state.updated_at as calendar_updated_at,
+    shops.created_at,
     shops.updated_at
   from public.shops
   cross join actor
@@ -462,12 +468,39 @@ as $$
       and booking_requests.status = 'pending_request'
   ) request_counts on true
   left join lateral (
-    select count(*) as today_appointments
+    select
+      count(*) filter (
+        where appointments.appointment_date = ((now() at time zone 'Asia/Bangkok')::date)
+          and appointments.status <> 'cancelled'
+      ) as today_appointments,
+      count(*) filter (
+        where appointments.appointment_date = (((now() at time zone 'Asia/Bangkok')::date) + 1)
+          and appointments.status <> 'cancelled'
+      ) as tomorrow_appointments,
+      count(*) filter (
+        where appointments.appointment_date >= ((now() at time zone 'Asia/Bangkok')::date)
+          and appointments.appointment_date < (((now() at time zone 'Asia/Bangkok')::date) + 7)
+          and appointments.status <> 'cancelled'
+      ) as upcoming_appointments,
+      count(*) filter (
+        where appointments.appointment_date >= ((now() at time zone 'Asia/Bangkok')::date)
+          and appointments.status = 'confirmed'
+          and appointments.google_calendar_event_id is null
+      ) as unsynced_appointments
     from public.appointments
     where appointments.shop_id = shops.id
-      and appointments.appointment_date = ((now() at time zone 'Asia/Bangkok')::date)
-      and appointments.status <> 'cancelled'
   ) appointment_counts on true
+  left join lateral (
+    select
+      calendar_integrations.refresh_token_encrypted is not null as calendar_connected,
+      calendar_integrations.last_sync_error,
+      calendar_integrations.updated_at
+    from public.calendar_integrations
+    where calendar_integrations.shop_id = shops.id
+      and calendar_integrations.provider = 'google'
+    order by calendar_integrations.updated_at desc nulls last
+    limit 1
+  ) calendar_state on true
   where actor.user_id is not null
     and (actor.is_admin or shop_members.user_id = actor.user_id)
   order by shops.created_at asc;

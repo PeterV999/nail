@@ -1,0 +1,46 @@
+{
+  "name": "Fah Nail Booking Admin",
+  "short_name": "Booking Admin",
+  "description": "เว็บแอพหลังบ้านกลางสำหรับดูแลร้านค้าและเปิดหลังบ้านรายร้าน",
+  "id": "/admin/",
+  "lang": "th",
+  "dir": "ltr",
+  "start_url": "/admin/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#effcff",
+  "theme_color": "#14a9bf",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "หน้าจองลูกค้า",
+      "short_name": "จองคิว",
+      "url": "/book/fah-nail"
+    },
+    {
+      "name": "หลังบ้าน Fah Nail",
+      "short_name": "หลังบ้าน",
+      "url": "/dashboard/fah-nail"
+    },
+    {
+      "name": "หลังบ้านกลาง",
+      "short_name": "Admin",
+      "url": "/admin/"
+    }
+  ]
+}

@@ -3,8 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#14a9bf">
+    <meta name="application-name" content="Booking Admin">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Booking Admin">
     <title>Booking Admin | Fah Nail Booking</title>
     <script>document.write(`<base href="${location.protocol === "file:" ? "./" : "/"}">`);</script>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="assets/app-icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -55,6 +62,14 @@
 
           <div class="admin-stats" id="admin-stats" aria-label="ตัวเลขรวม"></div>
 
+          <section class="admin-attention" aria-labelledby="admin-attention-title">
+            <div>
+              <p class="eyebrow">ต้องตรวจสอบ</p>
+              <h2 id="admin-attention-title">ร้านที่ควรดูต่อวันนี้</h2>
+            </div>
+            <div class="admin-attention-list" id="admin-attention-list"></div>
+          </section>
+
           <section class="admin-section" aria-labelledby="shop-list-title">
             <div class="admin-section-head">
               <div>
@@ -62,6 +77,23 @@
                 <p class="hint">แก้ได้เฉพาะชื่อ เบอร์ LINE Facebook และสถานะร้าน</p>
               </div>
               <button class="secondary-button" type="button" id="refresh-admin-button">รีเฟรช</button>
+            </div>
+            <div class="admin-toolbar" aria-label="ค้นหาและกรองร้านค้า">
+              <label class="admin-search">
+                <span>ค้นหาร้าน</span>
+                <input id="admin-shop-search" type="search" placeholder="ชื่อร้าน, slug, LINE, Facebook">
+              </label>
+              <div class="admin-filter-group" aria-label="สถานะร้าน">
+                <button class="filter-chip is-active" type="button" data-filter-group="status" data-filter-value="all">ทุกร้าน</button>
+                <button class="filter-chip" type="button" data-filter-group="status" data-filter-value="active">เปิดใช้งาน</button>
+                <button class="filter-chip" type="button" data-filter-group="status" data-filter-value="inactive">ปิดใช้งาน</button>
+              </div>
+              <div class="admin-filter-group" aria-label="Google Calendar">
+                <button class="filter-chip is-active" type="button" data-filter-group="calendar" data-filter-value="all">Calendar ทั้งหมด</button>
+                <button class="filter-chip" type="button" data-filter-group="calendar" data-filter-value="connected">เชื่อมแล้ว</button>
+                <button class="filter-chip" type="button" data-filter-group="calendar" data-filter-value="missing">ยังไม่เชื่อม</button>
+              </div>
+              <p class="hint admin-result-count" id="admin-result-count"></p>
             </div>
             <div class="admin-shop-list" id="admin-shop-list"></div>
           </section>
@@ -108,6 +140,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app-config.js"></script>
     <script src="supabase-adapter.js"></script>
+    <script src="pwa.js"></script>
     <script src="admin.js"></script>
   </body>
 </html>

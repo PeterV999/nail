@@ -1,4 +1,5 @@
 const STORAGE_KEY = "fah-nail-booking-demo";
+const OWNER_TAB_KEY = "fah-nail-owner-tab";
 const today = new Date().toISOString().slice(0, 10);
 
 const defaultTimeSlots = [
@@ -97,6 +98,8 @@ const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
 const ownerConnectionGrid = document.getElementById("owner-connection-grid");
 const ownerStats = document.getElementById("owner-stats");
+const ownerTabs = Array.from(document.querySelectorAll("[data-owner-tab]"));
+const ownerTabPanels = Array.from(document.querySelectorAll("[data-owner-panel]"));
 const customerList = document.getElementById("customer-list");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
@@ -232,19 +235,8 @@ function renderOwnerConnection() {
 
   ownerConnectionGrid.innerHTML = `
     <div class="connection-card">
-      <span>บัญชีหลังบ้าน</span>
-      <strong>${escapeHtml(currentOwnerEmail || "โหมดตัวอย่างในเครื่อง")}</strong>
-      <small>${remoteMode ? "เข้าสู่ระบบผ่าน Google / Supabase" : "ข้อมูลตัวอย่าง ไม่ใช่ระบบจริง"}</small>
-    </div>
-    <div class="connection-card">
-      <span>สิทธิ์ร้านนี้</span>
-      <strong>${escapeHtml(remoteMode ? `ผ่าน (${currentOwnerRole || "owner"})` : "โหมดตัวอย่าง")}</strong>
-      <small>ผู้ใช้อื่นต้องมีรายชื่อใน shop_members ก่อนจึงจะเห็นหลังบ้าน</small>
-    </div>
-    <div class="connection-card">
       <span>ร้านของบัญชีนี้</span>
       <strong>${escapeHtml(memberShopText)}</strong>
-      <small>แสดงเฉพาะร้านที่บัญชีนี้มีสิทธิ์ดูแล</small>
     </div>
     <div class="connection-card ${calendarText.statusClass}">
       <span>Google Calendar</span>
@@ -258,24 +250,30 @@ function calendarConnectionText(integration) {
   if (!integration.connected) {
     return {
       title: "ยังไม่ได้เลือกปฏิทิน",
-      detail: "เลือกปฏิทินก่อนส่งคิวที่ยืนยันแล้ว",
+      detail: "เลือกปฏิทินก่อนบันทึกคิวที่ยืนยันแล้ว",
       statusClass: ""
     };
   }
 
   if (remoteMode && !calendarTokenReady) {
     return {
-      title: "ต้องอนุญาต Calendar ใหม่",
-      detail: "กดเชื่อมต่อปฏิทินเพื่อเก็บสิทธิ์ระยะยาวบน server",
+      title: "ต้องเชื่อมปฏิทินใหม่",
+      detail: "กดเชื่อมต่อปฏิทินเพื่อให้ระบบบันทึกคิวได้ต่อเนื่อง",
       statusClass: "warning"
     };
   }
 
   return {
-    title: "พร้อมส่งผ่าน server",
-    detail: integration.calendarName || integration.calendarId || "primary",
+    title: "พร้อมส่งคิว",
+    detail: calendarDisplayName(integration),
     statusClass: "connected"
   };
+}
+
+function calendarDisplayName(integration) {
+  const name = integration.calendarName || integration.calendarId;
+  if (!name || name === "primary") return "ปฏิทินหลักของ Google";
+  return name;
 }
 
 async function initOwnerAccess() {
@@ -316,7 +314,7 @@ async function initOwnerAccess() {
   } catch (error) {
     console.warn("Owner auth check failed", error);
     authStatus.textContent = isLocalPreview()
-      ? "ยังเชื่อมต่อ Supabase ไม่สำเร็จ ใช้โหมดตัวอย่างได้เฉพาะในเครื่อง"
+      ? "ยังเชื่อมข้อมูลจริงไม่สำเร็จ ใช้โหมดตัวอย่างได้เฉพาะในเครื่อง"
       : "ยังตรวจสอบสิทธิ์เจ้าของร้านไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
   }
 
@@ -337,11 +335,11 @@ function showAuthPanel(allowDemo) {
   googleLoginButton.hidden = allowDemo;
 
   authCopy.textContent = allowDemo
-    ? "ตอนนี้ยังไม่ได้ใส่ค่า Supabase จึงเปิดดูหลังบ้านในโหมดตัวอย่างได้"
+    ? "ตอนนี้ยังไม่ได้เชื่อมข้อมูลจริง จึงเปิดดูหลังบ้านในโหมดตัวอย่างได้"
     : "กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าของร้าน";
   authStatus.textContent = allowDemo
-    ? "โหมดตัวอย่างใช้ข้อมูลในเครื่อง ยังไม่ใช่ระบบรักษาความปลอดภัยจริง"
-    : "ข้อมูลหลังบ้านจริงจะแสดงเฉพาะบัญชีเจ้าของร้านที่กำหนดใน Supabase";
+    ? "โหมดตัวอย่างใช้ข้อมูลในเครื่องสำหรับทดลองเท่านั้น"
+    : "ข้อมูลหลังบ้านจะแสดงเฉพาะบัญชีที่มีสิทธิ์ดูแลร้าน";
 }
 
 function showOwnerApp(message) {
@@ -422,13 +420,11 @@ function renderOwnerStats() {
   if (!ownerStats) return;
   const todayRequests = state.requests.filter((item) => item.bookingDate === today).length;
   const todayAppointments = state.appointments.filter((item) => item.bookingDate === today && item.status === "confirmed").length;
-  const waiting = state.requests.filter((item) => item.status === "pending_request").length;
   const totalCustomers = state.customers?.length || 0;
 
   const stats = [
     { label: "คำขอวันนี้", value: todayRequests },
     { label: "คิวยืนยันวันนี้", value: todayAppointments },
-    { label: "รอติดต่อ", value: waiting },
     { label: "ลูกค้าที่บันทึก", value: totalCustomers }
   ];
 
@@ -462,7 +458,9 @@ function renderOwnerLists() {
   items.forEach((item) => {
     const card = document.createElement("article");
     card.className = item.status === "confirmed" ? "queue-card confirmed" : "queue-card";
-    const statusText = statusLabel(item.status);
+    const statusMarkup = item.kind === "appointment"
+      ? `<span class="status-pill">${statusLabel(item.status)}</span>`
+      : "";
     const sourceText = sourceLabel(item.source);
     card.innerHTML = `
       <div class="queue-top">
@@ -470,7 +468,7 @@ function renderOwnerLists() {
           <strong>${escapeHtml(item.customerName)}</strong>
           <p class="hint">${escapeHtml(item.contact)}</p>
         </div>
-        <span class="status-pill">${statusText}</span>
+        ${statusMarkup}
       </div>
       <div class="queue-meta">
         <span>${thaiDate(item.bookingDate || today)}</span>
@@ -498,21 +496,7 @@ function renderOwnerLists() {
       reject.textContent = "ปฏิเสธ";
       reject.addEventListener("click", () => rejectRequest(item.id));
 
-      const contacted = document.createElement("button");
-      contacted.type = "button";
-      contacted.className = "secondary-button";
-      contacted.textContent = "โทรกลับแล้ว";
-      contacted.disabled = item.status === "contacted";
-      contacted.addEventListener("click", () => updateRequestStatus(item.id, "contacted"));
-
-      const noAnswer = document.createElement("button");
-      noAnswer.type = "button";
-      noAnswer.className = "secondary-button";
-      noAnswer.textContent = "ลูกค้าไม่ตอบ";
-      noAnswer.disabled = item.status === "no_answer";
-      noAnswer.addEventListener("click", () => updateRequestStatus(item.id, "no_answer"));
-
-      actions.append(confirm, reject, contacted, noAnswer);
+      actions.append(confirm, reject);
       card.append(actions);
     }
 
@@ -761,7 +745,7 @@ async function removeTimeSlot(slotId) {
 
 function renderCalendarIntegration() {
   const integration = state.calendarIntegration || defaultState.calendarIntegration;
-  calendarSelect.value = integration.calendarId || "fah-nail-main";
+  calendarSelect.value = integration.calendarId || "primary";
   syncCalendarButton.disabled = !integration.connected;
   disconnectCalendarButton.disabled = !integration.connected;
 
@@ -769,9 +753,9 @@ function renderCalendarIntegration() {
     calendarStatus.className = "calendar-status connected";
     calendarStatus.innerHTML = `
       <strong>${calendarTokenReady || !remoteMode ? "เชื่อมต่อแล้ว" : "ต้องเชื่อมใหม่"}</strong>
-      <span>${escapeHtml(integration.calendarName)} · ${escapeHtml(calendarTokenReady || !remoteMode ? "พร้อมส่งผ่าน server" : "รอสิทธิ์ Calendar ระยะยาว")}</span>
+      <span>${escapeHtml(calendarDisplayName(integration))} · ${escapeHtml(calendarTokenReady || !remoteMode ? "พร้อมส่งคิว" : "กรุณาเชื่อมปฏิทินใหม่")}</span>
     `;
-    connectCalendarButton.textContent = calendarTokenReady || !remoteMode ? "เปลี่ยนปฏิทิน" : "เชื่อม Calendar ใหม่";
+    connectCalendarButton.textContent = calendarTokenReady || !remoteMode ? "เปลี่ยนปฏิทิน" : "เชื่อมปฏิทินใหม่";
     return;
   }
 
@@ -851,25 +835,6 @@ async function rejectRequest(id) {
   saveState();
   render();
   showToast("ปฏิเสธคำขอจองแล้ว");
-}
-
-async function updateRequestStatus(id, status) {
-  try {
-    if (remoteMode) {
-      await window.FahNailSupabase.updateBookingRequestStatus(id, status, currentShopSlug);
-      await reloadAfterRemote(status === "contacted" ? "บันทึกว่าโทรกลับแล้ว" : "บันทึกว่าลูกค้าไม่ตอบ");
-      return;
-    }
-
-    const request = state.requests.find((item) => item.id === id);
-    if (request) request.status = status;
-    saveState();
-    render();
-    showToast(status === "contacted" ? "บันทึกว่าโทรกลับแล้ว" : "บันทึกว่าลูกค้าไม่ตอบ");
-  } catch (error) {
-    console.warn("Update request status failed", error);
-    showToast("ยังอัปเดตสถานะไม่สำเร็จ");
-  }
 }
 
 manualForm.addEventListener("submit", async (event) => {
@@ -1123,7 +1088,7 @@ connectCalendarButton.addEventListener("click", async () => {
       }
 
       await window.FahNailSupabase.setCalendarIntegration(calendarSelect.value, currentShopSlug);
-      await reloadAfterRemote("เชื่อม Google Calendar แล้ว ระบบจะส่งคิวผ่าน server");
+      await reloadAfterRemote("เชื่อม Google Calendar แล้ว ระบบจะบันทึกคิวลงปฏิทิน");
       return;
     }
   } catch (error) {
@@ -1231,7 +1196,7 @@ function calendarErrorMessage(error) {
   }
 
   if (error?.message === "GOOGLE_CALENDAR_SYNC_FAILED") {
-    return "ระบบส่งคิวผ่าน server ยังไม่สำเร็จ กรุณาตรวจ Edge Function";
+    return "ยังบันทึกลงปฏิทินไม่สำเร็จ กรุณาลองใหม่";
   }
 
   if (error?.message === "GOOGLE_CALENDAR_API_FAILED") {
@@ -1259,8 +1224,6 @@ function sourceLabel(source) {
 function statusLabel(status) {
   return {
     pending_request: "รอยืนยัน",
-    contacted: "โทรกลับแล้ว",
-    no_answer: "ลูกค้าไม่ตอบ",
     confirmed: "ยืนยันแล้ว",
     rejected: "ปฏิเสธแล้ว",
     cancelled: "ยกเลิกแล้ว"
@@ -1386,6 +1349,48 @@ ownerDialog?.addEventListener("close", () => {
   ownerDialogResult = false;
 });
 
+function activateOwnerTab(tabName, { persist = true } = {}) {
+  if (!ownerTabs.length || !ownerTabPanels.length) return;
+
+  const nextTab = ownerTabs.some((tab) => tab.dataset.ownerTab === tabName) ? tabName : "queue";
+  ownerTabs.forEach((tab) => {
+    const isActive = tab.dataset.ownerTab === nextTab;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+    tab.tabIndex = isActive ? 0 : -1;
+  });
+
+  ownerTabPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.ownerPanel !== nextTab;
+  });
+
+  if (persist) localStorage.setItem(OWNER_TAB_KEY, nextTab);
+}
+
+function setupOwnerTabs() {
+  if (!ownerTabs.length || !ownerTabPanels.length) return;
+
+  ownerTabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => activateOwnerTab(tab.dataset.ownerTab));
+    tab.addEventListener("keydown", (event) => {
+      const lastIndex = ownerTabs.length - 1;
+      let nextIndex = index;
+
+      if (event.key === "ArrowRight") nextIndex = index === lastIndex ? 0 : index + 1;
+      if (event.key === "ArrowLeft") nextIndex = index === 0 ? lastIndex : index - 1;
+      if (event.key === "Home") nextIndex = 0;
+      if (event.key === "End") nextIndex = lastIndex;
+      if (nextIndex === index && !["Home", "End"].includes(event.key)) return;
+
+      event.preventDefault();
+      ownerTabs[nextIndex].focus();
+      activateOwnerTab(ownerTabs[nextIndex].dataset.ownerTab);
+    });
+  });
+
+  activateOwnerTab(localStorage.getItem(OWNER_TAB_KEY) || "queue", { persist: false });
+}
+
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -1396,4 +1401,5 @@ function escapeHtml(value) {
   }[char]));
 }
 
+setupOwnerTabs();
 initOwnerAccess();

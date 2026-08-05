@@ -8,7 +8,11 @@ const adminAccount = document.getElementById("admin-account");
 const adminLogoutButton = document.getElementById("admin-logout-button");
 const refreshAdminButton = document.getElementById("refresh-admin-button");
 const adminStats = document.getElementById("admin-stats");
+const adminAttentionList = document.getElementById("admin-attention-list");
 const adminShopList = document.getElementById("admin-shop-list");
+const adminShopSearch = document.getElementById("admin-shop-search");
+const adminResultCount = document.getElementById("admin-result-count");
+const adminFilterButtons = Array.from(document.querySelectorAll("[data-filter-group]"));
 const adminShopDialog = document.getElementById("admin-shop-dialog");
 const adminShopForm = document.getElementById("admin-shop-form");
 const adminShopName = document.getElementById("admin-shop-name");
@@ -23,7 +27,12 @@ const toast = document.getElementById("toast");
 const adminState = {
   shops: [],
   stats: {},
-  editingShopId: ""
+  editingShopId: "",
+  filters: {
+    query: "",
+    status: "all",
+    calendar: "all"
+  }
 };
 
 function showToast(message) {
@@ -69,6 +78,8 @@ async function initAdmin() {
       return;
     }
 
+    showApp();
+    renderLoadingState();
     await loadAdminState();
   } catch (error) {
     console.warn("Admin init failed", error);
@@ -88,77 +99,228 @@ async function loadAdminState() {
     }
 
     adminState.shops = overview.shops || [];
-    adminState.stats = overview.stats || {};
+    adminState.stats = overview.stats || calculateStats(adminState.shops);
     adminAccount.textContent = overview.user?.email || "global admin";
     renderAdmin();
     showApp();
+  } catch (error) {
+    console.warn("Load platform admin failed", error);
+    adminShopList.innerHTML = `<p class="empty-state">ยังโหลดข้อมูลร้านค้าไม่สำเร็จ ตรวจสิทธิ์บัญชีและการเชื่อมต่อ Supabase แล้วรีเฟรชอีกครั้ง</p>`;
+    showToast("ยังโหลดข้อมูลร้านค้าไม่สำเร็จ");
   } finally {
     refreshAdminButton.disabled = false;
   }
 }
 
+function renderLoadingState() {
+  adminStats.innerHTML = skeletonStats(6);
+  adminAttentionList.innerHTML = `<p class="empty-state">กำลังตรวจสอบร้านที่ควรดูต่อ...</p>`;
+  adminShopList.innerHTML = `<p class="empty-state">กำลังโหลดรายการร้านค้า...</p>`;
+}
+
+function skeletonStats(count) {
+  return Array.from({ length: count }, () => `
+    <div class="stat-chip admin-stat-chip is-loading">
+      <strong>...</strong>
+      <span>กำลังโหลด</span>
+    </div>
+  `).join("");
+}
+
 function renderAdmin() {
+  adminState.stats = calculateStats(adminState.shops, adminState.stats);
   renderStats();
+  renderAttention();
+  renderFilterControls();
   renderShopList();
+}
+
+function calculateStats(shops, serverStats = {}) {
+  const computedStats = {
+    totalShops: shops.length,
+    activeShops: shops.filter((shop) => shop.status === "active").length,
+    inactiveShops: shops.filter((shop) => shop.status !== "active").length,
+    pendingRequests: shops.reduce((sum, shop) => sum + Number(shop.pendingRequests || 0), 0),
+    todayAppointments: shops.reduce((sum, shop) => sum + Number(shop.todayAppointments || 0), 0),
+    tomorrowAppointments: shops.reduce((sum, shop) => sum + Number(shop.tomorrowAppointments || 0), 0),
+    upcomingAppointments: shops.reduce((sum, shop) => sum + Number(shop.upcomingAppointments || 0), 0),
+    unsyncedAppointments: shops.reduce((sum, shop) => sum + Number(shop.unsyncedAppointments || 0), 0),
+    calendarConnected: shops.filter((shop) => shop.calendarConnected).length,
+    needsAttention: shops.filter(shopNeedsAttention).length
+  };
+  return { ...serverStats, ...computedStats };
 }
 
 function renderStats() {
   const stats = adminState.stats || {};
   const items = [
-    { label: "ร้านทั้งหมด", value: stats.totalShops || 0 },
-    { label: "ร้านเปิดใช้งาน", value: stats.activeShops || 0 },
-    { label: "คิววันนี้", value: stats.todayAppointments || 0 },
-    { label: "คำขอรอยืนยัน", value: stats.pendingRequests || 0 },
-    { label: "เชื่อม Calendar", value: stats.calendarConnected || 0 }
+    { label: "ร้านทั้งหมด", value: stats.totalShops || 0, tone: "" },
+    { label: "เปิดใช้งาน", value: stats.activeShops || 0, tone: "good" },
+    { label: "ปิดใช้งาน", value: stats.inactiveShops || 0, tone: "muted" },
+    { label: "คิววันนี้", value: stats.todayAppointments || 0, tone: "" },
+    { label: "รอยืนยัน", value: stats.pendingRequests || 0, tone: stats.pendingRequests ? "warn" : "" },
+    { label: "Calendar พร้อม", value: stats.calendarConnected || 0, tone: "good" },
+    { label: "ต้องตรวจสอบ", value: stats.needsAttention || 0, tone: stats.needsAttention ? "warn" : "" }
   ];
 
   adminStats.innerHTML = items.map((item) => `
-    <div class="stat-chip admin-stat-chip">
+    <div class="stat-chip admin-stat-chip ${escapeHtml(item.tone)}">
       <strong>${escapeHtml(item.value)}</strong>
       <span>${escapeHtml(item.label)}</span>
     </div>
   `).join("");
 }
 
-function renderShopList() {
-  if (!adminState.shops.length) {
-    adminShopList.innerHTML = `<p class="empty-state">ยังไม่มีร้านค้าในระบบ</p>`;
+function renderAttention() {
+  const attentionShops = [...adminState.shops]
+    .filter(shopNeedsAttention)
+    .sort((a, b) => attentionScore(b) - attentionScore(a))
+    .slice(0, 4);
+
+  if (!attentionShops.length) {
+    adminAttentionList.innerHTML = `<p class="empty-state">ยังไม่มีร้านที่ต้องตรวจสอบเป็นพิเศษตอนนี้</p>`;
     return;
   }
 
-  adminShopList.innerHTML = adminState.shops.map((shop) => {
-    const statusText = shop.status === "active" ? "เปิดใช้งาน" : "ปิดใช้งาน";
-    const calendarText = shop.calendarConnected ? "เชื่อมแล้ว" : "ยังไม่เชื่อม";
-    return `
-      <article class="admin-shop-card" data-shop-id="${escapeHtml(shop.id)}">
-        <div class="admin-shop-top">
-          <div>
+  adminAttentionList.innerHTML = attentionShops.map((shop) => `
+    <article class="admin-attention-item">
+      <div>
+        <strong>${escapeHtml(shop.name)}</strong>
+        <span>${escapeHtml(attentionReasons(shop).join(" · "))}</span>
+      </div>
+      <a class="secondary-button" href="/dashboard/${encodeURIComponent(shop.slug)}">เปิดหลังบ้าน</a>
+    </article>
+  `).join("");
+}
+
+function shopNeedsAttention(shop) {
+  return Number(shop.pendingRequests || 0) > 0
+    || Number(shop.unsyncedAppointments || 0) > 0
+    || Boolean(shop.calendarLastSyncError)
+    || shop.status !== "active"
+    || (shop.status === "active" && !shop.calendarConnected);
+}
+
+function attentionScore(shop) {
+  return (Number(shop.pendingRequests || 0) * 10)
+    + (Number(shop.unsyncedAppointments || 0) * 8)
+    + (shop.calendarLastSyncError ? 7 : 0)
+    + (shop.status !== "active" ? 5 : 0)
+    + (!shop.calendarConnected ? 3 : 0);
+}
+
+function attentionReasons(shop) {
+  const reasons = [];
+  if (Number(shop.pendingRequests || 0) > 0) reasons.push(`${shop.pendingRequests} คำขอรอยืนยัน`);
+  if (Number(shop.unsyncedAppointments || 0) > 0) reasons.push(`${shop.unsyncedAppointments} คิวรอส่งเข้า Calendar`);
+  if (shop.calendarLastSyncError) reasons.push("Calendar มี error ล่าสุด");
+  if (shop.status !== "active") reasons.push("ร้านปิดใช้งาน");
+  if (shop.status === "active" && !shop.calendarConnected) reasons.push("ยังไม่เชื่อม Calendar");
+  return reasons;
+}
+
+function renderFilterControls() {
+  adminFilterButtons.forEach((button) => {
+    const group = button.dataset.filterGroup;
+    button.classList.toggle("is-active", adminState.filters[group] === button.dataset.filterValue);
+  });
+}
+
+function filteredShops() {
+  const query = adminState.filters.query.trim().toLowerCase();
+  return adminState.shops.filter((shop) => {
+    if (adminState.filters.status !== "all" && shop.status !== adminState.filters.status) return false;
+    if (adminState.filters.calendar === "connected" && !shop.calendarConnected) return false;
+    if (adminState.filters.calendar === "missing" && shop.calendarConnected) return false;
+
+    if (!query) return true;
+    const haystack = [
+      shop.name,
+      shop.slug,
+      shop.phone,
+      shop.lineId,
+      shop.facebookPage
+    ].join(" ").toLowerCase();
+    return haystack.includes(query);
+  });
+}
+
+function renderShopList() {
+  if (!adminState.shops.length) {
+    adminResultCount.textContent = "";
+    adminShopList.innerHTML = `<p class="empty-state">ยังไม่มีร้านค้าในระบบ เพิ่มร้านใหม่จากเมนูด้านบนได้เลย</p>`;
+    return;
+  }
+
+  const shops = filteredShops();
+  adminResultCount.textContent = `แสดง ${shops.length} จาก ${adminState.shops.length} ร้าน`;
+
+  if (!shops.length) {
+    adminShopList.innerHTML = `<p class="empty-state">ไม่พบร้านที่ตรงกับตัวกรอง ลองล้างคำค้นหาหรือเปลี่ยนสถานะที่เลือก</p>`;
+    return;
+  }
+
+  adminShopList.innerHTML = shops.map((shop) => shopCard(shop)).join("");
+}
+
+function shopCard(shop) {
+  const statusText = shop.status === "active" ? "เปิดใช้งาน" : "ปิดใช้งาน";
+  const calendarText = shop.calendarConnected ? "เชื่อมแล้ว" : "ยังไม่เชื่อม";
+  const calendarClass = shop.calendarConnected ? "good" : "warn";
+  const lastUpdated = formatDateTime(shop.updatedAt);
+  const reasons = attentionReasons(shop);
+
+  return `
+    <article class="admin-shop-card ${shopNeedsAttention(shop) ? "needs-attention" : ""}" data-shop-id="${escapeHtml(shop.id)}">
+      <div class="admin-shop-top">
+        <div>
+          <div class="admin-shop-badges">
             <span class="status-pill ${shop.status === "active" ? "" : "muted"}">${escapeHtml(statusText)}</span>
-            <h3>${escapeHtml(shop.name)}</h3>
-            <p>${escapeHtml(`/book/${shop.slug}`)}</p>
+            <span class="status-pill ${calendarClass}">Calendar ${escapeHtml(calendarText)}</span>
           </div>
-          <button class="secondary-button" type="button" data-action="edit">แก้ข้อมูลร้าน</button>
+          <h3>${escapeHtml(shop.name)}</h3>
+          <p>${escapeHtml(`/book/${shop.slug}`)} · อัปเดต ${escapeHtml(lastUpdated)}</p>
         </div>
+        <button class="secondary-button" type="button" data-action="edit">แก้ข้อมูลร้าน</button>
+      </div>
 
-        <div class="admin-shop-metrics">
-          <span><strong>${escapeHtml(shop.todayAppointments)}</strong> คิววันนี้</span>
-          <span><strong>${escapeHtml(shop.pendingRequests)}</strong> รอยืนยัน</span>
-          <span><strong>${escapeHtml(calendarText)}</strong> Calendar</span>
-        </div>
+      <div class="admin-shop-metrics">
+        <span><strong>${escapeHtml(shop.todayAppointments)}</strong> คิววันนี้</span>
+        <span><strong>${escapeHtml(shop.tomorrowAppointments)}</strong> คิวพรุ่งนี้</span>
+        <span><strong>${escapeHtml(shop.upcomingAppointments)}</strong> คิว 7 วัน</span>
+        <span><strong>${escapeHtml(shop.pendingRequests)}</strong> รอยืนยัน</span>
+        <span><strong>${escapeHtml(shop.unsyncedAppointments)}</strong> รอส่ง Calendar</span>
+        <span><strong>${escapeHtml(calendarText)}</strong> Google Calendar</span>
+      </div>
 
-        <div class="admin-shop-contact">
-          <span>${escapeHtml(shop.phone || "ยังไม่มีเบอร์")}</span>
-          <span>${escapeHtml(shop.lineId || "ยังไม่มี LINE")}</span>
-          <span>${escapeHtml(shop.facebookPage || "ยังไม่มี Facebook")}</span>
-        </div>
+      <div class="admin-shop-contact">
+        <span>${escapeHtml(contactValue("โทร", shop.phone))}</span>
+        <span>${escapeHtml(contactValue("LINE", shop.lineId))}</span>
+        <span>${escapeHtml(contactValue("Facebook", shop.facebookPage))}</span>
+      </div>
 
-        <div class="admin-shop-actions">
-          <a class="primary-button" href="/dashboard/${encodeURIComponent(shop.slug)}">เปิดหลังบ้านร้าน</a>
-          <a class="secondary-button" href="/book/${encodeURIComponent(shop.slug)}">ดูหน้าลูกค้า</a>
-        </div>
-      </article>
-    `;
-  }).join("");
+      ${reasons.length ? `<div class="admin-shop-warning">${escapeHtml(reasons.join(" · "))}</div>` : ""}
+
+      <div class="admin-shop-actions">
+        <a class="primary-button" href="/dashboard/${encodeURIComponent(shop.slug)}">เปิดหลังบ้านร้าน</a>
+        <a class="secondary-button" href="/book/${encodeURIComponent(shop.slug)}">ดูหน้าลูกค้า</a>
+      </div>
+    </article>
+  `;
+}
+
+function contactValue(label, value) {
+  return value ? `${label}: ${value}` : `${label}: ยังไม่มี`;
+}
+
+function formatDateTime(value) {
+  if (!value) return "ยังไม่มีข้อมูล";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "ยังไม่มีข้อมูล";
+  return new Intl.DateTimeFormat("th-TH", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
 }
 
 function openEditor(shopId) {
@@ -202,12 +364,26 @@ adminAuthLogoutButton.addEventListener("click", signOutAdmin);
 adminLogoutButton.addEventListener("click", signOutAdmin);
 refreshAdminButton.addEventListener("click", async () => {
   try {
+    renderLoadingState();
     await loadAdminState();
     showToast("รีเฟรชข้อมูลแล้ว");
   } catch (error) {
     console.warn("Admin refresh failed", error);
     showToast("ยังรีเฟรชข้อมูลไม่สำเร็จ");
   }
+});
+
+adminShopSearch.addEventListener("input", () => {
+  adminState.filters.query = adminShopSearch.value;
+  renderShopList();
+});
+
+adminFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    adminState.filters[button.dataset.filterGroup] = button.dataset.filterValue;
+    renderFilterControls();
+    renderShopList();
+  });
 });
 
 adminShopList.addEventListener("click", (event) => {
@@ -244,10 +420,6 @@ adminShopForm.addEventListener("submit", async (event) => {
     adminState.shops = adminState.shops.map((shop) => (
       shop.id === updatedShop.id ? { ...shop, ...updatedShop } : shop
     ));
-    adminState.stats = {
-      ...adminState.stats,
-      activeShops: adminState.shops.filter((shop) => shop.status === "active").length
-    };
     renderAdmin();
     adminShopDialog.close();
     showToast("บันทึกข้อมูลร้านแล้ว");

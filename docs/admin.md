@@ -7,11 +7,23 @@
 The central dashboard can:
 
 - View overall shop counts and operational status.
+- See shops that need attention, including pending requests, missing Calendar setup, inactive shops, Calendar sync errors, and confirmed appointments that have not been sent to Calendar yet.
+- Search and filter shops by name, slug, active status, and Google Calendar status.
 - Open each shop dashboard.
 - Open each public booking page.
 - Edit basic shop profile fields: name, phone, LINE, Facebook, and active status.
 
 The central dashboard must not manage shop appointments, services, time slots, or Google Calendar directly.
+
+## PWA Web App
+
+This project is treated as a progressive web app before any native mobile app work.
+
+- `manifest.webmanifest` starts the installed app at `/admin/`.
+- `service-worker.js` uses network-first navigation so booking and dashboard pages stay fresh.
+- Static assets are cached for faster repeat visits.
+- Offline navigation shows a clear offline fallback instead of opening the wrong dashboard route.
+- Shortcuts remain available for `/book/fah-nail`, `/dashboard/fah-nail`, and `/admin/`.
 
 ## Global Admin Access
 
@@ -47,7 +59,7 @@ where user_id in (
 
 ## Roadmap
 
-1. Platform admin and `/admin` dashboard.
+1. PWA installability and richer `/admin` dashboard.
 2. Improve shop dashboard layout for daily shop operations.
 3. Complete Google Calendar update/retry flow.
 4. Add booking-abuse protection.

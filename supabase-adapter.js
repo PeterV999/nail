@@ -777,7 +777,13 @@
       role: item.role || "owner",
       pendingRequests: Number(item.pending_requests || 0),
       todayAppointments: Number(item.today_appointments || 0),
+      tomorrowAppointments: Number(item.tomorrow_appointments || 0),
+      upcomingAppointments: Number(item.upcoming_appointments || 0),
+      unsyncedAppointments: Number(item.unsynced_appointments || 0),
       calendarConnected: Boolean(item.calendar_connected),
+      calendarLastSyncError: item.calendar_last_sync_error || "",
+      calendarUpdatedAt: item.calendar_updated_at || "",
+      createdAt: item.created_at || "",
       updatedAt: item.updated_at || ""
     };
   }
@@ -786,9 +792,20 @@
     return {
       totalShops: shops.length,
       activeShops: shops.filter((shop) => shop.status === "active").length,
+      inactiveShops: shops.filter((shop) => shop.status !== "active").length,
       pendingRequests: shops.reduce((sum, shop) => sum + Number(shop.pendingRequests || 0), 0),
       todayAppointments: shops.reduce((sum, shop) => sum + Number(shop.todayAppointments || 0), 0),
-      calendarConnected: shops.filter((shop) => shop.calendarConnected).length
+      tomorrowAppointments: shops.reduce((sum, shop) => sum + Number(shop.tomorrowAppointments || 0), 0),
+      upcomingAppointments: shops.reduce((sum, shop) => sum + Number(shop.upcomingAppointments || 0), 0),
+      unsyncedAppointments: shops.reduce((sum, shop) => sum + Number(shop.unsyncedAppointments || 0), 0),
+      calendarConnected: shops.filter((shop) => shop.calendarConnected).length,
+      needsAttention: shops.filter((shop) => (
+        Number(shop.pendingRequests || 0) > 0
+        || Number(shop.unsyncedAppointments || 0) > 0
+        || Boolean(shop.calendarLastSyncError)
+        || shop.status !== "active"
+        || (shop.status === "active" && !shop.calendarConnected)
+      )).length
     };
   }
 

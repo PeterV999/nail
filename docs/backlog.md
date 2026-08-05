@@ -1,5 +1,12 @@
 # Backlog
 
+## Current focus: PWA + Platform Admin
+
+- ทำเว็บให้ติดตั้งได้แบบ PWA โดยเริ่มที่ `/admin/`
+- ปรับ service worker ให้ fallback offline ถูกหน้าและไม่พาผู้ใช้ไปหลังบ้านร้านผิด route
+- เพิ่ม `/admin` ให้ค้นหา/กรองร้าน ดูร้านที่ต้องตรวจสอบ และดูตัวเลข Calendar/คิวที่ละเอียดขึ้น
+- เก็บการปรับ `/dashboard/{shopSlug}` สำหรับงานประจำวันของร้านไว้เป็นเฟสถัดไป
+
 ## Phase 1: MVP สำหรับ Fah Nail
 
 - สร้างหน้าจองคิวลูกค้า
