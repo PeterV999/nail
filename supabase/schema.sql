@@ -7,6 +7,8 @@ create table public.shops (
   phone text,
   line_id text,
   facebook_page text,
+  tagline text,
+  logo_path text,
   status text not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -306,7 +308,7 @@ using (public.is_shop_member(shop_id))
 with check (public.is_shop_member(shop_id));
 
 create or replace view public.public_shops as
-select id, name, slug, status
+select id, name, slug, status, phone, line_id, facebook_page, tagline, logo_path
 from public.shops
 where status = 'active';
 
@@ -332,6 +334,57 @@ select
   to_char(start_time, 'HH24:MI') || '-' || to_char(end_time, 'HH24:MI') as time_window
 from public.appointments
 where status = 'confirmed';
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'shop-logos',
+  'shop-logos',
+  true,
+  2097152,
+  array['image/png', 'image/jpeg', 'image/webp']
+)
+on conflict (id) do update
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "public can read shop logos" on storage.objects;
+drop policy if exists "shop members can upload shop logos" on storage.objects;
+drop policy if exists "shop members can update shop logos" on storage.objects;
+drop policy if exists "shop members can delete shop logos" on storage.objects;
+
+create policy "public can read shop logos"
+on storage.objects for select
+using (bucket_id = 'shop-logos');
+
+create policy "shop members can upload shop logos"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'shop-logos'
+  and public.is_shop_member(((storage.foldername(name))[1])::uuid)
+);
+
+create policy "shop members can update shop logos"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'shop-logos'
+  and public.is_shop_member(((storage.foldername(name))[1])::uuid)
+)
+with check (
+  bucket_id = 'shop-logos'
+  and public.is_shop_member(((storage.foldername(name))[1])::uuid)
+);
+
+create policy "shop members can delete shop logos"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'shop-logos'
+  and public.is_shop_member(((storage.foldername(name))[1])::uuid)
+);
 
 grant usage on schema public to anon, authenticated;
 grant execute on function public.is_active_shop(uuid) to anon, authenticated;
@@ -419,6 +472,8 @@ returns table(
   phone text,
   line_id text,
   facebook_page text,
+  tagline text,
+  logo_path text,
   role text,
   pending_requests integer,
   today_appointments integer,
@@ -447,6 +502,8 @@ as $$
     shops.phone,
     shops.line_id,
     shops.facebook_page,
+    shops.tagline,
+    shops.logo_path,
     case when actor.is_admin then 'platform_admin' else shop_members.role end as role,
     coalesce(request_counts.pending_requests, 0)::integer as pending_requests,
     coalesce(appointment_counts.today_appointments, 0)::integer as today_appointments,
@@ -508,13 +565,16 @@ as $$
   order by shops.created_at asc;
 $$;
 
+drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text);
+
 create or replace function public.update_platform_shop_settings(
   target_shop_id uuid,
   shop_name text,
   shop_phone text default null,
   shop_line_id text default null,
   shop_facebook_page text default null,
-  shop_status text default 'active'
+  shop_status text default 'active',
+  shop_tagline text default null
 )
 returns table(
   id uuid,
@@ -524,6 +584,8 @@ returns table(
   phone text,
   line_id text,
   facebook_page text,
+  tagline text,
+  logo_path text,
   updated_at timestamptz
 )
 language plpgsql
@@ -553,6 +615,7 @@ begin
     phone = nullif(btrim(shop_phone), ''),
     line_id = nullif(btrim(shop_line_id), ''),
     facebook_page = nullif(btrim(shop_facebook_page), ''),
+    tagline = nullif(btrim(shop_tagline), ''),
     status = clean_status,
     updated_at = now()
   where shops.id = target_shop_id
@@ -564,6 +627,8 @@ begin
     shops.phone,
     shops.line_id,
     shops.facebook_page,
+    shops.tagline,
+    shops.logo_path,
     shops.updated_at;
 end;
 $$;
@@ -572,7 +637,7 @@ grant execute on function public.is_platform_admin(uuid) to authenticated;
 grant execute on function public.current_user_is_platform_admin() to authenticated;
 grant execute on function public.get_shop_access(text) to authenticated;
 grant execute on function public.list_accessible_shops() to authenticated;
-grant execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text) to authenticated;
+grant execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text, text) to authenticated;
 
 create or replace function public.register_shop(
   shop_name text,

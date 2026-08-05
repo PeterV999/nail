@@ -14,6 +14,13 @@
   const PENDING_GOOGLE_CALENDAR_ID_KEY = "fah_nail_pending_google_calendar_id";
   const GOOGLE_LOGIN_SCOPES = "email profile";
   const GOOGLE_CALENDAR_SCOPES = `${GOOGLE_LOGIN_SCOPES} https://www.googleapis.com/auth/calendar.events`;
+  const SHOP_LOGO_BUCKET = "shop-logos";
+  const SHOP_LOGO_MAX_BYTES = 2 * 1024 * 1024;
+  const SHOP_LOGO_EXTENSIONS = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp"
+  };
   const latestProviderTokens = {
     accessToken: "",
     refreshToken: ""
@@ -47,6 +54,30 @@
       attachAuthTokenStorage(cachedClient);
     }
     return cachedClient;
+  }
+
+  function shopLogoPublicUrl(path) {
+    if (!path) return "";
+    if (/^https?:\/\//i.test(path)) return path;
+    const db = client();
+    if (!db) return "";
+    return db.storage.from(SHOP_LOGO_BUCKET).getPublicUrl(path).data?.publicUrl || "";
+  }
+
+  function mapShopProfile(item = {}) {
+    const logoPath = item.logo_path || item.logoPath || "";
+    return {
+      id: item.id,
+      name: item.name,
+      slug: item.slug,
+      status: item.status || "active",
+      phone: item.phone || "",
+      lineId: item.line_id || item.lineId || "",
+      facebookPage: item.facebook_page || item.facebookPage || "",
+      tagline: item.tagline || "",
+      logoPath,
+      logoUrl: item.logo_url || item.logoUrl || shopLogoPublicUrl(logoPath)
+    };
   }
 
   function attachAuthTokenStorage(db) {
@@ -114,13 +145,14 @@
 
     const { data, error } = await db
       .from("public_shops")
-      .select("id,name,slug")
+      .select("id,name,slug,status,phone,line_id,facebook_page,tagline,logo_path")
       .eq("slug", slug)
       .single();
 
     if (error) throw error;
-    cachedShops.set(slug, data);
-    return data;
+    const shop = mapShopProfile(data);
+    cachedShops.set(slug, shop);
+    return shop;
   }
 
   async function loadPublicState(defaultState) {
@@ -193,7 +225,7 @@
 
     const { data: memberships, error: membershipError } = await db
       .from("shop_members")
-      .select("role, shops(id,name,slug,status)")
+      .select("role, shops(id,name,slug,status,phone,line_id,facebook_page,tagline,logo_path)")
       .order("created_at", { ascending: true });
 
     if (membershipError) throw membershipError;
@@ -295,7 +327,7 @@
       { data: customers, error: customersError },
       { data: calendarIntegrations, error: calendarError }
     ] = await Promise.all([
-      db.from("shops").select("id,name,slug,phone,line_id,facebook_page,status").eq("id", shop.id).single(),
+      db.from("shops").select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status").eq("id", shop.id).single(),
       db.from("services").select("id,name,is_active,sort_order").eq("shop_id", shop.id).order("sort_order"),
       db.from("booking_time_slots").select("id,start_time,end_time,is_active,sort_order").eq("shop_id", shop.id).order("sort_order"),
       db.from("booking_day_overrides").select("id,date,is_closed,note").eq("shop_id", shop.id),
@@ -337,6 +369,9 @@
         phone: ownerShop.phone || "",
         lineId: ownerShop.line_id || "",
         facebookPage: ownerShop.facebook_page || "",
+        tagline: ownerShop.tagline || "",
+        logoPath: ownerShop.logo_path || "",
+        logoUrl: shopLogoPublicUrl(ownerShop.logo_path || ""),
         status: ownerShop.status
       },
       services: (services || []).map((item) => ({
@@ -489,6 +524,7 @@
       phone: changes.phone || null,
       line_id: changes.lineId || null,
       facebook_page: changes.facebookPage || null,
+      tagline: changes.tagline || null,
       updated_at: new Date().toISOString()
     };
 
@@ -496,12 +532,79 @@
       .from("shops")
       .update(payload)
       .eq("id", shop.id)
-      .select("id,name,slug,phone,line_id,facebook_page,status")
+      .select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status")
       .single();
 
     if (error) throw error;
-    cachedShops.set(data.slug, { id: data.id, name: data.name, slug: data.slug });
-    return true;
+    const updatedShop = mapShopProfile(data);
+    cachedShops.set(data.slug, updatedShop);
+    return updatedShop;
+  }
+
+  function validateShopLogoFile(file) {
+    if (!file) throw new Error("SHOP_LOGO_REQUIRED");
+    if (!SHOP_LOGO_EXTENSIONS[file.type]) throw new Error("SHOP_LOGO_TYPE_INVALID");
+    if (file.size > SHOP_LOGO_MAX_BYTES) throw new Error("SHOP_LOGO_TOO_LARGE");
+  }
+
+  async function updateShopLogoPath(shop, logoPath) {
+    const db = client();
+    const { data, error } = await db
+      .from("shops")
+      .update({
+        logo_path: logoPath || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", shop.id)
+      .select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status")
+      .single();
+
+    if (error) throw error;
+    const updatedShop = mapShopProfile(data);
+    cachedShops.set(updatedShop.slug, updatedShop);
+    return updatedShop;
+  }
+
+  function canDeleteLogoPath(path, shopId) {
+    return Boolean(path && shopId && path.startsWith(`${shopId}/`));
+  }
+
+  async function uploadShopLogo(file, slug = routeShopSlug()) {
+    const db = client();
+    if (!db) return null;
+    validateShopLogoFile(file);
+
+    const shop = await getShop(slug);
+    const extension = SHOP_LOGO_EXTENSIONS[file.type];
+    const logoPath = `${shop.id}/logo-${Date.now()}.${extension}`;
+    const { error: uploadError } = await db.storage
+      .from(SHOP_LOGO_BUCKET)
+      .upload(logoPath, file, {
+        cacheControl: "3600",
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+    const updatedShop = await updateShopLogoPath(shop, logoPath);
+
+    if (canDeleteLogoPath(shop.logoPath, shop.id) && shop.logoPath !== logoPath) {
+      const { error: removeError } = await db.storage.from(SHOP_LOGO_BUCKET).remove([shop.logoPath]);
+      if (removeError) console.warn("Remove previous shop logo failed", removeError);
+    }
+
+    return updatedShop;
+  }
+
+  async function removeShopLogo(slug = routeShopSlug()) {
+    const db = client();
+    if (!db) return null;
+    const shop = await getShop(slug);
+    if (canDeleteLogoPath(shop.logoPath, shop.id)) {
+      const { error } = await db.storage.from(SHOP_LOGO_BUCKET).remove([shop.logoPath]);
+      if (error) throw error;
+    }
+    return updateShopLogoPath(shop, "");
   }
 
   async function createOwnerAppointment(appointment, slug = routeShopSlug()) {
@@ -747,13 +850,14 @@
         shop_phone: changes.phone || null,
         shop_line_id: changes.lineId || null,
         shop_facebook_page: changes.facebookPage || null,
-        shop_status: changes.status || "active"
+        shop_status: changes.status || "active",
+        shop_tagline: changes.tagline || null
       })
       .single();
 
     if (error) throw error;
     if (data?.slug) {
-      cachedShops.set(data.slug, { id: data.id, name: data.name, slug: data.slug });
+      cachedShops.set(data.slug, mapShopProfile(data));
     }
     return {
       id: data.id,
@@ -763,6 +867,9 @@
       phone: data.phone || "",
       lineId: data.line_id || "",
       facebookPage: data.facebook_page || "",
+      tagline: data.tagline || "",
+      logoPath: data.logo_path || "",
+      logoUrl: shopLogoPublicUrl(data.logo_path || ""),
       updatedAt: data.updated_at
     };
   }
@@ -790,13 +897,7 @@
 
   function mapAccessibleShop(item) {
     return {
-      id: item.id,
-      name: item.name,
-      slug: item.slug,
-      status: item.status,
-      phone: item.phone || "",
-      lineId: item.line_id || "",
-      facebookPage: item.facebook_page || "",
+      ...mapShopProfile(item),
       role: item.role || "owner",
       pendingRequests: Number(item.pending_requests || 0),
       todayAppointments: Number(item.today_appointments || 0),
@@ -949,6 +1050,8 @@
     rejectBookingRequest,
     updateBookingRequestStatus,
     updateShopSettings,
+    uploadShopLogo,
+    removeShopLogo,
     createOwnerAppointment,
     cancelAppointment,
     syncAppointmentToGoogleCalendar,

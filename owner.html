@@ -103,9 +103,25 @@
             <section class="side-card">
               <h2>ข้อมูลร้าน</h2>
               <form id="shop-form" class="compact-form">
+                <div class="shop-logo-editor">
+                  <div class="shop-logo-preview" id="shop-logo-preview" aria-hidden="true">FN</div>
+                  <div class="shop-logo-actions">
+                    <strong>โลโก้ร้าน</strong>
+                    <span id="shop-logo-status">PNG, JPG หรือ WebP ไม่เกิน 2MB</span>
+                    <input type="file" id="shop-logo-input" accept="image/png,image/jpeg,image/webp" hidden>
+                    <div class="inline-actions">
+                      <button class="secondary-button" type="button" id="shop-logo-upload-button">อัปโหลดโลโก้</button>
+                      <button class="ghost-button" type="button" id="shop-logo-remove-button">ลบโลโก้</button>
+                    </div>
+                  </div>
+                </div>
                 <label>
                   ชื่อร้าน
                   <input name="shopName" id="shop-name" autocomplete="organization" required>
+                </label>
+                <label>
+                  คำโปรยร้าน
+                  <input name="shopTagline" id="shop-tagline" maxlength="120" placeholder="เช่น ร้านทำเล็บโทนทะเล จองง่ายและดูแลละเอียด">
                 </label>
                 <label>
                   เบอร์โทร

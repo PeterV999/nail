@@ -47,6 +47,8 @@ const statusDateTitle = document.getElementById("status-date-title");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
 const pageLoaderCopy = document.getElementById("page-loader-copy");
+const customerHeroLead = document.querySelector(".hero-copy .lead");
+const defaultCustomerHeroLead = customerHeroLead?.textContent || "";
 const toast = document.getElementById("toast");
 const bookingSuccessDialog = document.getElementById("booking-success-dialog");
 const bookingSuccessSummary = document.getElementById("booking-success-summary");
@@ -147,12 +149,40 @@ function renderShopChrome() {
     register: "register.html"
   };
   const brand = document.querySelector(".brand");
+  const brandMark = document.querySelector(".brand-mark");
   const brandName = document.querySelector(".brand strong");
   const heroEyebrow = document.querySelector(".hero-copy .eyebrow");
   if (brand) brand.href = urls.booking;
+  renderBrandMark(brandMark, shop);
   if (brandName) brandName.textContent = shop.name || "Fah Nail";
   if (heroEyebrow) heroEyebrow.textContent = shop.name || "Fah Nail";
+  if (customerHeroLead) customerHeroLead.textContent = shop.tagline || defaultCustomerHeroLead;
   document.title = `จองคิว ${shop.name || "Fah Nail"}`;
+}
+
+function shopInitials(name = "Fah Nail") {
+  const initials = String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("");
+  return (initials || "FN").toUpperCase();
+}
+
+function renderBrandMark(element, shop) {
+  if (!element) return;
+  element.classList.remove("has-logo");
+  element.textContent = shopInitials(shop?.name);
+
+  if (!shop?.logoUrl) return;
+  element.classList.add("has-logo");
+  element.innerHTML = `<img src="${escapeHtml(shop.logoUrl)}" alt="">`;
+  element.querySelector("img")?.addEventListener("error", () => {
+    element.classList.remove("has-logo");
+    element.textContent = shopInitials(shop?.name);
+  });
 }
 
 function renderServices() {

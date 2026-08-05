@@ -16,6 +16,7 @@ const adminFilterButtons = Array.from(document.querySelectorAll("[data-filter-gr
 const adminShopDialog = document.getElementById("admin-shop-dialog");
 const adminShopForm = document.getElementById("admin-shop-form");
 const adminShopName = document.getElementById("admin-shop-name");
+const adminShopTagline = document.getElementById("admin-shop-tagline");
 const adminShopPhone = document.getElementById("admin-shop-phone");
 const adminShopLine = document.getElementById("admin-shop-line");
 const adminShopFacebook = document.getElementById("admin-shop-facebook");
@@ -59,6 +60,38 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function shopInitials(name = "Fah Nail") {
+  const initials = String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("");
+  return (initials || "FN").toUpperCase();
+}
+
+function shopLogoMarkup(shop) {
+  const fallback = escapeHtml(shopInitials(shop.name));
+  if (!shop.logoUrl) return `<span class="admin-shop-logo">${fallback}</span>`;
+  return `
+    <span class="admin-shop-logo has-logo">
+      <img src="${escapeHtml(shop.logoUrl)}" alt="" data-logo-fallback="${fallback}">
+    </span>
+  `;
+}
+
+function bindShopLogoFallbacks(scope = document) {
+  scope.querySelectorAll("[data-logo-fallback]").forEach((image) => {
+    image.addEventListener("error", () => {
+      const parent = image.parentElement;
+      if (!parent) return;
+      parent.classList.remove("has-logo");
+      parent.textContent = image.dataset.logoFallback || "FN";
+    }, { once: true });
+  });
 }
 
 function showAuth(message = "") {
@@ -254,7 +287,8 @@ function filteredShops() {
       shop.slug,
       shop.phone,
       shop.lineId,
-      shop.facebookPage
+      shop.facebookPage,
+      shop.tagline
     ].join(" ").toLowerCase();
     return haystack.includes(query);
   });
@@ -276,6 +310,7 @@ function renderShopList() {
   }
 
   adminShopList.innerHTML = shops.map((shop) => shopCard(shop)).join("");
+  bindShopLogoFallbacks(adminShopList);
 }
 
 function shopCard(shop) {
@@ -288,13 +323,17 @@ function shopCard(shop) {
   return `
     <article class="admin-shop-card ${shopNeedsAttention(shop) ? "needs-attention" : ""}" data-shop-id="${escapeHtml(shop.id)}">
       <div class="admin-shop-top">
-        <div>
-          <div class="admin-shop-badges">
-            <span class="status-pill ${shop.status === "active" ? "" : "muted"}">${escapeHtml(statusText)}</span>
-            <span class="status-pill ${calendarClass}">Calendar ${escapeHtml(calendarText)}</span>
+        <div class="admin-shop-identity">
+          ${shopLogoMarkup(shop)}
+          <div>
+            <div class="admin-shop-badges">
+              <span class="status-pill ${shop.status === "active" ? "" : "muted"}">${escapeHtml(statusText)}</span>
+              <span class="status-pill ${calendarClass}">Calendar ${escapeHtml(calendarText)}</span>
+            </div>
+            <h3>${escapeHtml(shop.name)}</h3>
+            ${shop.tagline ? `<p class="admin-shop-tagline">${escapeHtml(shop.tagline)}</p>` : ""}
+            <p>${escapeHtml(`/book/${shop.slug}`)} · อัปเดต ${escapeHtml(lastUpdated)}</p>
           </div>
-          <h3>${escapeHtml(shop.name)}</h3>
-          <p>${escapeHtml(`/book/${shop.slug}`)} · อัปเดต ${escapeHtml(lastUpdated)}</p>
         </div>
         <button class="secondary-button" type="button" data-action="edit">แก้ข้อมูลร้าน</button>
       </div>
@@ -344,6 +383,7 @@ function openEditor(shopId) {
 
   adminState.editingShopId = shop.id;
   adminShopName.value = shop.name || "";
+  adminShopTagline.value = shop.tagline || "";
   adminShopPhone.value = shop.phone || "";
   adminShopLine.value = shop.lineId || "";
   adminShopFacebook.value = shop.facebookPage || "";
@@ -420,6 +460,7 @@ adminShopForm.addEventListener("submit", async (event) => {
 
   const changes = {
     name: adminShopName.value.trim(),
+    tagline: adminShopTagline.value.trim(),
     phone: adminShopPhone.value.trim(),
     lineId: adminShopLine.value.trim(),
     facebookPage: adminShopFacebook.value.trim(),

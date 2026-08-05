@@ -136,10 +136,27 @@ button {
   width: 44px;
   height: 44px;
   border-radius: 16px;
+  overflow: hidden;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), #72dfe9);
   box-shadow: 0 12px 22px rgba(20, 169, 191, .24);
   font-weight: 700;
+}
+
+.brand-mark.has-logo {
+  background: #fff;
+  border: 1px solid rgba(20, 169, 191, .18);
+  color: transparent;
+  padding: 0;
+}
+
+.brand-mark img,
+.shop-logo-preview img,
+.admin-shop-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .brand strong,
@@ -516,6 +533,7 @@ textarea {
 
 .primary-button,
 .secondary-button,
+.ghost-button,
 .danger-button {
   min-height: 48px;
   border: 0;
@@ -533,6 +551,12 @@ textarea {
 .secondary-button {
   color: var(--ink);
   background: linear-gradient(135deg, var(--soft-mint), #f3fffb);
+  border: 1px solid var(--line);
+}
+
+.ghost-button {
+  color: var(--muted);
+  background: transparent;
   border: 1px solid var(--line);
 }
 
@@ -1022,6 +1046,21 @@ textarea {
   gap: 12px;
 }
 
+.admin-shop-identity {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.admin-shop-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  font-size: .86rem;
+}
+
 .admin-shop-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1039,6 +1078,10 @@ textarea {
   color: var(--muted);
   font-size: .9rem;
   overflow-wrap: anywhere;
+}
+
+.admin-shop-tagline {
+  color: var(--ink);
 }
 
 .status-pill.muted {
@@ -1134,6 +1177,64 @@ textarea {
   display: grid;
   gap: 10px;
   margin-top: 12px;
+}
+
+.shop-logo-editor {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .68);
+}
+
+.shop-logo-preview,
+.admin-shop-logo {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), #72dfe9);
+  font-weight: 800;
+  box-shadow: 0 10px 20px rgba(20, 169, 191, .18);
+}
+
+.shop-logo-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+}
+
+.shop-logo-preview.has-logo,
+.admin-shop-logo.has-logo {
+  background: #fff;
+  color: transparent;
+}
+
+.shop-logo-actions {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.shop-logo-actions span {
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-actions .secondary-button,
+.inline-actions .ghost-button {
+  min-height: 40px;
+  padding: 9px 12px;
+  border-radius: 14px;
 }
 
 .inline-form {

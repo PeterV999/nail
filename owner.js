@@ -18,7 +18,10 @@ const defaultState = {
     slug: "fah-nail",
     phone: "",
     lineId: "",
-    facebookPage: ""
+    facebookPage: "",
+    tagline: "",
+    logoPath: "",
+    logoUrl: ""
   },
   timeSlots: defaultTimeSlots,
   closedDates: [],
@@ -118,9 +121,15 @@ const serviceForm = document.getElementById("service-form");
 const slotForm = document.getElementById("slot-form");
 const shopForm = document.getElementById("shop-form");
 const shopNameInput = document.getElementById("shop-name");
+const shopTaglineInput = document.getElementById("shop-tagline");
 const shopPhoneInput = document.getElementById("shop-phone");
 const shopLineInput = document.getElementById("shop-line");
 const shopFacebookInput = document.getElementById("shop-facebook");
+const shopLogoPreview = document.getElementById("shop-logo-preview");
+const shopLogoInput = document.getElementById("shop-logo-input");
+const shopLogoUploadButton = document.getElementById("shop-logo-upload-button");
+const shopLogoRemoveButton = document.getElementById("shop-logo-remove-button");
+const shopLogoStatus = document.getElementById("shop-logo-status");
 const ownerTimeSlotList = document.getElementById("owner-time-slot-list");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
@@ -389,13 +398,51 @@ function updateRouteLinks() {
   };
   const customerLink = document.querySelector(".owner-link");
   const brand = document.querySelector(".brand");
+  const brandMark = document.querySelector(".brand-mark");
   const brandName = document.querySelector(".brand strong");
   const ownerEyebrow = document.querySelector(".section-head .eyebrow");
   if (customerLink) customerLink.href = urls.booking;
   if (brand) brand.href = urls.dashboard;
+  renderLogoMark(brandMark, shop);
   if (brandName) brandName.textContent = shop.name || "Fah Nail";
   if (ownerEyebrow) ownerEyebrow.textContent = shop.name || "หลังบ้าน";
   document.title = `หลังบ้าน ${shop.name || "Fah Nail"}`;
+}
+
+function shopInitials(name = "Fah Nail") {
+  const initials = String(name)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("");
+  return (initials || "FN").toUpperCase();
+}
+
+function renderLogoMark(element, shop) {
+  if (!element) return;
+  element.classList.remove("has-logo");
+  element.textContent = shopInitials(shop?.name);
+
+  if (!shop?.logoUrl) return;
+  element.classList.add("has-logo");
+  element.innerHTML = `<img src="${escapeHtml(shop.logoUrl)}" alt="">`;
+  element.querySelector("img")?.addEventListener("error", () => {
+    element.classList.remove("has-logo");
+    element.textContent = shopInitials(shop?.name);
+  });
+}
+
+function renderShopLogoControls() {
+  const shop = state.shop || {};
+  renderLogoMark(shopLogoPreview, shop);
+  if (shopLogoStatus) {
+    shopLogoStatus.textContent = shop.logoUrl
+      ? "โลโก้นี้จะแสดงในหน้าจองและหลังบ้าน"
+      : "PNG, JPG หรือ WebP ไม่เกิน 2MB";
+  }
+  if (shopLogoRemoveButton) shopLogoRemoveButton.disabled = !remoteMode || !shop.logoPath;
 }
 
 async function reloadAfterRemote(message) {
@@ -569,9 +616,11 @@ function renderShopSettings() {
   const shop = state.shop || {};
   if (!shopForm) return;
   shopNameInput.value = shop.name || "Fah Nail";
+  shopTaglineInput.value = shop.tagline || "";
   shopPhoneInput.value = shop.phone || "";
   shopLineInput.value = shop.lineId || "";
   shopFacebookInput.value = shop.facebookPage || "";
+  renderShopLogoControls();
 }
 
 function rememberCustomerFromBooking(booking, note = "") {
@@ -944,6 +993,7 @@ shopForm.addEventListener("submit", async (event) => {
   const formData = new FormData(shopForm);
   const changes = {
     name: formData.get("shopName").trim(),
+    tagline: formData.get("shopTagline").trim(),
     phone: formData.get("shopPhone").trim(),
     lineId: formData.get("shopLine").trim(),
     facebookPage: formData.get("shopFacebook").trim()
@@ -969,6 +1019,69 @@ shopForm.addEventListener("submit", async (event) => {
   } catch (error) {
     console.warn("Update shop settings failed", error);
     showToast("ยังบันทึกข้อมูลร้านไม่สำเร็จ");
+  }
+});
+
+shopLogoUploadButton?.addEventListener("click", () => {
+  if (!remoteMode) {
+    showToast("อัปโหลดโลโก้ได้หลังจากเข้าสู่ระบบร้าน");
+    return;
+  }
+  shopLogoInput?.click();
+});
+
+shopLogoInput?.addEventListener("change", async () => {
+  const file = shopLogoInput.files?.[0];
+  shopLogoInput.value = "";
+  if (!file) return;
+
+  const previousStatus = shopLogoStatus?.textContent || "";
+  if (shopLogoUploadButton) shopLogoUploadButton.disabled = true;
+  if (shopLogoRemoveButton) shopLogoRemoveButton.disabled = true;
+  if (shopLogoStatus) shopLogoStatus.textContent = "กำลังอัปโหลดโลโก้...";
+
+  try {
+    const updatedShop = await window.FahNailSupabase.uploadShopLogo(file, currentShopSlug);
+    state.shop = { ...(state.shop || { slug: currentShopSlug }), ...updatedShop };
+    saveState();
+    updateRouteLinks();
+    renderShopLogoControls();
+    showToast("อัปโหลดโลโก้ร้านแล้ว");
+  } catch (error) {
+    console.warn("Upload shop logo failed", error);
+    const message = error?.message === "SHOP_LOGO_TOO_LARGE"
+      ? "ไฟล์โลโก้ต้องไม่เกิน 2MB"
+      : error?.message === "SHOP_LOGO_TYPE_INVALID"
+        ? "รองรับเฉพาะ PNG, JPG หรือ WebP"
+        : "ยังอัปโหลดโลโก้ไม่สำเร็จ";
+    if (shopLogoStatus) shopLogoStatus.textContent = previousStatus;
+    showToast(message);
+  } finally {
+    if (shopLogoUploadButton) shopLogoUploadButton.disabled = false;
+    renderShopLogoControls();
+  }
+});
+
+shopLogoRemoveButton?.addEventListener("click", async () => {
+  if (!remoteMode || !state.shop?.logoPath) return;
+
+  if (shopLogoUploadButton) shopLogoUploadButton.disabled = true;
+  if (shopLogoRemoveButton) shopLogoRemoveButton.disabled = true;
+  if (shopLogoStatus) shopLogoStatus.textContent = "กำลังลบโลโก้...";
+
+  try {
+    const updatedShop = await window.FahNailSupabase.removeShopLogo(currentShopSlug);
+    state.shop = { ...(state.shop || { slug: currentShopSlug }), ...updatedShop };
+    saveState();
+    updateRouteLinks();
+    renderShopLogoControls();
+    showToast("ลบโลโก้ร้านแล้ว");
+  } catch (error) {
+    console.warn("Remove shop logo failed", error);
+    showToast("ยังลบโลโก้ไม่สำเร็จ");
+  } finally {
+    if (shopLogoUploadButton) shopLogoUploadButton.disabled = false;
+    renderShopLogoControls();
   }
 });
 
