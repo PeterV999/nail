@@ -98,6 +98,7 @@ const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
 const ownerConnectionGrid = document.getElementById("owner-connection-grid");
 const ownerStats = document.getElementById("owner-stats");
+const ownerTabsMenu = document.querySelector(".owner-tabs");
 const ownerTabs = Array.from(document.querySelectorAll("[data-owner-tab]"));
 const ownerTabPanels = Array.from(document.querySelectorAll("[data-owner-panel]"));
 const customerList = document.getElementById("customer-list");
@@ -134,6 +135,7 @@ const ownerDialogCancel = document.getElementById("owner-dialog-cancel");
 const ownerDialogConfirm = document.getElementById("owner-dialog-confirm");
 let ownerDialogResolve = null;
 let ownerDialogResult = false;
+const ownerTabsMobileQuery = window.matchMedia?.("(max-width: 620px)");
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -1383,14 +1385,56 @@ function activateOwnerTab(tabName, { persist = true } = {}) {
     panel.hidden = panel.dataset.ownerPanel !== nextTab;
   });
 
+  updateOwnerTabOptionPositions();
   if (persist) localStorage.setItem(OWNER_TAB_KEY, nextTab);
+}
+
+function isMobileOwnerTabs() {
+  return ownerTabsMobileQuery?.matches ?? window.innerWidth <= 620;
+}
+
+function setOwnerTabsExpanded(expanded) {
+  if (!ownerTabsMenu) return;
+  const nextState = Boolean(expanded && isMobileOwnerTabs());
+  updateOwnerTabOptionPositions();
+  ownerTabsMenu.classList.toggle("is-expanded", nextState);
+  ownerTabsMenu.setAttribute("aria-expanded", String(nextState));
+}
+
+function ownerTabsExpanded() {
+  return ownerTabsMenu?.classList.contains("is-expanded") || false;
+}
+
+function updateOwnerTabOptionPositions() {
+  let optionIndex = 0;
+  ownerTabs.forEach((tab) => {
+    if (tab.classList.contains("is-active")) {
+      tab.style.removeProperty("--owner-tab-option-index");
+      tab.style.removeProperty("--owner-tab-option-offset");
+      return;
+    }
+
+    tab.style.setProperty("--owner-tab-option-index", optionIndex);
+    tab.style.setProperty("--owner-tab-option-offset", `${optionIndex * 54}px`);
+    optionIndex += 1;
+  });
 }
 
 function setupOwnerTabs() {
   if (!ownerTabs.length || !ownerTabPanels.length) return;
+  setOwnerTabsExpanded(false);
 
   ownerTabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => activateOwnerTab(tab.dataset.ownerTab));
+    tab.addEventListener("click", () => {
+      const isActive = tab.classList.contains("is-active");
+      if (isMobileOwnerTabs() && isActive) {
+        setOwnerTabsExpanded(!ownerTabsExpanded());
+        return;
+      }
+
+      activateOwnerTab(tab.dataset.ownerTab);
+      setOwnerTabsExpanded(false);
+    });
     tab.addEventListener("keydown", (event) => {
       const lastIndex = ownerTabs.length - 1;
       let nextIndex = index;
@@ -1404,8 +1448,16 @@ function setupOwnerTabs() {
       event.preventDefault();
       ownerTabs[nextIndex].focus();
       activateOwnerTab(ownerTabs[nextIndex].dataset.ownerTab);
+      setOwnerTabsExpanded(false);
     });
   });
+
+  document.addEventListener("click", (event) => {
+    if (!isMobileOwnerTabs() || !ownerTabsExpanded() || ownerTabsMenu?.contains(event.target)) return;
+    setOwnerTabsExpanded(false);
+  });
+
+  ownerTabsMobileQuery?.addEventListener?.("change", () => setOwnerTabsExpanded(false));
 
   activateOwnerTab(localStorage.getItem(OWNER_TAB_KEY) || "queue", { persist: false });
 }

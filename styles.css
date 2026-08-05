@@ -1447,11 +1447,98 @@ textarea {
 
   .owner-tabs {
     grid-template-columns: 1fr;
+    position: relative;
+    z-index: 24;
+    justify-self: center;
+    width: min(100%, 320px);
+    min-height: 58px;
+    overflow: visible;
     padding: 5px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .86);
+    box-shadow: 0 10px 24px rgba(8, 127, 150, .1);
+  }
+
+  .owner-tabs.is-expanded {
+    z-index: 72;
+  }
+
+  .owner-tabs.is-expanded::before {
+    content: "";
+    position: absolute;
+    top: calc(100% + 7px);
+    right: 0;
+    left: 0;
+    height: 172px;
+    border: 1px solid rgba(139, 218, 228, .78);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 22px 44px rgba(8, 127, 150, .2);
+  }
+
+  .owner-tabs::after {
+    content: "";
+    position: absolute;
+    top: 23px;
+    right: 22px;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    color: #fff;
+    pointer-events: none;
+    transform: rotate(45deg);
+    transition: transform .18s ease, top .18s ease;
+  }
+
+  .owner-tabs.is-expanded::after {
+    top: 27px;
+    transform: rotate(225deg);
+  }
+
+  .owner-tabs:not(.is-expanded) .owner-tab:not(.is-active) {
+    display: none;
   }
 
   .owner-tab {
     min-width: 0;
+    width: 100%;
+    min-height: 48px;
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease;
+  }
+
+  .owner-tab:active {
+    transform: translateY(1px) scale(.99);
+  }
+
+  .owner-tabs:not(.is-expanded) .owner-tab.is-active {
+    padding-right: 42px;
+    border: 1px solid rgba(255, 255, 255, .72);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .48),
+      0 14px 28px rgba(20, 169, 191, .28);
+  }
+
+  .owner-tabs.is-expanded .owner-tab:not(.is-active) {
+    position: absolute;
+    z-index: 76;
+    top: calc(100% + 14px + var(--owner-tab-option-offset, 0px));
+    right: 14px;
+    left: 14px;
+    width: auto;
+    min-height: 46px;
+    border: 1px solid rgba(188, 234, 240, .88);
+    color: #456777;
+    background: linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(239, 252, 255, .88));
+    box-shadow: 0 8px 18px rgba(8, 127, 150, .08);
+  }
+
+  .owner-tabs.is-expanded .owner-tab:not(.is-active):active {
+    background: linear-gradient(135deg, rgba(221, 251, 243, .95), rgba(234, 249, 252, .98));
+  }
+
+  .owner-tabs.is-expanded .owner-tab:not(.is-active):focus-visible {
+    background: rgba(221, 251, 243, .76);
   }
 
   .owner-panel-grid {
@@ -1531,6 +1618,8 @@ textarea {
 
   .owner-mascot {
     width: 64px;
+    justify-self: center;
+    margin-inline: auto;
   }
 
   .queue-actions,
@@ -1584,15 +1673,29 @@ textarea {
     display: grid;
   }
 
+  .section-head {
+    width: 100%;
+    justify-content: stretch;
+    justify-items: stretch;
+  }
+
   .owner-session {
     display: grid;
-    width: 100%;
-    max-width: none;
+    justify-self: center;
+    justify-items: center;
+    width: min(100%, 280px);
+    max-width: 280px;
   }
 
   .owner-session span {
+    width: 100%;
+    text-align: center;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .owner-session .secondary-button {
+    width: 100%;
   }
 
   .primary-button,
