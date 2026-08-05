@@ -630,8 +630,11 @@ textarea {
 }
 
 .owner-session span {
+  display: grid;
+  place-items: center;
   min-width: 0;
   flex: 1 1 auto;
+  min-height: 42px;
   padding: 9px 11px;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -639,6 +642,8 @@ textarea {
   background: #fff;
   font-size: .82rem;
   font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1790,6 +1795,8 @@ textarea {
 
   .owner-session span {
     width: 100%;
+    min-height: 44px;
+    padding-inline: 12px;
     text-align: center;
     white-space: normal;
     overflow-wrap: anywhere;

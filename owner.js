@@ -308,7 +308,7 @@ async function initOwnerAccess() {
     const authState = await window.FahNailSupabase?.ownerSession(currentShopSlug);
     if (authState?.configured && authState.session && authState.member) {
       remoteMode = true;
-      currentOwnerEmail = authState.user?.email || authState.session.user?.email || "";
+      currentOwnerEmail = cleanOwnerEmail(authState.user?.email || authState.session.user?.email || "");
       currentOwnerRole = authState.member.role || "owner";
       currentMemberShops = await safeListMemberShops();
       calendarTokenReady = await safeCalendarTokenStatus();
@@ -373,8 +373,10 @@ function showOwnerApp(message) {
   logoutButton.hidden = !window.FahNailSupabase?.isConfigured();
   demoLoginButton.hidden = true;
   if (ownerAccount) {
-    ownerAccount.textContent = currentOwnerEmail
-      ? `เข้าสู่ระบบ: ${currentOwnerEmail}`
+    const ownerEmail = cleanOwnerEmail(currentOwnerEmail);
+    currentOwnerEmail = ownerEmail;
+    ownerAccount.textContent = ownerEmail
+      ? `เข้าสู่ระบบ: ${ownerEmail}`
       : remoteMode
         ? "เข้าสู่ระบบเจ้าของร้านแล้ว"
         : "โหมดตัวอย่างในเครื่อง";
@@ -382,6 +384,10 @@ function showOwnerApp(message) {
   updateRouteLinks();
   render();
   if (message) showToast(message);
+}
+
+function cleanOwnerEmail(value) {
+  return String(value || "").replace(/[\s\u200B-\u200D\uFEFF]+/g, "");
 }
 
 function isLocalPreview() {
