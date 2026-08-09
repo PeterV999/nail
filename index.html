@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260809-23">
   </head>
   <body>
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -34,6 +34,9 @@
             <small>จองคิวทำเล็บ</small>
           </span>
         </a>
+        <div class="topbar-actions">
+          <a class="owner-link owner-return-link" id="owner-return-link" href="owner.html" hidden>เช็คคิว</a>
+        </div>
       </header>
 
       <main>
@@ -90,6 +93,12 @@
                   <span>คำขอนี้ยังไม่ใช่การจองที่ยืนยันแล้ว</span>
                 </div>
 
+                <label class="consent-field">
+                  <input type="checkbox" name="privacyConsent" id="privacy-consent" required>
+                  <span>ยินยอมให้ร้านใช้ข้อมูลนี้เพื่อติดต่อกลับและจัดการคิว อ่าน <a href="privacy.html" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a></span>
+                </label>
+                <p class="form-error" id="privacy-error" hidden>กรุณายินยอมก่อนส่งคำขอจอง</p>
+
                 <button class="primary-button" type="submit">จองคิว</button>
               </form>
             </section>
@@ -123,9 +132,9 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js"></script>
-    <script src="supabase-adapter.js"></script>
-    <script src="pwa.js"></script>
-    <script src="customer.js"></script>
+    <script src="app-config.js?v=20260809-23"></script>
+    <script src="supabase-adapter.js?v=20260809-23"></script>
+    <script src="pwa.js?v=20260809-23"></script>
+    <script src="customer.js?v=20260809-23"></script>
   </body>
 </html>

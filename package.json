@@ -5,6 +5,6 @@
   "description": "Fah Nail booking and queue management web app.",
   "scripts": {
     "dev": "node scripts/dev-server.js",
-    "check": "node --check customer.js && node --check owner.js && node --check register.js && node --check admin.js && node --check supabase-adapter.js && node --check scripts/dev-server.js"
+    "check": "node --check customer.js && node --check owner.js && node --check register.js && node --check admin.js && node --check supabase-adapter.js && node --check pwa.js && node --check scripts/dev-server.js"
   }
 }

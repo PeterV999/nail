@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260809-23">
   </head>
   <body>
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -35,7 +35,7 @@
           </span>
         </a>
         <nav class="admin-nav" aria-label="ทางลัด">
-          <a class="owner-link" href="/dashboard/fah-nail">Fah Nail</a>
+          <a class="owner-link" href="/fah-owner">Fah Nail</a>
           <a class="owner-link" href="/register">เพิ่มร้าน</a>
         </nav>
       </header>
@@ -45,13 +45,13 @@
           <div>
             <p class="eyebrow">ผู้ดูแลระบบ</p>
             <h1 id="admin-auth-title">เข้าสู่หลังบ้านกลาง</h1>
-            <p class="lead" id="admin-auth-copy">ใช้บัญชีที่ได้รับสิทธิ์ global admin เพื่อดูภาพรวมร้านค้า</p>
+            <p class="lead" id="admin-auth-copy">ใช้บัญชีผู้ดูแลระบบกลางเพื่อดูภาพรวมร้านค้า</p>
           </div>
           <div class="auth-actions">
             <button class="primary-button" type="button" id="admin-google-login-button">เข้าสู่ระบบด้วย Google</button>
             <button class="secondary-button" type="button" id="admin-auth-logout-button" hidden>ออกจากระบบ</button>
           </div>
-          <p class="hint" id="admin-auth-status">บัญชีที่ไม่มีสิทธิ์ global admin จะไม่เห็นข้อมูลร้านค้า</p>
+          <p class="hint" id="admin-auth-status">บัญชีที่ไม่มีสิทธิ์ผู้ดูแลระบบกลางจะไม่เห็นข้อมูลร้านค้า</p>
         </section>
 
         <section class="admin-dashboard" id="admin-app" aria-labelledby="admin-title" hidden>
@@ -94,11 +94,6 @@
                 <button class="filter-chip is-active" type="button" data-filter-group="status" data-filter-value="all">ทุกร้าน</button>
                 <button class="filter-chip" type="button" data-filter-group="status" data-filter-value="active">เปิดใช้งาน</button>
                 <button class="filter-chip" type="button" data-filter-group="status" data-filter-value="inactive">ปิดใช้งาน</button>
-              </div>
-              <div class="admin-filter-group" aria-label="Google Calendar">
-                <button class="filter-chip is-active" type="button" data-filter-group="calendar" data-filter-value="all">Calendar ทั้งหมด</button>
-                <button class="filter-chip" type="button" data-filter-group="calendar" data-filter-value="connected">เชื่อมแล้ว</button>
-                <button class="filter-chip" type="button" data-filter-group="calendar" data-filter-value="missing">ยังไม่เชื่อม</button>
               </div>
               <p class="hint admin-result-count" id="admin-result-count"></p>
             </div>
@@ -149,9 +144,9 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js"></script>
-    <script src="supabase-adapter.js"></script>
-    <script src="pwa.js"></script>
-    <script src="admin.js"></script>
+    <script src="app-config.js?v=20260809-23"></script>
+    <script src="supabase-adapter.js?v=20260809-23"></script>
+    <script src="pwa.js?v=20260809-23"></script>
+    <script src="admin.js?v=20260809-23"></script>
   </body>
 </html>

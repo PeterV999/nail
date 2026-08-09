@@ -30,12 +30,12 @@
     {
       "name": "หน้าจองลูกค้า",
       "short_name": "จองคิว",
-      "url": "/book/fah-nail"
+      "url": "/fah"
     },
     {
       "name": "หลังบ้าน Fah Nail",
       "short_name": "หลังบ้าน",
-      "url": "/dashboard/fah-nail"
+      "url": "/fah-owner"
     },
     {
       "name": "หลังบ้านกลาง",

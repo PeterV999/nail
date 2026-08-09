@@ -1,77 +1,45 @@
 # Backlog
 
-## Current focus: PWA + Platform Admin
+## Current Priority
 
-- ทำเว็บให้ติดตั้งได้แบบ PWA โดยเริ่มที่ `/admin/`
-- ปรับ service worker ให้ fallback offline ถูกหน้าและไม่พาผู้ใช้ไปหลังบ้านร้านผิด route
-- เพิ่ม `/admin` ให้ค้นหา/กรองร้าน ดูร้านที่ต้องตรวจสอบ และดูตัวเลข Calendar/คิวที่ละเอียดขึ้น
-- เก็บการปรับ `/dashboard/{shopSlug}` สำหรับงานประจำวันของร้านไว้เป็นเฟสถัดไป
+เป้าหมายหลักคือทำระบบจองคิวที่เจ้าของร้านใช้เร็วที่สุด ไม่ใช่ระบบที่มีฟีเจอร์เยอะที่สุด
 
-## Phase 1: MVP สำหรับ Fah Nail
+## Phase 1: Simplify Owner Workflow
 
-- สร้างหน้าจองคิวลูกค้า
-- เลือกบริการอย่างน้อย 1 รายการ
-- เลือกช่วงเวลาที่สะดวก
-- ส่งคำขอจอง
-- หลังบ้านดูคำขอจอง
-- เจ้าของร้านยืนยันหรือปฏิเสธคำขอ
-- เจ้าของร้านลงคิวเองได้
-- ปิดช่วงเวลาที่ไม่ว่างในหน้าลูกค้า
-- จัดการบริการ
-- จัดการช่วงเวลารับจอง
-- ปิดรับจองทั้งวันตามวันที่เลือก
-- จัดการผลงาน
-- เตรียม Supabase schema, public view, และ RLS policy
-- เตรียม owner auth gate สำหรับหลังบ้าน
+- ตัด Google Calendar ออกจาก UI และ flow การทำงาน
+- ใช้ `appointments` เป็นตารางคิวหลัก
+- ยืนยันคำขอแล้วต้องขึ้นตารางคิวทันที
+- ลงคิวเองแล้วต้องขึ้นตารางคิวทันที
+- ยกเลิกคิวแล้วสถานะต้องเปลี่ยนทันที
+- ลดข้อความยาวและปุ่มที่ไม่จำเป็นในหลังบ้าน
 
-## ขั้นตอนต่อไปก่อนใช้ข้อมูลจริง
+## Phase 2: In-App Notifications
 
-- เชื่อม Cloudflare Pages กับ GitHub auto deploy หลัง Cloudflare แสดง repo `PeterV999/nail`
-- Run `supabase/calendar-sync.sql` บน Supabase SQL Editor
-- ตั้ง Supabase Edge Function secrets สำหรับ Google OAuth และ token encryption
-- Deploy Supabase Edge Function `google-calendar-sync`
-- ทดสอบ flow เชื่อม Google Calendar, ตรวจ status, และส่งคิว confirmed เข้า Calendar
-- หลังทดสอบ Supabase สำเร็จแล้วค่อย deploy frontend เวอร์ชันนี้ขึ้น Cloudflare
+- เพิ่มปุ่มแจ้งเตือนพร้อม badge
+- แจ้งคำขอใหม่
+- แจ้งคำขอรอยืนยัน
+- แจ้งคิววันนี้
+- แจ้งคิวที่ใกล้ถึงเวลา
+- เริ่มจากข้อมูล `booking_requests` และ `appointments`
 
-## Phase 2: Google Calendar
+## Phase 3: Contact Shortcuts
 
-- เชื่อม Google OAuth ผ่าน Supabase Edge Function
-- เลือก Calendar ของร้านและเก็บ refresh token ฝั่ง server
-- สร้าง event เมื่อเจ้าของร้านกดส่งคิว confirmed
-- ส่งคิวที่ยืนยันแล้วเข้าปฏิทินย้อนหลัง หลังเชื่อมต่อครั้งแรก
-- อัปเดต event เมื่อแก้ไขคิว
-- ยกเลิก event เมื่อยกเลิกคิว
+- ถ้ามีเบอร์โทร ให้มีปุ่มโทรด้วย `tel:`
+- ถ้าเป็น LINE หรือ Facebook ให้มีปุ่มคัดลอก
+- ลดขั้นตอนการติดต่อกลับลูกค้า
 
-## Phase 3: ป้องกันการจองมั่ว
+## Phase 4: Testing Baseline
 
-- จำกัดจำนวนคำขอต่อ IP
-- จำกัดคำขอต่อเบอร์โทรหรือช่องทางติดต่อ
-- ตรวจคำขอซ้ำในวันเดียวกัน
-- เพิ่ม blocklist
-- เพิ่ม Cloudflare Turnstile ถ้าจำเป็น
+- Syntax check สำหรับ JS
+- Playwright E2E สำหรับลูกค้าจอง
+- Playwright E2E สำหรับเจ้าของร้านยืนยันคิว
+- Playwright E2E สำหรับลงคิวเอง
+- Playwright E2E สำหรับยกเลิกคิว
+- ตรวจว่าข้อมูลลูกค้าไม่แสดงในหน้าสาธารณะ
 
-## Phase 4: รองรับหลายช่าง
+## Later
 
-- เพิ่ม staff
-- ผูกคิวกับช่าง
-- แสดงตารางคิวตามช่าง
-- ตั้งเวลาทำงานของช่างแต่ละคน
-
-## Phase 5: SaaS สำหรับร้านอื่น
-
-- รองรับหลายร้าน
-- URL แยกร้าน
-- ตั้งค่าธีมร้าน
-- ตั้งค่าบริการของแต่ละร้าน
-- ตั้งค่าช่วงเวลาของแต่ละร้าน
-- สิทธิ์เจ้าของร้าน
-- ระบบแพ็กเกจรายเดือนในอนาคต
-
-## ไม่อยู่ในขอบเขต
-
-- ใบเสร็จ
-- คำนวณเงิน
-- รายงานรายได้
-- POS
-- บัญชี
-- ภาษี
+- มุมมองสัปดาห์ของตารางคิว
+- GitHub Actions CI
+- เตรียม mobile app หรือ wrapper สำหรับ iOS, iPadOS, Android
+- Migration ล้าง legacy Google Calendar หลังมั่นใจว่า production ไม่พึ่งแล้ว

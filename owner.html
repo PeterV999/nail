@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260809-23">
   </head>
   <body>
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -27,14 +27,42 @@
     </div>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="owner.html" aria-label="Fah Nail">
-          <span class="brand-mark">FN</span>
-          <span>
-            <strong>Fah Nail</strong>
-            <small>หน้าร้าน</small>
-          </span>
-        </a>
-        <a class="owner-link" href="index.html">ดูหน้าลูกค้า</a>
+        <div class="brand-cluster">
+          <a class="brand" href="owner.html" aria-label="Fah Nail">
+            <span class="brand-mark">FN</span>
+            <span>
+              <strong>Fah Nail</strong>
+              <small>หน้าร้าน</small>
+            </span>
+          </a>
+          <a class="owner-link booking-link" href="index.html">หน้าจองคิว</a>
+        </div>
+        <div class="topbar-actions">
+          <button class="owner-add-button" type="button" id="owner-add-toggle" aria-label="เพิ่มรายการ" title="เพิ่มรายการ" aria-expanded="false" aria-controls="owner-add-menu" hidden>+</button>
+          <div class="owner-action-menu" id="owner-add-menu" hidden>
+            <button type="button" id="owner-action-manual" data-owner-action-tab="manual">ลงคิว</button>
+            <button type="button" id="owner-action-settings" data-owner-action-tab="settings">แก้ไขบริการ</button>
+            <button type="button" id="owner-action-shop" data-owner-action-tab="shop">ข้อมูลร้าน</button>
+          </div>
+          <button class="notification-button" type="button" id="notification-toggle" aria-label="แจ้งเตือน" title="แจ้งเตือน" aria-expanded="false" aria-controls="notification-menu" hidden>
+            <svg class="notification-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+              <path d="M10 21a2 2 0 0 0 4 0"></path>
+            </svg>
+            <strong id="notification-badge">0</strong>
+          </button>
+          <div class="notification-menu" id="notification-menu" hidden>
+            <div class="notification-menu-head">
+              <strong>รายการใหม่</strong>
+              <span id="notification-count-text">ไม่มีรายการใหม่</span>
+            </div>
+            <div class="notification-list" id="notification-list"></div>
+            <div class="notification-account">
+              <span id="owner-account">ตรวจสอบบัญชี...</span>
+              <button class="secondary-button" type="button" id="logout-button">ออกจากระบบ</button>
+            </div>
+          </div>
+        </div>
       </header>
 
       <main>
@@ -52,55 +80,74 @@
         </section>
 
         <section class="owner-layout" id="owner-app" aria-labelledby="owner-title" hidden>
+          <h1 class="sr-only" id="owner-title">จัดการคำขอและบันทึกคิว</h1>
           <section class="owner-main owner-header-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">หลังบ้าน</p>
-                <h1 id="owner-title">จัดการคำขอและบันทึกคิว</h1>
-              </div>
-              <img class="owner-mascot" src="assets/queue-shell-mascot.svg" alt="" aria-hidden="true">
-              <div class="owner-session">
-                <span id="owner-account">ตรวจสอบบัญชี...</span>
-                <button class="secondary-button" type="button" id="logout-button">ออกจากระบบ</button>
-              </div>
-            </div>
-
             <div class="owner-tabs" role="tablist" aria-label="เมนูหลังบ้าน" aria-expanded="false">
               <button class="owner-tab is-active" type="button" id="owner-tab-queue" role="tab" aria-selected="true" aria-controls="owner-panel-queue" data-owner-tab="queue">จัดการคิว</button>
-              <button class="owner-tab" type="button" id="owner-tab-calendar" role="tab" aria-selected="false" aria-controls="owner-panel-calendar" data-owner-tab="calendar">ปฏิทิน / ร้าน</button>
-              <button class="owner-tab" type="button" id="owner-tab-manual" role="tab" aria-selected="false" aria-controls="owner-panel-manual" data-owner-tab="manual">ลงคิว / ลูกค้า</button>
-              <button class="owner-tab" type="button" id="owner-tab-settings" role="tab" aria-selected="false" aria-controls="owner-panel-settings" data-owner-tab="settings">เวลา / บริการ</button>
+              <button class="owner-tab" type="button" id="owner-tab-calendar" role="tab" aria-selected="false" aria-controls="owner-panel-calendar" data-owner-tab="calendar">ตารางคิว</button>
             </div>
           </section>
 
           <section class="owner-tab-panel" id="owner-panel-queue" role="tabpanel" aria-labelledby="owner-tab-queue" data-owner-panel="queue">
-            <div class="connection-grid" id="owner-connection-grid" aria-label="สถานะการเชื่อมต่อ"></div>
             <div class="owner-stats" id="owner-stats"></div>
             <div class="queue-list" id="request-list"></div>
           </section>
 
-          <section class="owner-tab-panel" id="owner-panel-calendar" role="tabpanel" aria-labelledby="owner-tab-calendar" data-owner-panel="calendar" hidden>
-            <div class="owner-panel-grid">
-            <section class="side-card">
-              <h2>เชื่อม Google Calendar</h2>
-              <div class="calendar-card" id="calendar-card">
-                <div class="calendar-status" id="calendar-status"></div>
+          <section class="owner-tab-panel" id="owner-panel-manual" role="region" aria-labelledby="owner-action-manual" data-owner-panel="manual" hidden>
+            <section class="side-card owner-action-panel">
+              <h2>ลงคิว</h2>
+              <form id="manual-form" class="compact-form">
                 <label>
-                  ปฏิทินของร้าน
-                  <select id="calendar-select">
-                    <option value="primary">ปฏิทินหลักของ Google</option>
+                  ชื่อลูกค้า
+                  <input name="customerName" placeholder="หน้าร้าน / โทรจอง" required>
+                </label>
+                <label>
+                  ช่องทางติดต่อ
+                  <input name="contact" placeholder="เบอร์ / LINE / Facebook" required>
+                </label>
+                <label>
+                  วันที่
+                  <input type="date" name="bookingDate" id="manual-date" required>
+                </label>
+                <label>
+                  ช่วงเวลา
+                  <select name="timeWindow" id="manual-time" required></select>
+                </label>
+                <label>
+                  บริการ
+                  <select name="serviceId" id="manual-service" required></select>
+                </label>
+                <label>
+                  แหล่งที่มา
+                  <select name="source">
+                    <option value="admin">เจ้าของร้านลงเอง</option>
+                    <option value="walk_in">หน้าร้าน</option>
+                    <option value="phone">โทรจอง</option>
+                    <option value="line">LINE</option>
+                    <option value="facebook">Facebook</option>
                   </select>
                 </label>
-                <div class="calendar-actions">
-                  <button class="primary-button" type="button" id="connect-calendar-button">เชื่อมต่อปฏิทิน</button>
-                  <button class="secondary-button" type="button" id="sync-calendar-button">ส่งคิวที่ยืนยันแล้ว</button>
-                  <button class="secondary-button" type="button" id="disconnect-calendar-button">ยกเลิก</button>
-                </div>
-                <p class="hint">ระบบจะส่งเข้าปฏิทินเฉพาะคิวที่ยืนยันแล้ว</p>
-              </div>
+                <button class="primary-button" type="submit">บันทึกคิว</button>
+              </form>
+            </section>
+          </section>
+
+          <section class="owner-tab-panel" id="owner-panel-calendar" role="tabpanel" aria-labelledby="owner-tab-calendar" data-owner-panel="calendar" hidden>
+            <div class="schedule-workspace">
+            <section class="side-card schedule-list-card">
+              <h2>ตารางคิวร้าน</h2>
+              <div class="shop-schedule-list" id="shop-schedule-list"></div>
             </section>
 
-            <section class="side-card">
+            <section class="side-card schedule-calendar-card">
+              <h2>ปฏิทินคิว</h2>
+              <div class="booking-calendar" id="booking-calendar"></div>
+            </section>
+            </div>
+          </section>
+
+          <section class="owner-tab-panel" id="owner-panel-shop" role="region" aria-labelledby="owner-action-shop" data-owner-panel="shop" hidden>
+            <section class="side-card owner-action-panel">
               <h2>ข้อมูลร้าน</h2>
               <form id="shop-form" class="compact-form">
                 <div class="shop-logo-editor">
@@ -138,56 +185,9 @@
                 <button class="secondary-button" type="submit">บันทึกข้อมูลร้าน</button>
               </form>
             </section>
-            </div>
           </section>
 
-          <section class="owner-tab-panel" id="owner-panel-manual" role="tabpanel" aria-labelledby="owner-tab-manual" data-owner-panel="manual" hidden>
-            <div class="owner-panel-grid">
-            <section class="side-card">
-              <h2>ลูกค้าล่าสุด</h2>
-              <div class="customer-list" id="customer-list"></div>
-            </section>
-
-            <section class="side-card">
-              <h2>ลงคิวเอง</h2>
-              <form id="manual-form" class="compact-form">
-                <label>
-                  ชื่อลูกค้า
-                  <input name="customerName" placeholder="หน้าร้าน / โทรจอง" required>
-                </label>
-                <label>
-                  ช่องทางติดต่อ
-                  <input name="contact" placeholder="เบอร์ / LINE / Facebook" required>
-                </label>
-                <label>
-                  วันที่
-                  <input type="date" name="bookingDate" id="manual-date" required>
-                </label>
-                <label>
-                  ช่วงเวลา
-                  <select name="timeWindow" id="manual-time" required></select>
-                </label>
-                <label>
-                  บริการ
-                  <select name="serviceId" id="manual-service" required></select>
-                </label>
-                <label>
-                  แหล่งที่มา
-                  <select name="source">
-                    <option value="admin">เจ้าของร้านลงเอง</option>
-                    <option value="walk_in">หน้าร้าน</option>
-                    <option value="phone">โทรจอง</option>
-                    <option value="line">LINE</option>
-                    <option value="facebook">Facebook</option>
-                  </select>
-                </label>
-                <button class="primary-button" type="submit">บันทึกคิว</button>
-              </form>
-            </section>
-            </div>
-          </section>
-
-          <section class="owner-tab-panel" id="owner-panel-settings" role="tabpanel" aria-labelledby="owner-tab-settings" data-owner-panel="settings" hidden>
+          <section class="owner-tab-panel" id="owner-panel-settings" role="region" aria-labelledby="owner-action-settings" data-owner-panel="settings" hidden>
             <div class="owner-panel-grid">
             <section class="side-card">
               <h2>จัดการเวลารับจอง</h2>
@@ -244,9 +244,9 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js"></script>
-    <script src="supabase-adapter.js"></script>
-    <script src="pwa.js"></script>
-    <script src="owner.js"></script>
+    <script src="app-config.js?v=20260809-23"></script>
+    <script src="supabase-adapter.js?v=20260809-23"></script>
+    <script src="pwa.js?v=20260809-23"></script>
+    <script src="owner.js?v=20260809-23"></script>
   </body>
 </html>

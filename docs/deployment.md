@@ -4,7 +4,7 @@
 
 - `index.html` คือหน้าลูกค้าสาธารณะ
 - `owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
-- `_redirects` ทำให้ URL production ใช้ `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/register`
+- `_redirects` ทำให้ URL production ใช้ `/fah`, `/fah-owner`, `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/register`
 - `customer.js` ดูแล flow จองคิวฝั่งลูกค้า
 - `owner.js` ดูแล flow หลังบ้าน
 - `register.js` ดูแล flow ลงทะเบียนร้านใหม่
@@ -43,11 +43,14 @@ APP_URL
 URL ที่ใช้จริง:
 
 ```text
-Public booking: /book/fah-nail
-Owner dashboard: /dashboard/fah-nail
+Production domain: https://bookingnail.pages.dev
+Public booking: /fah
+Owner dashboard: /fah-owner
 New shop registration: /register
 Platform admin: /admin
 ```
+
+หมายเหตุสำหรับ `*.pages.dev`: Cloudflare Pages ไม่รองรับการเปลี่ยน subdomain ของ project เดิมจาก `fah-nail-booking.pages.dev` เป็น `bookingnail.pages.dev` โดยตรง ถ้าต้องใช้ URL ใหม่เป็น `bookingnail.pages.dev` ให้สร้าง Pages project ใหม่ชื่อ `bookingnail` แล้วเชื่อม repository/branch เดิม จากนั้นตั้งค่า Supabase redirect ให้ตรงกับ domain ใหม่ก่อนใช้งานจริง
 
 ## PWA + Admin Deployment Notes
 
@@ -55,16 +58,16 @@ After updating the PWA/admin dashboard files, run `supabase/platform-admin.sql` 
 
 - tomorrow appointments
 - upcoming 7-day appointments
-- confirmed appointments not yet synced to Google Calendar
-- Calendar last sync error
-- Calendar updated time
+- today appointments
+- pending booking requests
+- shop active status
 
 Then deploy the frontend to Cloudflare Pages as usual. After deployment, verify:
 
 - `/admin/` opens and shows the richer dashboard.
 - `/manifest.webmanifest` returns valid JSON.
 - `/service-worker.js` returns the latest worker.
-- `/book/fah-nail` and `/dashboard/fah-nail` still route correctly.
+- `/fah` and `/fah-owner` still route correctly.
 - Installing the PWA starts at `/admin/`.
 
 ## GitHub
@@ -95,8 +98,20 @@ window.FAH_NAIL_CONFIG = {
   shopSlug: "fah-nail",
   supabaseUrl: "https://your-project.supabase.co",
   supabaseAnonKey: "your-public-anon-key",
-  ownerRedirectUrl: "https://fah-nail-booking.pages.dev/dashboard/fah-nail"
+  ownerRedirectUrl: "https://bookingnail.pages.dev/fah-owner"
 };
+```
+
+หลังเปลี่ยน domain เป็น `bookingnail.pages.dev` ให้ตั้งค่า Supabase Authentication > URL Configuration:
+
+```text
+Site URL: https://bookingnail.pages.dev
+Redirect URLs:
+https://bookingnail.pages.dev/fah-owner
+https://bookingnail.pages.dev/register
+https://bookingnail.pages.dev/admin
+http://localhost:4177/**
+http://localhost:4182/**
 ```
 
 หลังเจ้าของร้าน login ด้วย Google ครั้งแรก ให้ดู user id ใน Supabase > Authentication > Users แล้ว run SQL นี้:
@@ -117,34 +132,12 @@ where slug = 'fah-nail';
 - ข้อมูลชื่อและช่องทางติดต่อของลูกค้าอ่านได้เฉพาะบัญชีเจ้าของร้านที่อยู่ใน `shop_members`
 - ห้ามใส่ `SUPABASE_SERVICE_ROLE_KEY` ในหน้าเว็บหรือ GitHub
 
-## Google Calendar
+## Queue Data
 
-ใช้ Supabase Edge Function ชื่อ `google-calendar-sync` สำหรับเชื่อมและส่งคิวเข้า Google Calendar
+ระบบใช้ `appointments` ใน Supabase เป็นตารางคิวหลัก
 
-ก่อน deploy function ให้คัดลอกเนื้อหาใน `supabase/calendar-sync.sql` ไปวางใน Supabase SQL Editor แล้วกด Run
-
-ตั้งค่า secrets ให้ Edge Function:
-
-```bash
-supabase secrets set \
-  GOOGLE_OAUTH_CLIENT_ID="..." \
-  GOOGLE_OAUTH_CLIENT_SECRET="..." \
-  GOOGLE_TOKEN_ENCRYPTION_KEY="สุ่มอย่างน้อย-32-ตัวอักษร" \
-  --project-ref punzqhfrhdgimvmczspv
-```
-
-deploy function:
-
-```bash
-supabase functions deploy google-calendar-sync --project-ref punzqhfrhdgimvmczspv --use-api
-```
-
-ใน Google Cloud OAuth ต้องมี callback ของ Supabase Auth:
-
-```text
-https://punzqhfrhdgimvmczspv.supabase.co/auth/v1/callback
-```
-
-เมื่อเจ้าของร้านกดเชื่อม Google Calendar ระบบจะขอ `offline access` เพื่อรับ refresh token แล้ว Edge Function จะเข้ารหัสเก็บไว้ใน `calendar_integrations.refresh_token_encrypted`
-
-เมื่อเจ้าของร้านกด “ส่งคิวที่ยืนยันแล้ว” หน้าเว็บจะเรียก Edge Function ให้สร้าง Google Calendar event แล้วบันทึก `google_calendar_event_id` กลับเข้า `appointments`
+- ลูกค้าจองเองจะเข้า `booking_requests`
+- เจ้าของร้านกดยืนยันแล้วระบบสร้าง `appointments`
+- เจ้าของร้านลงคิวเองแล้วระบบสร้าง `appointments`
+- ยกเลิกคิวแล้วระบบเปลี่ยน `appointments.status` เป็น `cancelled`
+- ยังไม่ deploy หรือใช้ Edge Function สำหรับปฏิทินภายนอกใน flow ปัจจุบัน

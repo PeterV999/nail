@@ -14,13 +14,6 @@ const defaultTimeSlots = [
 const defaultState = {
   timeSlots: defaultTimeSlots,
   closedDates: [],
-  calendarIntegration: {
-    connected: false,
-    provider: "google",
-    accountEmail: "",
-    calendarId: "",
-    calendarName: ""
-  },
   services: [
     { id: "gel", name: "สีเจล", active: true },
     { id: "art", name: "เพ้นท์ลาย", active: true },
@@ -43,6 +36,8 @@ const miniCalendar = document.getElementById("mini-calendar");
 const bookingDate = document.getElementById("booking-date");
 const bookingForm = document.getElementById("booking-form");
 const serviceError = document.getElementById("service-error");
+const privacyConsent = document.getElementById("privacy-consent");
+const privacyError = document.getElementById("privacy-error");
 const statusDateTitle = document.getElementById("status-date-title");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
@@ -53,6 +48,7 @@ const toast = document.getElementById("toast");
 const bookingSuccessDialog = document.getElementById("booking-success-dialog");
 const bookingSuccessSummary = document.getElementById("booking-success-summary");
 const bookingDialogClose = document.getElementById("booking-dialog-close");
+const ownerReturnLink = document.getElementById("owner-return-link");
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -153,11 +149,25 @@ function renderShopChrome() {
   const brandName = document.querySelector(".brand strong");
   const heroEyebrow = document.querySelector(".hero-copy .eyebrow");
   if (brand) brand.href = urls.booking;
+  if (ownerReturnLink) ownerReturnLink.href = urls.dashboard;
   renderBrandMark(brandMark, shop);
   if (brandName) brandName.textContent = shop.name || "Fah Nail";
   if (heroEyebrow) heroEyebrow.textContent = shop.name || "Fah Nail";
   if (customerHeroLead) customerHeroLead.textContent = shop.tagline || defaultCustomerHeroLead;
   document.title = `จองคิว ${shop.name || "Fah Nail"}`;
+}
+
+async function updateOwnerReturnLink() {
+  if (!ownerReturnLink) return;
+  ownerReturnLink.hidden = true;
+
+  try {
+    const authState = await window.FahNailSupabase?.ownerSession?.(currentShopSlug);
+    ownerReturnLink.hidden = !(authState?.configured && authState?.session && authState?.member);
+  } catch (error) {
+    console.warn("Owner shortcut check failed", error);
+    ownerReturnLink.hidden = true;
+  }
 }
 
 function shopInitials(name = "Fah Nail") {
@@ -267,6 +277,12 @@ bookingForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  if (!privacyConsent?.checked) {
+    if (privacyError) privacyError.hidden = false;
+    privacyConsent?.focus();
+    return;
+  }
+
   const request = {
     id: `REQ-${Date.now()}`,
     customerName: formData.get("customerName").trim(),
@@ -283,6 +299,7 @@ bookingForm.addEventListener("submit", async (event) => {
 
   bookingForm.reset();
   bookingDate.value = today;
+  if (privacyError) privacyError.hidden = true;
   selectedServices.clear();
   selectedTime = "";
   saveState();
@@ -334,6 +351,9 @@ bookingForm.addEventListener("submit", async (event) => {
 });
 
 bookingDate.addEventListener("change", render);
+privacyConsent?.addEventListener("change", () => {
+  if (privacyConsent.checked && privacyError) privacyError.hidden = true;
+});
 bookingDialogClose?.addEventListener("click", closeBookingSuccessDialog);
 bookingSuccessDialog?.addEventListener("click", (event) => {
   if (event.target === bookingSuccessDialog) closeBookingSuccessDialog();
@@ -428,6 +448,7 @@ async function init() {
   }
 
   render();
+  await updateOwnerReturnLink();
 }
 
 init();

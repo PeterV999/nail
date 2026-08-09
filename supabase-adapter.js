@@ -10,10 +10,7 @@
   let authTokenListenerAttached = false;
   const cachedShops = new Map();
   const GOOGLE_PROVIDER_TOKEN_KEY = "fah_nail_google_provider_token";
-  const GOOGLE_PROVIDER_REFRESH_TOKEN_KEY = "fah_nail_google_provider_refresh_token";
-  const PENDING_GOOGLE_CALENDAR_ID_KEY = "fah_nail_pending_google_calendar_id";
   const GOOGLE_LOGIN_SCOPES = "email profile";
-  const GOOGLE_CALENDAR_SCOPES = `${GOOGLE_LOGIN_SCOPES} https://www.googleapis.com/auth/calendar.events`;
   const SHOP_LOGO_BUCKET = "shop-logos";
   const SHOP_LOGO_MAX_BYTES = 2 * 1024 * 1024;
   const SHOP_LOGO_EXTENSIONS = {
@@ -22,8 +19,7 @@
     "image/webp": "webp"
   };
   const latestProviderTokens = {
-    accessToken: "",
-    refreshToken: ""
+    accessToken: ""
   };
 
   function config() {
@@ -84,39 +80,28 @@
     if (authTokenListenerAttached) return;
     authTokenListenerAttached = true;
     db.auth.onAuthStateChange((event, session) => {
-      if (session?.provider_token) {
-        rememberProviderTokens({
-          accessToken: session.provider_token,
-          refreshToken: session.provider_refresh_token || ""
-        });
-      }
+      if (session?.provider_token) rememberProviderToken(session.provider_token);
 
       if (event === "SIGNED_OUT") {
         window.localStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
         window.sessionStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
-        window.sessionStorage.removeItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY);
         latestProviderTokens.accessToken = "";
-        latestProviderTokens.refreshToken = "";
       }
     });
   }
 
-  function rememberProviderTokens({ accessToken, refreshToken }) {
+  function rememberProviderToken(accessToken) {
     if (accessToken) {
       latestProviderTokens.accessToken = accessToken;
       window.localStorage.removeItem(GOOGLE_PROVIDER_TOKEN_KEY);
       window.sessionStorage.setItem(GOOGLE_PROVIDER_TOKEN_KEY, accessToken);
     }
-
-    if (refreshToken) {
-      latestProviderTokens.refreshToken = refreshToken;
-      window.sessionStorage.setItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY, refreshToken);
-    }
   }
 
   function routeShopSlug() {
     const parts = window.location.pathname.split("/").filter(Boolean);
-    if ((parts[0] === "book" || parts[0] === "dashboard") && parts[1]) return parts[1];
+    if (parts[0] === "fah" || parts[0] === "fah-owner") return "fah-nail";
+    if ((parts[0] === "book" || parts[0] === "dashboard" || parts[0] === "b" || parts[0] === "o") && parts[1]) return parts[1];
 
     const params = new URLSearchParams(window.location.search);
     return params.get("shop") || config().shopSlug || "fah-nail";
@@ -132,8 +117,8 @@
     }
 
     return {
-      booking: `/book/${encodeURIComponent(slug)}`,
-      dashboard: `/dashboard/${encodeURIComponent(slug)}`,
+      booking: slug === "fah-nail" ? "/fah" : `/b/${encodeURIComponent(slug)}`,
+      dashboard: slug === "fah-nail" ? "/fah-owner" : `/o/${encodeURIComponent(slug)}`,
       register: "/register"
     };
   }
@@ -282,7 +267,6 @@
   async function signInWithGoogle(options = {}) {
     const db = client();
     if (!db) return;
-    const calendarAccess = Boolean(options.calendarAccess);
     const redirectTo = options.redirectTo
       || (isLocalPreview() ? localPageUrl("owner.html", routeShopSlug()) : config().ownerRedirectUrl)
       || window.location.href;
@@ -291,19 +275,9 @@
       provider: "google",
       options: {
         redirectTo,
-        scopes: calendarAccess ? GOOGLE_CALENDAR_SCOPES : GOOGLE_LOGIN_SCOPES,
-        queryParams: calendarAccess ? {
-          access_type: "offline",
-          prompt: "consent",
-          include_granted_scopes: "true"
-        } : undefined
+        scopes: GOOGLE_LOGIN_SCOPES
       }
     });
-  }
-
-  async function startGoogleCalendarAuthorization(calendarId = "primary") {
-    window.sessionStorage.setItem(PENDING_GOOGLE_CALENDAR_ID_KEY, calendarId || "primary");
-    await signInWithGoogle({ calendarAccess: true });
   }
 
   async function signOut() {
@@ -324,8 +298,7 @@
       { data: closedDays, error: closedError },
       { data: requests, error: requestsError },
       { data: appointments, error: appointmentsError },
-      { data: customers, error: customersError },
-      { data: calendarIntegrations, error: calendarError }
+      { data: customers, error: customersError }
     ] = await Promise.all([
       db.from("shops").select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status").eq("id", shop.id).single(),
       db.from("services").select("id,name,is_active,sort_order").eq("shop_id", shop.id).order("sort_order"),
@@ -337,7 +310,7 @@
         .in("status", ["pending_request", "contacted", "no_answer"])
         .order("created_at", { ascending: false }),
       db.from("appointments")
-        .select("id,appointment_date,start_time,end_time,selected_service_ids,status,source,google_calendar_event_id,google_calendar_name,customers(name,phone,line_id,facebook_name,note),booking_requests(customer_name,contact_snapshot)")
+        .select("id,appointment_date,start_time,end_time,selected_service_ids,status,source,customers(name,phone,line_id,facebook_name,note),booking_requests(customer_name,contact_snapshot)")
         .eq("shop_id", shop.id)
         .neq("status", "cancelled")
         .order("appointment_date", { ascending: true })
@@ -346,15 +319,10 @@
         .select("id,name,phone,line_id,facebook_name,note,created_at")
         .eq("shop_id", shop.id)
         .order("created_at", { ascending: false })
-        .limit(12),
-      db.from("calendar_integrations")
-        .select("provider,calendar_id,connected_at")
-        .eq("shop_id", shop.id)
-        .eq("provider", "google")
-        .maybeSingle()
+        .limit(12)
     ]);
 
-    const error = ownerShopError || servicesError || slotsError || closedError || requestsError || appointmentsError || customersError || calendarError;
+    const error = ownerShopError || servicesError || slotsError || closedError || requestsError || appointmentsError || customersError;
     if (error) throw error;
 
     const serviceNameById = new Map((services || []).map((service) => [service.id, service.name]));
@@ -412,9 +380,7 @@
           bookingDate: item.appointment_date,
           timeWindow: `${normalizeTime(item.start_time)}-${normalizeTime(item.end_time)}`,
           status: item.status,
-          source: item.source || "admin",
-          googleCalendarEventId: item.google_calendar_event_id,
-          googleCalendarName: item.google_calendar_name
+          source: item.source || "admin"
         };
       }),
       customers: (customers || []).map((item) => ({
@@ -423,14 +389,7 @@
         contact: customerContact(item),
         note: item.note || "",
         createdAt: item.created_at
-      })),
-      calendarIntegration: calendarIntegrations ? {
-        connected: true,
-        provider: calendarIntegrations.provider,
-        accountEmail: "",
-        calendarId: calendarIntegrations.calendar_id,
-        calendarName: calendarIntegrations.calendar_id
-      } : structuredClone(defaultState.calendarIntegration)
+      }))
     };
   }
 
@@ -478,20 +437,6 @@
 
     if (error) throw error;
     return true;
-  }
-
-  async function syncAppointmentToGoogleCalendar(appointment, integration, slug = routeShopSlug()) {
-    const db = client();
-    if (!db) return false;
-
-    const data = await invokeCalendarFunction({
-      action: "syncAppointment",
-      shopSlug: slug,
-      appointmentId: appointment.id,
-      calendarId: integration?.calendarId || "primary"
-    });
-
-    return data;
   }
 
   async function updateBookingRequestStatus(requestId, status, slug = routeShopSlug()) {
@@ -633,57 +578,12 @@
     const db = client();
     if (!db) return false;
 
-    return await invokeCalendarFunction({
-      action: "cancelAppointment",
-      shopSlug: slug,
-      appointmentId
-    });
-  }
-
-  async function setCalendarIntegration(calendarId, slug = routeShopSlug()) {
-    const db = client();
-    if (!db) return false;
-
-    const tokens = await googleProviderTokens();
-    const data = await invokeCalendarFunction({
-      action: "connect",
-      shopSlug: slug,
-      calendarId,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken
-    });
-
-    if (data?.ok && tokens.refreshToken) {
-      window.sessionStorage.removeItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY);
-      latestProviderTokens.refreshToken = "";
-    }
-
-    return data;
-  }
-
-  async function completePendingGoogleCalendarConnection(slug = routeShopSlug()) {
-    const pendingCalendarId = window.sessionStorage.getItem(PENDING_GOOGLE_CALENDAR_ID_KEY);
-    if (!pendingCalendarId || !hasTransientGoogleRefreshToken()) return false;
-
-    await setCalendarIntegration(pendingCalendarId, slug);
-    window.sessionStorage.removeItem(PENDING_GOOGLE_CALENDAR_ID_KEY);
-    return true;
-  }
-
-  function hasTransientGoogleRefreshToken() {
-    return Boolean(latestProviderTokens.refreshToken || window.sessionStorage.getItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY));
-  }
-
-  async function removeCalendarIntegration(slug = routeShopSlug()) {
-    const db = client();
-    if (!db) return false;
-
     const shop = await getShop(slug);
     const { error } = await db
-      .from("calendar_integrations")
-      .delete()
-      .eq("shop_id", shop.id)
-      .eq("provider", "google");
+      .from("appointments")
+      .update({ status: "cancelled", updated_at: new Date().toISOString() })
+      .eq("id", appointmentId)
+      .eq("shop_id", shop.id);
 
     if (error) throw error;
     return true;
@@ -903,10 +803,6 @@
       todayAppointments: Number(item.today_appointments || 0),
       tomorrowAppointments: Number(item.tomorrow_appointments || 0),
       upcomingAppointments: Number(item.upcoming_appointments || 0),
-      unsyncedAppointments: Number(item.unsynced_appointments || 0),
-      calendarConnected: Boolean(item.calendar_connected),
-      calendarLastSyncError: item.calendar_last_sync_error || "",
-      calendarUpdatedAt: item.calendar_updated_at || "",
       createdAt: item.created_at || "",
       updatedAt: item.updated_at || ""
     };
@@ -921,108 +817,10 @@
       todayAppointments: shops.reduce((sum, shop) => sum + Number(shop.todayAppointments || 0), 0),
       tomorrowAppointments: shops.reduce((sum, shop) => sum + Number(shop.tomorrowAppointments || 0), 0),
       upcomingAppointments: shops.reduce((sum, shop) => sum + Number(shop.upcomingAppointments || 0), 0),
-      unsyncedAppointments: shops.reduce((sum, shop) => sum + Number(shop.unsyncedAppointments || 0), 0),
-      calendarConnected: shops.filter((shop) => shop.calendarConnected).length,
       needsAttention: shops.filter((shop) => (
         Number(shop.pendingRequests || 0) > 0
-        || Number(shop.unsyncedAppointments || 0) > 0
-        || Boolean(shop.calendarLastSyncError)
         || shop.status !== "active"
-        || (shop.status === "active" && !shop.calendarConnected)
       )).length
-    };
-  }
-
-  async function invokeCalendarFunction(body) {
-    const db = client();
-    if (!db) return null;
-
-    const { data, error } = await db.functions.invoke("google-calendar-sync", {
-      body
-    });
-
-    if (error) {
-      const details = await edgeFunctionErrorDetails(error);
-      const code = details?.code || error.name || "GOOGLE_CALENDAR_SYNC_FAILED";
-      throw new Error(code);
-    }
-
-    if (data?.ok === false) {
-      throw new Error(data.code || "GOOGLE_CALENDAR_SYNC_FAILED");
-    }
-
-    return data;
-  }
-
-  async function edgeFunctionErrorDetails(error) {
-    try {
-      return await error.context?.json?.();
-    } catch {
-      return null;
-    }
-  }
-
-  async function googleProviderToken() {
-    const db = client();
-    const { data } = await db.auth.getSession();
-    const accessToken = data.session?.provider_token
-      || latestProviderTokens.accessToken
-      || window.sessionStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
-      || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
-      || "";
-    const refreshToken = data.session?.provider_refresh_token || window.sessionStorage.getItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY) || "";
-    rememberProviderTokens({ accessToken, refreshToken });
-    return accessToken;
-  }
-
-  async function googleProviderTokens() {
-    const db = client();
-    const { data } = await db.auth.getSession();
-    const accessToken = data.session?.provider_token
-      || latestProviderTokens.accessToken
-      || window.sessionStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
-      || window.localStorage.getItem(GOOGLE_PROVIDER_TOKEN_KEY)
-      || "";
-    const refreshToken = data.session?.provider_refresh_token
-      || latestProviderTokens.refreshToken
-      || window.sessionStorage.getItem(GOOGLE_PROVIDER_REFRESH_TOKEN_KEY)
-      || "";
-    rememberProviderTokens({ accessToken, refreshToken });
-    return { accessToken, refreshToken };
-  }
-
-  async function hasGoogleCalendarToken(slug = routeShopSlug()) {
-    try {
-      const data = await invokeCalendarFunction({ action: "status", shopSlug: slug });
-      return Boolean(data?.hasRefreshToken && !data?.needsReconnect);
-    } catch (error) {
-      console.warn("Calendar status function failed", error);
-      return false;
-    }
-  }
-
-  function calendarEventPayload(appointment, shopName) {
-    const [startTime, endTime] = appointment.timeWindow.split("-");
-    const services = (appointment.services || []).join(", ");
-    const title = `${shopName || "Fah Nail"} - ${appointment.customerName || "ลูกค้า"}`;
-    const description = [
-      services ? `บริการ: ${services}` : "",
-      appointment.contact ? `ติดต่อ: ${appointment.contact}` : "",
-      appointment.note ? `หมายเหตุ: ${appointment.note}` : "",
-      "สร้างจากระบบจองคิว Fah Nail"
-    ].filter(Boolean).join("\n");
-
-    return {
-      summary: title,
-      description,
-      start: {
-        dateTime: `${appointment.bookingDate}T${startTime}:00+07:00`,
-        timeZone: "Asia/Bangkok"
-      },
-      end: {
-        dateTime: `${appointment.bookingDate}T${endTime}:00+07:00`,
-        timeZone: "Asia/Bangkok"
-      }
     };
   }
 
@@ -1043,7 +841,6 @@
     listMemberShops,
     ownerSession,
     signInWithGoogle,
-    startGoogleCalendarAuthorization,
     signOut,
     loadOwnerState,
     confirmBookingRequest,
@@ -1054,12 +851,6 @@
     removeShopLogo,
     createOwnerAppointment,
     cancelAppointment,
-    syncAppointmentToGoogleCalendar,
-    hasGoogleCalendarToken,
-    setCalendarIntegration,
-    completePendingGoogleCalendarConnection,
-    hasTransientGoogleRefreshToken,
-    removeCalendarIntegration,
     createService,
     updateService,
     deleteService,

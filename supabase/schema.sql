@@ -112,29 +112,10 @@ create table public.appointments (
   selected_service_ids uuid[] not null default '{}',
   status text not null default 'confirmed',
   source text not null,
-  google_calendar_event_id text,
-  google_calendar_name text,
   created_by uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint appointments_valid_range check (start_time < end_time)
-);
-
-create table public.calendar_integrations (
-  id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
-  provider text not null default 'google',
-  calendar_id text not null,
-  access_token_encrypted text,
-  refresh_token_encrypted text,
-  token_type text,
-  scope text,
-  access_token_expires_at timestamptz,
-  connected_by uuid references auth.users(id) on delete set null,
-  last_sync_error text,
-  connected_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (shop_id, provider)
 );
 
 create table public.portfolio_items (
@@ -160,7 +141,6 @@ alter table public.staff enable row level security;
 alter table public.shop_members enable row level security;
 alter table public.platform_admins enable row level security;
 alter table public.appointments enable row level security;
-alter table public.calendar_integrations enable row level security;
 alter table public.portfolio_items enable row level security;
 
 create or replace function public.is_platform_admin(target_user_id uuid default auth.uid())
@@ -293,11 +273,6 @@ on public.appointments for all
 using (public.is_shop_member(shop_id))
 with check (public.is_shop_member(shop_id));
 
-create policy "owners can manage calendar integrations"
-on public.calendar_integrations for all
-using (public.is_shop_member(shop_id))
-with check (public.is_shop_member(shop_id));
-
 create policy "public can read portfolio items"
 on public.portfolio_items for select
 using (is_public = true);
@@ -402,30 +377,9 @@ grant select, insert, update, delete on public.booking_time_slots to authenticat
 grant select, insert, update, delete on public.booking_day_overrides to authenticated;
 grant select, update, delete on public.booking_requests to authenticated;
 grant select, insert, update, delete on public.appointments to authenticated;
-grant select, insert, update, delete on public.calendar_integrations to authenticated;
 grant select, insert, update, delete on public.portfolio_items to authenticated;
 grant select on public.shop_members to authenticated;
 grant select on public.platform_admins to authenticated;
-
-revoke select, insert, update
-on public.calendar_integrations
-from authenticated;
-
-grant select (
-  id,
-  shop_id,
-  provider,
-  calendar_id,
-  token_type,
-  scope,
-  access_token_expires_at,
-  connected_by,
-  last_sync_error,
-  connected_at,
-  updated_at
-)
-on public.calendar_integrations
-to authenticated;
 
 create or replace function public.get_shop_access(shop_slug text)
 returns table(
@@ -479,10 +433,6 @@ returns table(
   today_appointments integer,
   tomorrow_appointments integer,
   upcoming_appointments integer,
-  unsynced_appointments integer,
-  calendar_connected boolean,
-  calendar_last_sync_error text,
-  calendar_updated_at timestamptz,
   created_at timestamptz,
   updated_at timestamptz
 )
@@ -509,10 +459,6 @@ as $$
     coalesce(appointment_counts.today_appointments, 0)::integer as today_appointments,
     coalesce(appointment_counts.tomorrow_appointments, 0)::integer as tomorrow_appointments,
     coalesce(appointment_counts.upcoming_appointments, 0)::integer as upcoming_appointments,
-    coalesce(appointment_counts.unsynced_appointments, 0)::integer as unsynced_appointments,
-    coalesce(calendar_state.calendar_connected, false) as calendar_connected,
-    calendar_state.last_sync_error as calendar_last_sync_error,
-    calendar_state.updated_at as calendar_updated_at,
     shops.created_at,
     shops.updated_at
   from public.shops
@@ -540,26 +486,10 @@ as $$
         where appointments.appointment_date >= ((now() at time zone 'Asia/Bangkok')::date)
           and appointments.appointment_date < (((now() at time zone 'Asia/Bangkok')::date) + 7)
           and appointments.status <> 'cancelled'
-      ) as upcoming_appointments,
-      count(*) filter (
-        where appointments.appointment_date >= ((now() at time zone 'Asia/Bangkok')::date)
-          and appointments.status = 'confirmed'
-          and appointments.google_calendar_event_id is null
-      ) as unsynced_appointments
+      ) as upcoming_appointments
     from public.appointments
     where appointments.shop_id = shops.id
   ) appointment_counts on true
-  left join lateral (
-    select
-      calendar_integrations.refresh_token_encrypted is not null as calendar_connected,
-      calendar_integrations.last_sync_error,
-      calendar_integrations.updated_at
-    from public.calendar_integrations
-    where calendar_integrations.shop_id = shops.id
-      and calendar_integrations.provider = 'google'
-    order by calendar_integrations.updated_at desc nulls last
-    limit 1
-  ) calendar_state on true
   where actor.user_id is not null
     and (actor.is_admin or shop_members.user_id = actor.user_id)
   order by shops.created_at asc;
@@ -872,7 +802,6 @@ revoke insert on public.booking_requests from authenticated;
 
 create index if not exists shop_members_user_id_idx on public.shop_members (user_id);
 create index if not exists platform_admins_role_idx on public.platform_admins (role);
-create index if not exists calendar_integrations_connected_by_idx on public.calendar_integrations (connected_by);
 create index if not exists booking_requests_shop_status_date_idx on public.booking_requests (shop_id, status, booking_date);
 create index if not exists appointments_shop_date_status_idx on public.appointments (shop_id, appointment_date, status);
 create index if not exists services_shop_sort_idx on public.services (shop_id, sort_order);
