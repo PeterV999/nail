@@ -25,17 +25,17 @@ This project is treated as a progressive web app before any native mobile app wo
 - Offline navigation shows a clear offline fallback instead of opening the wrong dashboard route.
 - Shortcuts remain available for `/fah`, `/fah-owner`, and `/admin/`.
 
-## ??????????????? Access
+## Platform Admin Access
 
 Run `supabase/platform-admin.sql` in the Supabase SQL Editor for project `punzqhfrhdgimvmczspv`.
 
-The migration seeds this account as a ???????????????:
+The migration seeds this account as a platform admin:
 
 ```text
 peter091021.v1@gmail.com
 ```
 
-To add another ??????????????? after that account has logged in once:
+To add another platform admin after that account has logged in once:
 
 ```sql
 insert into public.platform_admins (user_id, role)
@@ -46,7 +46,7 @@ on conflict (user_id) do update
 set role = excluded.role;
 ```
 
-To remove a ???????????????:
+To remove a platform admin:
 
 ```sql
 delete from public.platform_admins

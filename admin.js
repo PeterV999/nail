@@ -128,7 +128,7 @@ async function initAdmin() {
     await loadAdminState();
   } catch (error) {
     console.warn("Admin init failed", error);
-    showAuth("ยังตรวจสอบสิทธิ์ ??????????????? ไม่สำเร็จ");
+    showAuth("ยังตรวจสอบสิทธิ์ผู้ดูแลระบบไม่สำเร็จ");
   }
 }
 
@@ -138,15 +138,15 @@ async function loadAdminState() {
   try {
     const overview = await window.FahNailSupabase.loadPlatformAdminOverview();
     if (!overview?.isPlatformAdmin) {
-      adminAuthCopy.textContent = "บัญชีนี้ยังไม่มีสิทธิ์ ???????????????";
+      adminAuthCopy.textContent = "บัญชีนี้ยังไม่มีสิทธิ์ผู้ดูแลระบบ";
       adminAuthLogoutButton.hidden = false;
-      showAuth("ให้เพิ่มบัญชีนี้ใน ?????????????????????? ก่อนใช้งานหลังบ้านกลาง");
+      showAuth("ให้เพิ่มบัญชีนี้ในรายชื่อผู้ดูแลระบบก่อนใช้งานหลังบ้านกลาง");
       return;
     }
 
     adminState.shops = overview.shops || [];
     adminState.stats = overview.stats || calculateStats(adminState.shops);
-    adminAccount.textContent = overview.user?.email || "???????????????";
+    adminAccount.textContent = overview.user?.email || "ผู้ดูแลระบบ";
     renderAdmin();
     showApp();
   } catch (error) {
