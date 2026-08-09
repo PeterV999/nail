@@ -6,6 +6,9 @@ const shopName = document.getElementById("shop-name");
 const shopSlug = document.getElementById("shop-slug");
 const slugPreview = document.getElementById("slug-preview");
 const dashboardPreview = document.getElementById("dashboard-preview");
+const registerSuccess = document.getElementById("register-success");
+const registerBookingLink = document.getElementById("register-booking-link");
+const registerDashboardLink = document.getElementById("register-dashboard-link");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
 const pageLoaderCopy = document.getElementById("page-loader-copy");
@@ -27,6 +30,16 @@ function updatePreview() {
   if (shopSlug.value !== slug && document.activeElement !== shopSlug) {
     shopSlug.value = slug === "your-shop" ? "" : slug;
   }
+}
+
+function showRegisterSuccess(shop) {
+  const urls = window.FahNailSupabase.shopUrls(shop.slug);
+  registerForm.hidden = true;
+  registerAuthActions.hidden = true;
+  registerStatus.textContent = `สร้าง ${shop.name} สำเร็จ`;
+  if (registerBookingLink) registerBookingLink.href = urls.booking;
+  if (registerDashboardLink) registerDashboardLink.href = urls.dashboard;
+  if (registerSuccess) registerSuccess.hidden = false;
 }
 
 function showToast(message) {
@@ -103,7 +116,7 @@ registerForm.addEventListener("submit", async (event) => {
     registerStatus.textContent = "กำลังสร้างร้าน...";
     const shop = await window.FahNailSupabase.registerShop(name, slug);
     showToast("สร้างร้านสำเร็จ");
-    window.location.href = window.FahNailSupabase.shopUrls(shop.slug).dashboard;
+    showRegisterSuccess(shop);
   } catch (error) {
     setPageLoading(false);
     console.warn("Register shop failed", error);

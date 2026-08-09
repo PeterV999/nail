@@ -182,6 +182,23 @@
     return shop;
   }
 
+  async function listPublicShops() {
+    const db = client();
+    if (!db) return [];
+
+    const { data, error } = await db
+      .from("public_shops")
+      .select("id,name,slug,status,phone,line_id,facebook_page,tagline,logo_path")
+      .order("name", { ascending: true });
+
+    if (error) throw error;
+    return (data || []).map((item) => {
+      const shop = mapShopProfile(item);
+      cachedShops.set(shop.slug, shop);
+      return shop;
+    });
+  }
+
   async function loadPublicState(defaultState) {
     const db = client();
     if (!db) return null;
@@ -953,6 +970,7 @@
     routeShopSlug,
     shopUrls,
     getShop,
+    listPublicShops,
     loadPublicState,
     createBookingRequest,
     listMemberShops,

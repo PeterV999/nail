@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260810-28">
+    <link rel="stylesheet" href="styles.css?v=20260810-29">
   </head>
   <body>
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -45,39 +45,55 @@
           <div class="home-hero">
             <div class="home-copy">
               <p class="eyebrow">BookingNail</p>
-              <h1 id="home-preview-title">ตัวอย่างระบบจองคิวร้านทำเล็บ</h1>
-              <p class="lead">หน้าแรกนี้เป็นตัวอย่างแพลตฟอร์มเท่านั้น ร้านจริงจะใช้ลิงก์ของตัวเอง เช่น `/fah` และหลังบ้านใช้ `/fah-owner`</p>
+              <h1 id="home-preview-title">เลือกหน้าร้าน หรือสร้างระบบจองคิวของคุณ</h1>
+              <p class="lead">หน้าแรกเป็นศูนย์รวมร้านและตัวอย่างแพลตฟอร์ม ร้านแต่ละร้านใช้ลิงก์ของตัวเอง เช่น /fah และ /fah-owner</p>
               <div class="home-actions">
                 <a class="primary-button" href="/fah">ดูหน้าจอง Fah Nail</a>
-                <a class="secondary-button" href="/fah-owner">ดูหลังบ้าน</a>
-                <a class="secondary-button" href="/terms">ข้อตกลง</a>
+                <a class="secondary-button" href="/register">เพิ่มร้านใหม่</a>
+                <a class="secondary-button" href="/admin">หลังบ้านกลาง</a>
               </div>
             </div>
-            <div class="home-preview-card" aria-hidden="true">
+            <div class="home-preview-card">
               <img src="assets/sea-nail-mascot.svg" alt="">
-              <strong>หลายร้านใช้งานได้</strong>
-              <span>/ชื่อร้าน และ /ชื่อร้าน-owner</span>
+              <strong>ลิงก์แยกร้าน</strong>
+              <span>/ชื่อร้าน สำหรับลูกค้า<br>/ชื่อร้าน-owner สำหรับเจ้าของร้าน</span>
             </div>
           </div>
 
-          <div class="home-shop-list" aria-label="ร้านตัวอย่าง">
-            <article class="home-shop-card">
-              <div class="brand-mark">FN</div>
+          <section class="home-section" aria-labelledby="home-shop-title">
+            <div class="home-section-head">
               <div>
-                <h2>Fah Nail</h2>
-                <p>ร้านตัวอย่างที่เชื่อมข้อมูลจริง</p>
-              </div>
-              <a class="owner-link" href="/fah">จองคิว</a>
-            </article>
-            <article class="home-shop-card muted">
-              <div class="brand-mark">+</div>
-              <div>
-                <h2>ร้านใหม่</h2>
-                <p>อนาคตใช้ path เช่น /rose-nail และ /rose-nail-owner</p>
+                <p class="eyebrow">ร้านในระบบ</p>
+                <h2 id="home-shop-title">เลือกร้านที่ต้องการจอง</h2>
               </div>
               <a class="owner-link" href="/register">เพิ่มร้าน</a>
-            </article>
-          </div>
+            </div>
+            <div class="home-shop-list" id="home-shop-list" aria-label="ร้านที่เปิดใช้งาน">
+              <article class="home-shop-card">
+                <div class="brand-mark">FN</div>
+                <div>
+                  <h3>Fah Nail</h3>
+                  <p>ร้านตัวอย่างที่เชื่อมข้อมูลจริง</p>
+                </div>
+                <a class="owner-link" href="/fah">จองคิว</a>
+              </article>
+            </div>
+          </section>
+
+          <section class="home-section home-flow" aria-labelledby="home-flow-title">
+            <div class="home-section-head">
+              <div>
+                <p class="eyebrow">Flow ร้านใหม่</p>
+                <h2 id="home-flow-title">สมัครครั้งเดียว ได้ลิงก์พร้อมใช้</h2>
+              </div>
+              <a class="owner-link" href="/terms">ข้อตกลง</a>
+            </div>
+            <div class="home-flow-grid">
+              <div><strong>1</strong><span>เข้าสู่ระบบ Google</span></div>
+              <div><strong>2</strong><span>ตั้งชื่อร้านและ URL</span></div>
+              <div><strong>3</strong><span>เปิด /xxx และ /xxx-owner ได้ทันที</span></div>
+            </div>
+          </section>
         </section>
 
         <section id="customer" aria-labelledby="customer-title">
@@ -178,9 +194,9 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="app-config.js?v=20260810-28"></script>
-    <script src="supabase-adapter.js?v=20260810-28"></script>
-    <script src="pwa.js?v=20260810-28"></script>
-    <script src="customer.js?v=20260810-28"></script>
+    <script src="app-config.js?v=20260810-29"></script>
+    <script src="supabase-adapter.js?v=20260810-29"></script>
+    <script src="pwa.js?v=20260810-29"></script>
+    <script src="customer.js?v=20260810-29"></script>
   </body>
 </html>

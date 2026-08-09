@@ -24,6 +24,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -349,7 +353,7 @@ button {
 }
 
 .home-hero,
-.home-shop-list {
+.home-section {
   border: 1px solid var(--line);
   border-radius: 22px;
   background: rgba(255, 255, 255, .9);
@@ -413,15 +417,33 @@ button {
   line-height: 1.5;
 }
 
+.home-section {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.home-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-section-head h2 {
+  margin: 4px 0 0;
+  font-size: 1.35rem;
+}
+
 .home-shop-list {
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .home-shop-card {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: center;
   padding: 14px;
@@ -434,13 +456,63 @@ button {
   background: rgba(255, 255, 255, .74);
 }
 
-.home-shop-card h2,
+.home-shop-card h3,
 .home-shop-card p {
   margin: 0;
 }
 
-.home-shop-card h2 {
+.home-shop-card h3 {
   font-size: 1.05rem;
+}
+
+.home-shop-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.home-shop-actions .owner-link {
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+}
+
+.home-shop-actions .owner-link.muted {
+  color: var(--muted);
+  background: rgba(255, 255, 255, .76);
+}
+
+.home-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-flow-grid div {
+  display: grid;
+  gap: 8px;
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid rgba(139, 218, 228, .64);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .88), rgba(221, 251, 243, .68));
+}
+
+.home-flow-grid strong {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--aqua));
+}
+
+.home-flow-grid span {
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .owner-layout {
@@ -495,6 +567,38 @@ button {
 
 .register-form {
   margin-top: 18px;
+}
+
+.register-success {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(20, 169, 191, .22);
+  border-radius: 22px;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(221, 251, 243, .86), rgba(234, 243, 255, .84));
+}
+
+.register-success[hidden] {
+  display: none;
+}
+
+.register-success h2,
+.register-success p {
+  margin: 0;
+}
+
+.register-success-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.register-success-links a {
+  text-decoration: none;
 }
 
 .status-panel,
@@ -2286,7 +2390,9 @@ textarea {
 @media (max-width: 900px) {
   .customer-grid,
   .owner-layout,
-  .home-hero {
+  .home-hero,
+  .home-shop-list,
+  .home-flow-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2510,7 +2616,7 @@ textarea {
   .side-card,
   .auth-panel,
   .home-hero,
-  .home-shop-list {
+  .home-section {
     width: 100%;
     border-radius: 16px;
     padding: 12px;
@@ -2532,9 +2638,24 @@ textarea {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .home-shop-card .owner-link {
+  .home-section-head,
+  .home-shop-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .home-section-head {
+    display: grid;
+    align-items: start;
+  }
+
+  .home-shop-card .owner-link,
+  .register-success-links a {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .register-success-links {
+    grid-template-columns: 1fr;
   }
 
   .queue-card {

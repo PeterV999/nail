@@ -79,6 +79,56 @@ function renderHomePreview() {
   if (brandName) brandName.textContent = "BookingNail";
   if (brandSmall) brandSmall.textContent = "ตัวอย่างแพลตฟอร์ม";
   document.title = "BookingNail | ตัวอย่างระบบจองคิว";
+  renderHomeShopList();
+}
+
+async function renderHomeShopList() {
+  const homeShopList = document.getElementById("home-shop-list");
+  if (!homeShopList) return;
+
+  const fallbackShops = [{ name: "Fah Nail", slug: "fah-nail", tagline: "ร้านตัวอย่างที่เชื่อมข้อมูลจริง" }];
+  let shops = fallbackShops;
+
+  try {
+    const remoteShops = await window.FahNailSupabase?.listPublicShops?.();
+    if (remoteShops?.length) shops = remoteShops;
+  } catch (error) {
+    console.warn("Load home shops failed", error);
+  }
+
+  homeShopList.innerHTML = shops.map((shop) => homeShopCard(shop)).join("");
+  homeShopList.querySelectorAll("[data-logo-fallback]").forEach((image) => {
+    image.addEventListener("error", () => {
+      const mark = image.closest(".brand-mark");
+      if (!mark) return;
+      mark.classList.remove("has-logo");
+      mark.textContent = image.dataset.logoFallback || "BN";
+    }, { once: true });
+  });
+}
+
+function homeShopCard(shop) {
+  const urls = window.FahNailSupabase?.shopUrls?.(shop.slug) || { booking: `/${shop.slug}`, dashboard: `/${shop.slug}-owner` };
+  const initials = escapeHtml(shopInitials(shop.name));
+  const displayPath = shop.slug === "fah-nail" ? "/fah" : `/${shop.slug}`;
+  const shopDescription = shop.tagline || displayPath;
+  const logo = shop.logoUrl
+    ? `<div class="brand-mark has-logo"><img src="${escapeHtml(shop.logoUrl)}" alt="" data-logo-fallback="${initials}"></div>`
+    : `<div class="brand-mark">${initials}</div>`;
+
+  return `
+    <article class="home-shop-card">
+      ${logo}
+      <div>
+        <h3>${escapeHtml(shop.name || shop.slug)}</h3>
+        <p>${escapeHtml(shopDescription)}</p>
+      </div>
+      <div class="home-shop-actions">
+        <a class="owner-link" href="${escapeHtml(urls.booking)}">จองคิว</a>
+        <a class="owner-link muted" href="${escapeHtml(urls.dashboard)}">หลังบ้าน</a>
+      </div>
+    </article>
+  `;
 }
 
 function turnstileSiteKey() {
