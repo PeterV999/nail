@@ -12,6 +12,7 @@
     <script>document.write(`<base href="${location.protocol === "file:" ? "./" : "/"}">`);</script>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="assets/app-icon-192.png">
+    <link rel="preconnect" href="https://challenges.cloudflare.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -138,6 +139,11 @@
                 </label>
                 <p class="form-error" id="privacy-error" hidden>กรุณายินยอมก่อนส่งคำขอจอง</p>
 
+                <div class="turnstile-field" id="turnstile-field" hidden>
+                  <div id="turnstile-widget"></div>
+                  <p class="form-error" id="turnstile-error" hidden>กรุณายืนยันว่าไม่ใช่บอทก่อนจองคิว</p>
+                </div>
+
                 <button class="primary-button" type="submit">จองคิว</button>
               </form>
             </section>
@@ -171,9 +177,10 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js?v=20260810-26"></script>
-    <script src="supabase-adapter.js?v=20260810-26"></script>
-    <script src="pwa.js?v=20260810-26"></script>
-    <script src="customer.js?v=20260810-26"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+    <script src="app-config.js?v=20260810-27"></script>
+    <script src="supabase-adapter.js?v=20260810-27"></script>
+    <script src="pwa.js?v=20260810-27"></script>
+    <script src="customer.js?v=20260810-27"></script>
   </body>
 </html>

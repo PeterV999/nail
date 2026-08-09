@@ -40,6 +40,9 @@ const homePreview = document.getElementById("home-preview");
 const serviceError = document.getElementById("service-error");
 const privacyConsent = document.getElementById("privacy-consent");
 const privacyError = document.getElementById("privacy-error");
+const turnstileField = document.getElementById("turnstile-field");
+const turnstileWidget = document.getElementById("turnstile-widget");
+const turnstileError = document.getElementById("turnstile-error");
 const statusDateTitle = document.getElementById("status-date-title");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
@@ -51,6 +54,8 @@ const bookingSuccessDialog = document.getElementById("booking-success-dialog");
 const bookingSuccessSummary = document.getElementById("booking-success-summary");
 const bookingDialogClose = document.getElementById("booking-dialog-close");
 const ownerReturnLink = document.getElementById("owner-return-link");
+let turnstileWidgetId = "";
+let turnstileToken = "";
 
 function isHomePreviewRoute() {
   const path = window.location.pathname.replace(/\/+$/g, "") || "/";
@@ -74,6 +79,72 @@ function renderHomePreview() {
   if (brandName) brandName.textContent = "BookingNail";
   if (brandSmall) brandSmall.textContent = "ตัวอย่างแพลตฟอร์ม";
   document.title = "BookingNail | ตัวอย่างระบบจองคิว";
+}
+
+function turnstileSiteKey() {
+  return window.FAH_NAIL_CONFIG?.turnstileSiteKey || "";
+}
+
+function isLocalTurnstileBypass() {
+  return window.location.protocol === "file:"
+    || window.location.hostname === "localhost"
+    || window.location.hostname === "127.0.0.1";
+}
+
+function isTurnstileRequired() {
+  return Boolean(turnstileSiteKey()) && !isLocalTurnstileBypass() && !isHomePreviewRoute();
+}
+
+function initTurnstile() {
+  if (!turnstileField || !turnstileWidget) return;
+
+  if (!isTurnstileRequired()) {
+    turnstileField.hidden = true;
+    return;
+  }
+
+  turnstileField.hidden = false;
+  if (turnstileWidgetId || !window.turnstile?.ready) {
+    if (!turnstileWidgetId) window.setTimeout(initTurnstile, 300);
+    return;
+  }
+
+  window.turnstile.ready(() => {
+    if (turnstileWidgetId) return;
+    turnstileWidgetId = window.turnstile.render("#turnstile-widget", {
+      sitekey: turnstileSiteKey(),
+      action: "booking_request",
+      theme: "light",
+      size: "flexible",
+      callback(token) {
+        turnstileToken = token;
+        if (turnstileError) turnstileError.hidden = true;
+      },
+      "expired-callback"() {
+        turnstileToken = "";
+        if (turnstileError) turnstileError.hidden = false;
+      },
+      "error-callback"() {
+        turnstileToken = "";
+        if (turnstileError) turnstileError.hidden = false;
+      }
+    });
+  });
+}
+
+function currentTurnstileToken() {
+  if (!isTurnstileRequired()) return "";
+  if (turnstileWidgetId && window.turnstile?.getResponse) {
+    return window.turnstile.getResponse(turnstileWidgetId) || turnstileToken;
+  }
+  return turnstileToken;
+}
+
+function resetTurnstile() {
+  turnstileToken = "";
+  if (turnstileWidgetId && window.turnstile?.reset) {
+    window.turnstile.reset(turnstileWidgetId);
+  }
 }
 
 function loadState() {
@@ -309,6 +380,13 @@ bookingForm.addEventListener("submit", async (event) => {
     return;
   }
 
+  const turnstileResponse = currentTurnstileToken();
+  if (isTurnstileRequired() && !turnstileResponse) {
+    if (turnstileError) turnstileError.hidden = false;
+    turnstileWidget?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   const request = {
     id: `REQ-${Date.now()}`,
     customerName: formData.get("customerName").trim(),
@@ -333,13 +411,23 @@ bookingForm.addEventListener("submit", async (event) => {
 
   try {
     setPageLoading(true, "กำลังส่งคำขอจอง", "กำลังบันทึกข้อมูลและตรวจสอบช่วงเวลาล่าสุด");
-    await window.FahNailSupabase?.createBookingRequest(request, state);
+    await window.FahNailSupabase?.createBookingRequest(request, state, { turnstileToken: turnstileResponse });
     setPageLoading(false);
+    resetTurnstile();
     showBookingSuccessDialog(request);
   } catch (error) {
     setPageLoading(false);
+    resetTurnstile();
     console.warn("Supabase booking request failed", error);
     const errorText = `${error?.message || ""} ${error?.details || ""}`;
+    if (errorText.includes("TURNSTILE_")) {
+      state.requests = state.requests.filter((item) => item.id !== request.id);
+      saveState();
+      render();
+      showToast("กรุณายืนยันอีกครั้งก่อนส่งคำขอจอง");
+      return;
+    }
+
     if (error?.code === "23505" || errorText.includes("DUPLICATE_BOOKING_REQUEST")) {
       state.requests = state.requests.filter((item) => item.id !== request.id);
       saveState();
@@ -462,6 +550,7 @@ async function init() {
     return;
   }
 
+  initTurnstile();
   setPageLoading(true, "กำลังโหลดข้อมูลร้าน", "กำลังดึงบริการ เวลา และคิวล่าสุด");
   bookingDate.value = today;
   bookingDate.min = today;

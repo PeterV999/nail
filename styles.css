@@ -777,6 +777,21 @@ textarea {
   font-weight: 800;
 }
 
+.turnstile-field {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  min-width: 0;
+}
+
+#turnstile-widget {
+  max-width: 100%;
+}
+
+#turnstile-widget iframe {
+  max-width: 100%;
+}
+
 .privacy-page {
   max-width: 760px;
   margin: 0 auto;

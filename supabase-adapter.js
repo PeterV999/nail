@@ -219,7 +219,7 @@
     };
   }
 
-  async function createBookingRequest(request, state) {
+  async function createBookingRequest(request, state, options = {}) {
     const db = client();
     if (!db) return false;
 
@@ -228,6 +228,31 @@
       .filter((service) => request.services.includes(service.name))
       .map((service) => service.id)
       .filter(Boolean);
+
+    if (options.turnstileToken && config().bookingRequestEndpoint) {
+      const response = await fetch(config().bookingRequestEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopSlug: shop.slug,
+          customerName: request.customerName,
+          contact: request.contact,
+          bookingDate: request.bookingDate,
+          timeWindow: request.timeWindow,
+          serviceIds,
+          note: request.note,
+          turnstileToken: options.turnstileToken
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(data.error || "BOOKING_REQUEST_FAILED");
+        error.code = data.error;
+        throw error;
+      }
+      return true;
+    }
 
     const { error } = await db.rpc("create_booking_request", {
       shop_slug: shop.slug,
