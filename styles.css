@@ -698,6 +698,7 @@ input,
 select,
 textarea {
   width: 100%;
+  max-width: 100%;
   border: 1px solid var(--line);
   border-radius: 16px;
   color: var(--ink);
@@ -707,7 +708,13 @@ textarea {
 }
 
 .date-field {
+  width: min(100%, 420px);
   margin-bottom: 10px;
+}
+
+.date-field input {
+  min-height: 50px;
+  text-align: center;
 }
 
 textarea {
@@ -909,9 +916,8 @@ textarea {
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .owner-session .secondary-button {
@@ -1055,6 +1061,7 @@ textarea {
 .notification-account span {
   display: block;
   min-width: 0;
+  width: 100%;
   padding: 9px 11px;
   border: 1px solid var(--line);
   border-radius: 13px;
@@ -1064,9 +1071,8 @@ textarea {
   font-weight: 800;
   line-height: 1.35;
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .notification-account .secondary-button {
