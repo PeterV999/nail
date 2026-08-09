@@ -292,7 +292,7 @@ async function initOwnerAccess() {
 
     if (authState?.configured && authState.session && !authState.member) {
       showAuthPanel(false);
-      const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || { register: "/register" };
+      const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || { register: "/register/" };
       authStatus.innerHTML = `บัญชีนี้ยังไม่มีสิทธิ์หลังบ้านสำหรับร้านนี้ <a href="${urls.register}">ลงทะเบียนร้านใหม่</a>`;
       return;
     }

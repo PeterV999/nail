@@ -161,7 +161,7 @@
     return {
       booking: `/${publicSlug}`,
       dashboard: `/${publicSlug}-owner`,
-      register: "/register"
+      register: "/register/"
     };
   }
 
