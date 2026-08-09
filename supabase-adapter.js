@@ -843,6 +843,45 @@
     };
   }
 
+  async function listShopMembers(shopId) {
+    const db = client();
+    if (!db) return [];
+
+    const { data, error } = await db.rpc("list_shop_members_for_admin", { target_shop_id: shopId });
+    if (error) throw error;
+    return (data || []).map(mapShopMember);
+  }
+
+  async function upsertShopMember(shopId, email, role) {
+    const db = client();
+    if (!db) return null;
+
+    const { data, error } = await db
+      .rpc("upsert_shop_member_by_email", {
+        target_shop_id: shopId,
+        member_email: email,
+        member_role: role || "staff"
+      })
+      .single();
+
+    if (error) throw error;
+    return mapShopMember(data);
+  }
+
+  async function removeShopMember(shopId, userId) {
+    const db = client();
+    if (!db) return false;
+
+    const { error } = await db
+      .rpc("remove_shop_member_for_admin", {
+        target_shop_id: shopId,
+        member_user_id: userId
+      });
+
+    if (error) throw error;
+    return true;
+  }
+
   async function createCustomer(shopId, name, contact) {
     const db = client();
     const { data, error } = await db
@@ -874,6 +913,15 @@
       upcomingAppointments: Number(item.upcoming_appointments || 0),
       createdAt: item.created_at || "",
       updatedAt: item.updated_at || ""
+    };
+  }
+
+  function mapShopMember(item) {
+    return {
+      userId: item.user_id,
+      email: item.email || "",
+      role: item.role || "staff",
+      createdAt: item.created_at || ""
     };
   }
 
@@ -930,6 +978,9 @@
     registerShop,
     isPlatformAdmin,
     loadPlatformAdminOverview,
-    updatePlatformShopSettings
+    updatePlatformShopSettings,
+    listShopMembers,
+    upsertShopMember,
+    removeShopMember
   };
 }());

@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260810-26">
+    <link rel="stylesheet" href="styles.css?v=20260810-28">
   </head>
   <body>
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -81,7 +81,7 @@
             <div class="admin-section-head">
               <div>
                 <h2 id="shop-list-title">ร้านค้า</h2>
-                <p class="hint">แก้ได้เฉพาะชื่อ เบอร์ LINE Facebook และสถานะร้าน</p>
+                <p class="hint">แก้ข้อมูลร้านและสิทธิ์เจ้าของร้านได้จากหน้านี้</p>
               </div>
               <button class="secondary-button" type="button" id="refresh-admin-button">รีเฟรช</button>
             </div>
@@ -142,11 +142,36 @@
       </form>
     </dialog>
 
+    <dialog class="owner-dialog admin-dialog" id="admin-member-dialog" aria-labelledby="admin-member-title">
+      <form class="owner-dialog-card admin-dialog-card" id="admin-member-form">
+        <div class="dialog-badge" aria-hidden="true">ทีม</div>
+        <h2 id="admin-member-title">สิทธิ์ทีมงาน</h2>
+        <p id="admin-member-message">เพิ่มบัญชีที่เคยเข้าสู่ระบบแล้ว เพื่อให้เห็นหลังบ้านของร้านนี้</p>
+        <div class="admin-member-list" id="admin-member-list"></div>
+        <label>
+          อีเมล
+          <input name="memberEmail" id="admin-member-email" type="email" autocomplete="email" placeholder="name@gmail.com" required>
+        </label>
+        <label>
+          บทบาท
+          <select name="memberRole" id="admin-member-role">
+            <option value="owner">เจ้าของร้าน</option>
+            <option value="staff">ทีมงาน</option>
+          </select>
+        </label>
+        <p class="hint">ถ้าไม่พบอีเมล ให้เจ้าของบัญชีนั้นเข้าสู่ระบบ Google หนึ่งครั้งก่อน</p>
+        <div class="dialog-actions confirming">
+          <button class="secondary-button" type="button" id="admin-member-cancel">ปิด</button>
+          <button class="primary-button" type="submit" id="admin-member-save">เพิ่ม / อัปเดต</button>
+        </div>
+      </form>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js?v=20260810-26"></script>
-    <script src="supabase-adapter.js?v=20260810-26"></script>
-    <script src="pwa.js?v=20260810-26"></script>
-    <script src="admin.js?v=20260810-26"></script>
+    <script src="app-config.js?v=20260810-28"></script>
+    <script src="supabase-adapter.js?v=20260810-28"></script>
+    <script src="pwa.js?v=20260810-28"></script>
+    <script src="admin.js?v=20260810-28"></script>
   </body>
 </html>

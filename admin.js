@@ -23,6 +23,15 @@ const adminShopFacebook = document.getElementById("admin-shop-facebook");
 const adminShopStatus = document.getElementById("admin-shop-status");
 const adminDialogCancel = document.getElementById("admin-dialog-cancel");
 const adminDialogSave = document.getElementById("admin-dialog-save");
+const adminMemberDialog = document.getElementById("admin-member-dialog");
+const adminMemberForm = document.getElementById("admin-member-form");
+const adminMemberTitle = document.getElementById("admin-member-title");
+const adminMemberMessage = document.getElementById("admin-member-message");
+const adminMemberList = document.getElementById("admin-member-list");
+const adminMemberEmail = document.getElementById("admin-member-email");
+const adminMemberRole = document.getElementById("admin-member-role");
+const adminMemberCancel = document.getElementById("admin-member-cancel");
+const adminMemberSave = document.getElementById("admin-member-save");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
 const pageLoaderCopy = document.getElementById("page-loader-copy");
@@ -30,8 +39,10 @@ const toast = document.getElementById("toast");
 
 const adminState = {
   shops: [],
+  members: [],
   stats: {},
   editingShopId: "",
+  editingMembersShopId: "",
   filters: {
     query: "",
     status: "all"
@@ -317,7 +328,10 @@ function shopCard(shop) {
             <p>${escapeHtml(shopUrl(shop.slug, "booking"))} · อัปเดต ${escapeHtml(lastUpdated)}</p>
           </div>
         </div>
-        <button class="secondary-button" type="button" data-action="edit">แก้ข้อมูลร้าน</button>
+        <div class="admin-shop-card-actions">
+          <button class="secondary-button" type="button" data-action="members">ทีมงาน</button>
+          <button class="secondary-button" type="button" data-action="edit">แก้ข้อมูลร้าน</button>
+        </div>
       </div>
 
       <div class="admin-shop-metrics">
@@ -378,6 +392,50 @@ function openEditor(shopId) {
   adminShopDialog.showModal();
 }
 
+async function openMemberEditor(shopId) {
+  const shop = adminState.shops.find((item) => item.id === shopId);
+  if (!shop) return;
+
+  adminState.editingMembersShopId = shop.id;
+  adminState.members = [];
+  adminMemberEmail.value = "";
+  adminMemberRole.value = "owner";
+  adminMemberTitle.textContent = `สิทธิ์ทีมงาน`;
+  adminMemberMessage.textContent = shop.name || "ร้านค้า";
+  adminMemberList.innerHTML = `<p class="empty-state">กำลังโหลดสมาชิก...</p>`;
+  adminMemberDialog.showModal();
+
+  try {
+    adminState.members = await window.FahNailSupabase.listShopMembers(shop.id);
+    renderMemberList();
+  } catch (error) {
+    console.warn("Load shop members failed", error);
+    adminMemberList.innerHTML = `<p class="empty-state">ยังโหลดสมาชิกไม่สำเร็จ</p>`;
+    showToast("ยังโหลดทีมงานไม่สำเร็จ");
+  }
+}
+
+function roleText(role) {
+  return role === "owner" ? "เจ้าของร้าน" : "ทีมงาน";
+}
+
+function renderMemberList() {
+  if (!adminState.members.length) {
+    adminMemberList.innerHTML = `<p class="empty-state">ยังไม่มีสมาชิกในร้านนี้</p>`;
+    return;
+  }
+
+  adminMemberList.innerHTML = adminState.members.map((member) => `
+    <article class="admin-member-item" data-user-id="${escapeHtml(member.userId)}">
+      <div>
+        <strong>${escapeHtml(member.email || "ไม่พบอีเมล")}</strong>
+        <span>${escapeHtml(roleText(member.role))}</span>
+      </div>
+      <button class="secondary-button" type="button" data-member-action="remove">ลบ</button>
+    </article>
+  `).join("");
+}
+
 adminGoogleLoginButton.addEventListener("click", async () => {
   try {
     const isLocalPreview = ["file:", "http:"].includes(window.location.protocol)
@@ -431,10 +489,15 @@ adminFilterButtons.forEach((button) => {
 });
 
 adminShopList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-action='edit']");
+  const button = event.target.closest("[data-action]");
   if (!button) return;
   const card = button.closest("[data-shop-id]");
-  openEditor(card?.dataset.shopId || "");
+  const shopId = card?.dataset.shopId || "";
+  if (button.dataset.action === "members") {
+    openMemberEditor(shopId);
+    return;
+  }
+  if (button.dataset.action === "edit") openEditor(shopId);
 });
 
 adminDialogCancel.addEventListener("click", () => {
@@ -478,6 +541,71 @@ adminShopForm.addEventListener("submit", async (event) => {
 
 adminShopDialog.addEventListener("click", (event) => {
   if (event.target === adminShopDialog) adminShopDialog.close();
+});
+
+adminMemberCancel.addEventListener("click", () => {
+  adminMemberDialog.close();
+});
+
+adminMemberDialog.addEventListener("click", (event) => {
+  if (event.target === adminMemberDialog) adminMemberDialog.close();
+});
+
+adminMemberList.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-member-action='remove']");
+  if (!button || !adminState.editingMembersShopId) return;
+  const item = button.closest("[data-user-id]");
+  const userId = item?.dataset.userId || "";
+  const member = adminState.members.find((entry) => entry.userId === userId);
+  if (!member) return;
+
+  const confirmed = window.confirm(`ลบสิทธิ์ ${member.email} ออกจากร้านนี้?`);
+  if (!confirmed) return;
+
+  button.disabled = true;
+  try {
+    await window.FahNailSupabase.removeShopMember(adminState.editingMembersShopId, userId);
+    adminState.members = adminState.members.filter((entry) => entry.userId !== userId);
+    renderMemberList();
+    showToast("ลบสิทธิ์แล้ว");
+  } catch (error) {
+    console.warn("Remove shop member failed", error);
+    showToast(error?.message?.includes("SHOP_LAST_OWNER_REQUIRED") ? "ต้องมีเจ้าของร้านอย่างน้อย 1 คน" : "ยังลบสิทธิ์ไม่สำเร็จ");
+  } finally {
+    button.disabled = false;
+  }
+});
+
+adminMemberForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!adminState.editingMembersShopId) return;
+
+  const email = adminMemberEmail.value.trim();
+  const role = adminMemberRole.value;
+  if (!email) {
+    showToast("กรุณาใส่อีเมล");
+    return;
+  }
+
+  adminMemberSave.disabled = true;
+  try {
+    const member = await window.FahNailSupabase.upsertShopMember(adminState.editingMembersShopId, email, role);
+    const memberIndex = adminState.members.findIndex((entry) => entry.userId === member.userId);
+    if (memberIndex >= 0) {
+      adminState.members[memberIndex] = member;
+    } else {
+      adminState.members.push(member);
+    }
+    adminMemberEmail.value = "";
+    renderMemberList();
+    showToast("บันทึกสิทธิ์แล้ว");
+  } catch (error) {
+    console.warn("Upsert shop member failed", error);
+    const message = error?.message || "";
+    showToast(message.includes("MEMBER_USER_NOT_FOUND") ? "ไม่พบอีเมลนี้ ให้เขา login ก่อน" : "ยังบันทึกสิทธิ์ไม่สำเร็จ");
+  } finally {
+    adminMemberSave.disabled = false;
+  }
 });
 
 initAdmin();

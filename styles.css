@@ -1557,6 +1557,19 @@ textarea {
   gap: 12px;
 }
 
+.admin-shop-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-shop-card-actions .secondary-button {
+  min-height: 44px;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
 .admin-shop-identity {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr);
@@ -1675,6 +1688,36 @@ textarea {
 .admin-dialog-card h2,
 .admin-dialog-card p {
   text-align: center;
+}
+
+.admin-member-list {
+  display: grid;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.admin-member-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .8);
+}
+
+.admin-member-item strong,
+.admin-member-item span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.admin-member-item span {
+  color: var(--muted);
+  font-size: .86rem;
+  font-weight: 800;
 }
 
 .auth-actions {
@@ -2534,6 +2577,14 @@ textarea {
     display: grid;
   }
 
+  .admin-shop-card-actions {
+    justify-content: stretch;
+  }
+
+  .admin-shop-card-actions .secondary-button {
+    width: 100%;
+  }
+
   .admin-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2550,6 +2601,10 @@ textarea {
   }
 
   .admin-attention-item {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-member-item {
     grid-template-columns: 1fr;
   }
 
