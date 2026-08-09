@@ -1,5 +1,5 @@
 const FALLBACK_SUPABASE_URL = "https://punzqhfrhdgimvmczspv.supabase.co";
-const FALLBACK_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InB1bnpxaGZyaGRnaW12bWN6c3B2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NzAzMzcsImV4cCI6MjEwMTM0NjMzN30.xlfjpyEWkI6UUNwcVbPgIcM8ZjnLV9_bQAC-c94XES8";
+const FALLBACK_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1bnpxaGZyaGRnaW12bWN6c3B2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NzAzMzcsImV4cCI6MjEwMTM0NjMzN30.xlfjpyEWkI6UUNwcVbPgIcM8ZjnLV9_bQAC-c94XES8";
 const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const MAX_TEXT_LENGTH = 240;
 
