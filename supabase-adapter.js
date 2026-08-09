@@ -98,13 +98,54 @@
     }
   }
 
-  function routeShopSlug() {
-    const parts = window.location.pathname.split("/").filter(Boolean);
-    if (parts[0] === "fah" || parts[0] === "fah-owner") return "fah-nail";
-    if ((parts[0] === "book" || parts[0] === "dashboard" || parts[0] === "b" || parts[0] === "o") && parts[1]) return parts[1];
+  const reservedRouteSegments = new Set([
+    "",
+    "admin",
+    "assets",
+    "index.html",
+    "manifest.webmanifest",
+    "owner.html",
+    "privacy",
+    "privacy.html",
+    "register",
+    "register.html"
+  ]);
 
+  const publicShopAliases = {
+    fah: "fah-nail",
+    "fah-nail": "fah-nail"
+  };
+
+  function routeParts() {
+    return window.location.pathname.split("/").filter(Boolean).map((part) => decodeURIComponent(part));
+  }
+
+  function shopSlugFromPublicPath(publicSlug) {
+    const cleanSlug = String(publicSlug || "").trim().replace(/\/+$/g, "");
+    if (!cleanSlug || reservedRouteSegments.has(cleanSlug)) return "";
+    return publicShopAliases[cleanSlug] || cleanSlug;
+  }
+
+  function publicPathFromShopSlug(slug) {
+    return slug === "fah-nail" ? "fah" : slug;
+  }
+
+  function routeShopSlug() {
+    const parts = routeParts();
+    const firstPart = parts[0] || "";
     const params = new URLSearchParams(window.location.search);
-    return params.get("shop") || config().shopSlug || "fah-nail";
+    const queryShop = params.get("shop");
+    if (queryShop) return queryShop;
+
+    if ((firstPart === "book" || firstPart === "dashboard" || firstPart === "b" || firstPart === "o") && parts[1]) {
+      return shopSlugFromPublicPath(parts[1]) || parts[1];
+    }
+
+    if (firstPart.endsWith("-owner")) {
+      return shopSlugFromPublicPath(firstPart.slice(0, -6)) || config().shopSlug || "fah-nail";
+    }
+
+    return shopSlugFromPublicPath(firstPart) || config().shopSlug || "fah-nail";
   }
 
   function shopUrls(slug = routeShopSlug()) {
@@ -116,9 +157,10 @@
       };
     }
 
+    const publicSlug = encodeURIComponent(publicPathFromShopSlug(slug));
     return {
-      booking: slug === "fah-nail" ? "/fah" : `/b/${encodeURIComponent(slug)}`,
-      dashboard: slug === "fah-nail" ? "/fah-owner" : `/o/${encodeURIComponent(slug)}`,
+      booking: `/${publicSlug}`,
+      dashboard: `/${publicSlug}-owner`,
       register: "/register"
     };
   }
@@ -267,8 +309,10 @@
   async function signInWithGoogle(options = {}) {
     const db = client();
     if (!db) return;
+    const dashboardUrl = shopUrls(routeShopSlug()).dashboard;
     const redirectTo = options.redirectTo
-      || (isLocalPreview() ? localPageUrl("owner.html", routeShopSlug()) : config().ownerRedirectUrl)
+      || (isLocalPreview() ? localPageUrl("owner.html", routeShopSlug()) : new URL(dashboardUrl, window.location.origin).href)
+      || config().ownerRedirectUrl
       || window.location.href;
 
     await db.auth.signInWithOAuth({

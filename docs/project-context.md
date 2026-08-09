@@ -51,10 +51,12 @@ Fah Nail Booking Platform
 
 ## URL หลักของระบบ
 
-- `/fah` สำหรับหน้าจองคิว Fah Nail แบบสั้นสำหรับแปะ social
+- `/` สำหรับหน้า preview/รายการตัวอย่างของแพลตฟอร์ม ไม่ใช่หน้าจองร้านจริง
+- `/fah` สำหรับหน้าจองคิว Fah Nail แบบสั้นสำหรับแปะ social และ map ไปยัง shop slug `fah-nail`
 - `/fah-owner` สำหรับหลังบ้าน Fah Nail แบบสั้นสำหรับเจ้าของร้าน
-- `/b/{shopSlug}` สำหรับหน้าจองคิวของแต่ละร้าน (`/book/{shopSlug}` ยังใช้ได้)
-- `/o/{shopSlug}` สำหรับหลังบ้านของแต่ละร้าน (`/dashboard/{shopSlug}` ยังใช้ได้)
+- `/{shopSlug}` สำหรับหน้าจองคิวของแต่ละร้านในอนาคต
+- `/{shopSlug}-owner` สำหรับหลังบ้านของร้านนั้นเท่านั้น
+- `/b/{shopSlug}`, `/book/{shopSlug}`, `/o/{shopSlug}`, และ `/dashboard/{shopSlug}` ยังรองรับเป็น route เก่า
 - `/register` สำหรับร้านใหม่ลงทะเบียน
 ชื่อไฟล์ `index.html` และ `owner.html` เป็นรายละเอียดภายในของ static hosting ไม่ควรใช้เป็น URL ที่ส่งให้ลูกค้าหรือเจ้าของร้าน
 

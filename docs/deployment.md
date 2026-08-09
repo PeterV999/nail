@@ -4,7 +4,7 @@
 
 - `index.html` คือหน้าลูกค้าสาธารณะ
 - `owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
-- `_redirects` ทำให้ URL production ใช้ `/fah`, `/fah-owner`, `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/register`
+- `_redirects` ทำให้ URL production ใช้ `/` เป็นหน้า preview, `/fah`, `/fah-owner`, `/:shopSlug`, `/:shopSlug-owner`, route เก่า `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/register`
 - `customer.js` ดูแล flow จองคิวฝั่งลูกค้า
 - `owner.js` ดูแล flow หลังบ้าน
 - `register.js` ดูแล flow ลงทะเบียนร้านใหม่
@@ -46,6 +46,8 @@ URL ที่ใช้จริง:
 Production domain: https://bookingnail.pages.dev
 Public booking: /fah
 Owner dashboard: /fah-owner
+Platform preview: /
+Future shop routes: /{shopSlug} and /{shopSlug}-owner
 New shop registration: /register
 Platform admin: /admin
 ```

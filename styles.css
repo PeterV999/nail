@@ -51,6 +51,11 @@ body {
   display: none;
 }
 
+#home-preview[hidden],
+#customer[hidden] {
+  display: none;
+}
+
 .page-loader-card {
   display: grid;
   gap: 8px;
@@ -321,6 +326,106 @@ button {
   grid-template-columns: minmax(0, 1fr) minmax(292px, .58fr);
   gap: 16px;
   align-items: start;
+}
+
+.home-preview {
+  display: grid;
+  gap: 16px;
+}
+
+.home-hero,
+.home-shop-list {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: var(--shadow);
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: center;
+  padding: 26px;
+  overflow: hidden;
+}
+
+.home-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.home-copy h1 {
+  max-width: 680px;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-actions .primary-button,
+.home-actions .secondary-button {
+  width: auto;
+  min-width: 170px;
+  text-decoration: none;
+}
+
+.home-preview-card {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding: 22px;
+  border: 1px solid rgba(20, 169, 191, .18);
+  border-radius: 22px;
+  text-align: center;
+  background: linear-gradient(145deg, rgba(221, 251, 243, .82), rgba(234, 243, 255, .9));
+}
+
+.home-preview-card img {
+  width: min(150px, 100%);
+}
+
+.home-preview-card strong {
+  font-size: 1.08rem;
+}
+
+.home-preview-card span,
+.home-shop-card p {
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.home-shop-list {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.home-shop-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(139, 218, 228, .7);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .94), rgba(239, 252, 255, .88));
+}
+
+.home-shop-card.muted {
+  background: rgba(255, 255, 255, .74);
+}
+
+.home-shop-card h2,
+.home-shop-card p {
+  margin: 0;
+}
+
+.home-shop-card h2 {
+  font-size: 1.05rem;
 }
 
 .owner-layout {
@@ -2096,8 +2201,13 @@ textarea {
 
 @media (max-width: 900px) {
   .customer-grid,
-  .owner-layout {
+  .owner-layout,
+  .home-hero {
     grid-template-columns: 1fr;
+  }
+
+  .home-preview-card {
+    justify-self: stretch;
   }
 
   .admin-stats {
@@ -2314,11 +2424,33 @@ textarea {
   .owner-main,
   .status-panel,
   .side-card,
-  .auth-panel {
+  .auth-panel,
+  .home-hero,
+  .home-shop-list {
     width: 100%;
     border-radius: 16px;
     padding: 12px;
     box-shadow: 0 12px 26px rgba(8, 127, 150, .1);
+  }
+
+  .home-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .home-actions .primary-button,
+  .home-actions .secondary-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .home-shop-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .home-shop-card .owner-link {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .queue-card {

@@ -35,6 +35,8 @@ const timeOptions = document.getElementById("time-options");
 const miniCalendar = document.getElementById("mini-calendar");
 const bookingDate = document.getElementById("booking-date");
 const bookingForm = document.getElementById("booking-form");
+const customerSection = document.getElementById("customer");
+const homePreview = document.getElementById("home-preview");
 const serviceError = document.getElementById("service-error");
 const privacyConsent = document.getElementById("privacy-consent");
 const privacyError = document.getElementById("privacy-error");
@@ -49,6 +51,30 @@ const bookingSuccessDialog = document.getElementById("booking-success-dialog");
 const bookingSuccessSummary = document.getElementById("booking-success-summary");
 const bookingDialogClose = document.getElementById("booking-dialog-close");
 const ownerReturnLink = document.getElementById("owner-return-link");
+
+function isHomePreviewRoute() {
+  const path = window.location.pathname.replace(/\/+$/g, "") || "/";
+  return path === "/" || path === "/index.html";
+}
+
+function renderHomePreview() {
+  if (homePreview) homePreview.hidden = false;
+  if (customerSection) customerSection.hidden = true;
+  if (ownerReturnLink) ownerReturnLink.hidden = true;
+
+  const brand = document.querySelector(".brand");
+  const brandMark = document.querySelector(".brand-mark");
+  const brandName = document.querySelector(".brand strong");
+  const brandSmall = document.querySelector(".brand small");
+  if (brand) brand.href = "/";
+  if (brandMark) {
+    brandMark.classList.remove("has-logo");
+    brandMark.textContent = "BN";
+  }
+  if (brandName) brandName.textContent = "BookingNail";
+  if (brandSmall) brandSmall.textContent = "ตัวอย่างแพลตฟอร์ม";
+  document.title = "BookingNail | ตัวอย่างระบบจองคิว";
+}
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -430,6 +456,12 @@ function escapeHtml(value) {
 }
 
 async function init() {
+  if (isHomePreviewRoute()) {
+    setPageLoading(false);
+    renderHomePreview();
+    return;
+  }
+
   setPageLoading(true, "กำลังโหลดข้อมูลร้าน", "กำลังดึงบริการ เวลา และคิวล่าสุด");
   bookingDate.value = today;
   bookingDate.min = today;
