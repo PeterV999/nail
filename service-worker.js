@@ -29,6 +29,8 @@ const PAGE_ROUTES = [
   "/terms/index.html",
   "/terms.html",
   "/register",
+  "/register/",
+  "/register/index.html",
   "/register.html",
   "/admin/",
   "/fah",

@@ -13,11 +13,12 @@
 /manifest.webmanifest /manifest.webmanifest 200
 /privacy /privacy/index.html 200
 /terms /terms/index.html 200
-/register.html /register.html 200
+/register.html /register/index.html 200
 /owner /owner.html 200
 /fah / 200
 /fah-owner /owner 200
-/register /register.html 200
+/register /register/index.html 200
+/register/ /register/index.html 200
 /b/:shopSlug / 200
 /o/:shopSlug /owner 200
 /book/:shopSlug / 200
