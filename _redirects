@@ -5,5 +5,4 @@
 /o/:shopSlug /owner 200
 /book/:shopSlug / 200
 /dashboard/:shopSlug /owner 200
-/privacy /privacy.html 200
 /owner.html /fah-owner 302
