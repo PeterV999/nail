@@ -1081,6 +1081,60 @@ textarea {
     0 8px 18px rgba(8, 127, 150, .08);
 }
 
+.sound-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-width: 82px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 15px;
+  color: var(--primary-dark);
+  background: linear-gradient(135deg, #ffffff, #eefcff);
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 900;
+  box-shadow:
+    inset 0 0 0 1px rgba(139, 218, 228, .9),
+    0 8px 18px rgba(8, 127, 150, .08);
+}
+
+.sound-toggle-button span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  color: #fff;
+  background: #9db4bf;
+  font-size: .82rem;
+  line-height: 1;
+}
+
+.sound-toggle-button strong {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sound-toggle-button.is-on {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-dark), #37c9d8);
+  box-shadow: 0 12px 24px rgba(8, 127, 150, .18);
+}
+
+.sound-toggle-button.is-on span {
+  color: var(--primary-dark);
+  background: #fff;
+}
+
+.sound-toggle-button[hidden] {
+  display: none;
+}
+
 .notification-icon {
   width: 21px;
   height: 21px;
@@ -1149,24 +1203,6 @@ textarea {
   color: var(--muted);
   font-size: .82rem;
   font-weight: 800;
-}
-
-.notification-sound-toggle {
-  grid-column: 1 / -1;
-  min-height: 38px;
-  border: 1px solid rgba(139, 218, 228, .92);
-  border-radius: 13px;
-  color: var(--primary-dark);
-  background: linear-gradient(135deg, #fff, #eefcff);
-  font-size: .86rem;
-  font-weight: 900;
-}
-
-.notification-sound-toggle.is-on {
-  color: #fff;
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--primary-dark), #37c9d8);
-  box-shadow: 0 10px 22px rgba(8, 127, 150, .16);
 }
 
 .notification-list {
@@ -2880,6 +2916,24 @@ textarea {
     min-width: 0;
     justify-self: end;
     border-radius: 14px;
+  }
+
+  .sound-toggle-button {
+    min-width: 44px;
+    width: 44px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 14px;
+  }
+
+  .sound-toggle-button strong {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .notification-menu {

@@ -4,6 +4,7 @@ const OWNER_UI_VERSION_KEY = "fah-nail-owner-ui-version";
 const OWNER_UI_VERSION = "2026-08-10-release-guardrails";
 const NOTIFICATION_SOUND_ENABLED_KEY = "fah-nail-notification-sound-enabled";
 const SOUNDED_NOTIFICATION_KEY = "fah-nail-notification-sounded";
+const SYSTEM_NOTIFIED_KEY = "fah-nail-system-notified";
 const REMINDER_WINDOW_MINUTES = 30;
 const REMINDER_REFRESH_MS = 60 * 1000;
 const today = new Date().toISOString().slice(0, 10);
@@ -93,6 +94,7 @@ let notificationSoundEnabled = localStorage.getItem(NOTIFICATION_SOUND_ENABLED_K
 let notificationAudioContext = null;
 let notificationReminderTimer = null;
 const soundedNotificationKeys = new Set(loadSoundedNotificationKeys());
+const systemNotifiedKeys = new Set(loadStoredKeyList(SYSTEM_NOTIFIED_KEY));
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
@@ -334,6 +336,7 @@ function showAuthPanel(allowDemo) {
   if (ownerAddToggle) ownerAddToggle.hidden = true;
   if (ownerAddMenu) ownerAddMenu.hidden = true;
   if (notificationToggle) notificationToggle.hidden = true;
+  if (notificationSoundToggle) notificationSoundToggle.hidden = true;
   if (notificationMenu) notificationMenu.hidden = true;
   demoLoginButton.hidden = !allowDemo;
   googleLoginButton.hidden = !configured;
@@ -352,6 +355,7 @@ function showOwnerApp(message) {
   ownerApp.hidden = false;
   if (ownerAddToggle) ownerAddToggle.hidden = false;
   if (notificationToggle) notificationToggle.hidden = false;
+  if (notificationSoundToggle) notificationSoundToggle.hidden = false;
   logoutButton.hidden = !window.FahNailSupabase?.isConfigured();
   demoLoginButton.hidden = true;
   if (ownerAccount) {
@@ -609,13 +613,18 @@ function renderNotifications() {
     notificationList.append(button);
   });
   playNotificationSoundFor(notifications);
+  showSystemNotificationFor(notifications);
 }
 
 function renderNotificationSoundToggle() {
   if (!notificationSoundToggle) return;
-  notificationSoundToggle.textContent = notificationSoundEnabled ? "เสียงเปิด" : "เปิดเสียง";
+  notificationSoundToggle.innerHTML = `
+    <span aria-hidden="true">${notificationSoundEnabled ? "♪" : "×"}</span>
+    <strong>${notificationSoundEnabled ? "เสียงเปิด" : "เสียงปิด"}</strong>
+  `;
   notificationSoundToggle.classList.toggle("is-on", notificationSoundEnabled);
   notificationSoundToggle.setAttribute("aria-pressed", String(notificationSoundEnabled));
+  notificationSoundToggle.setAttribute("aria-label", notificationSoundEnabled ? "ปิดเสียงแจ้งเตือน" : "เปิดเสียงแจ้งเตือน");
   notificationSoundToggle.title = notificationSoundEnabled
     ? "ปิดเสียงแจ้งเตือน"
     : "เปิดเสียงแจ้งเตือนคิวใกล้ถึง";
@@ -635,8 +644,12 @@ function minutesUntilAppointment(appointment) {
 }
 
 function loadSoundedNotificationKeys() {
+  return loadStoredKeyList(SOUNDED_NOTIFICATION_KEY);
+}
+
+function loadStoredKeyList(storageKey) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(SOUNDED_NOTIFICATION_KEY) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]");
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -645,6 +658,10 @@ function loadSoundedNotificationKeys() {
 
 function rememberSoundedNotifications() {
   localStorage.setItem(SOUNDED_NOTIFICATION_KEY, JSON.stringify([...soundedNotificationKeys].slice(-80)));
+}
+
+function rememberSystemNotifications() {
+  localStorage.setItem(SYSTEM_NOTIFIED_KEY, JSON.stringify([...systemNotifiedKeys].slice(-80)));
 }
 
 function playNotificationSoundFor(notifications) {
@@ -659,6 +676,27 @@ function playNotificationSoundFor(notifications) {
     playNotificationChime();
   } catch (error) {
     console.warn("Notification sound skipped", error);
+  }
+}
+
+function showSystemNotificationFor(notifications) {
+  if (!notificationSoundEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+
+  const item = notifications.find((notification) => notification.sound && !systemNotifiedKeys.has(notification.key));
+  if (!item) return;
+
+  systemNotifiedKeys.add(item.key);
+  rememberSystemNotifications();
+
+  try {
+    new Notification(item.title, {
+      body: item.detail,
+      icon: "/assets/app-icon-192.png",
+      tag: item.key,
+      silent: true
+    });
+  } catch (error) {
+    console.warn("System notification skipped", error);
   }
 }
 
@@ -678,7 +716,18 @@ async function unlockNotificationSound() {
 
   if (audio.state === "suspended") await audio.resume();
   playNotificationChime();
+  await requestSystemNotificationPermission();
   return true;
+}
+
+async function requestSystemNotificationPermission() {
+  if (!("Notification" in window) || Notification.permission !== "default") return;
+
+  try {
+    await Notification.requestPermission();
+  } catch (error) {
+    console.warn("Notification permission skipped", error);
+  }
 }
 
 function playNotificationChime() {
@@ -730,7 +779,7 @@ async function toggleNotificationSound() {
   notificationSoundEnabled = nextEnabled;
   localStorage.setItem(NOTIFICATION_SOUND_ENABLED_KEY, notificationSoundEnabled ? "1" : "0");
   renderNotificationSoundToggle();
-  showToast(notificationSoundEnabled ? "เปิดเสียงแจ้งเตือนแล้ว" : "ปิดเสียงแจ้งเตือนแล้ว");
+  showToast(notificationSoundEnabled ? "เปิดเสียงแล้ว" : "ปิดเสียงแล้ว");
 }
 
 function phoneHref(contact = "") {

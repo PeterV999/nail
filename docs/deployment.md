@@ -30,7 +30,7 @@ Production branch: main
 npx wrangler pages deploy . --project-name bookingnail --branch main
 ```
 
-หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260810-31`
+หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260810-32`
 
 เอกสารอ้างอิง:
 
