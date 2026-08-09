@@ -1,4 +1,9 @@
 /admin /admin/ 301
+/fah / 200
+/fah-owner /owner 200
+/b/:shopSlug / 200
+/o/:shopSlug /owner 200
 /book/:shopSlug / 200
 /dashboard/:shopSlug /owner 200
-/owner.html /dashboard/fah-nail 302
+/privacy /privacy.html 200
+/owner.html /fah-owner 302

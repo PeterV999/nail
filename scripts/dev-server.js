@@ -17,10 +17,15 @@ const contentTypes = {
 
 function routePath(pathname) {
   if (pathname === "/" || pathname === "") return "index.html";
+  if (pathname === "/fah") return "index.html";
+  if (pathname === "/fah-owner") return "owner.html";
   if (pathname === "/admin" || pathname === "/admin/") return "admin/index.html";
+  if (pathname.startsWith("/b/")) return "index.html";
+  if (pathname.startsWith("/o/")) return "owner.html";
   if (pathname.startsWith("/book/")) return "index.html";
   if (pathname.startsWith("/dashboard/")) return "owner.html";
   if (pathname === "/register" || pathname === "/register/") return "register.html";
+  if (pathname === "/privacy" || pathname === "/privacy/") return "privacy.html";
   return pathname.replace(/^\/+/, "");
 }
 
@@ -41,7 +46,8 @@ createServer(async (request, response) => {
 
     const body = await readFile(filePath);
     response.writeHead(200, {
-      "Content-Type": contentTypes[extname(filePath)] || "application/octet-stream"
+      "Content-Type": contentTypes[extname(filePath)] || "application/octet-stream",
+      "Cache-Control": "no-store, max-age=0"
     });
     response.end(body);
   } catch (error) {

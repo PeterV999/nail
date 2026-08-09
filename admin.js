@@ -34,8 +34,7 @@ const adminState = {
   editingShopId: "",
   filters: {
     query: "",
-    status: "all",
-    calendar: "all"
+    status: "all"
   }
 };
 
@@ -111,7 +110,7 @@ async function initAdmin() {
   setPageLoading(true, "กำลังโหลดหลังบ้านกลาง", "กำลังตรวจสิทธิ์และดึงภาพรวมร้านค้า");
   if (!window.FahNailSupabase?.isConfigured()) {
     adminGoogleLoginButton.disabled = true;
-    showAuth("ยังไม่ได้ตั้งค่า Supabase จึงเปิดหลังบ้านกลางไม่ได้");
+    showAuth("ยังเปิดข้อมูลจริงไม่ได้ กรุณาตรวจการตั้งค่าระบบ");
     return;
   }
 
@@ -129,30 +128,30 @@ async function initAdmin() {
     await loadAdminState();
   } catch (error) {
     console.warn("Admin init failed", error);
-    showAuth("ยังตรวจสอบสิทธิ์ global admin ไม่สำเร็จ");
+    showAuth("ยังตรวจสอบสิทธิ์ผู้ดูแลระบบไม่สำเร็จ");
   }
 }
 
 async function loadAdminState() {
-  setPageLoading(true, "กำลังโหลดข้อมูลร้านค้า", "กำลังดึงตัวเลขรวม สถานะ Calendar และรายการร้าน");
+  setPageLoading(true, "กำลังโหลดข้อมูลร้านค้า", "กำลังดึงตัวเลขรวมและรายการร้าน");
   refreshAdminButton.disabled = true;
   try {
     const overview = await window.FahNailSupabase.loadPlatformAdminOverview();
     if (!overview?.isPlatformAdmin) {
-      adminAuthCopy.textContent = "บัญชีนี้ยังไม่มีสิทธิ์ global admin";
+      adminAuthCopy.textContent = "บัญชีนี้ยังไม่มีสิทธิ์ผู้ดูแลระบบ";
       adminAuthLogoutButton.hidden = false;
-      showAuth("ให้เพิ่มบัญชีนี้ใน platform_admins ก่อนใช้งานหลังบ้านกลาง");
+      showAuth("ให้เพิ่มบัญชีนี้ในรายชื่อผู้ดูแลระบบก่อนใช้งานหลังบ้านกลาง");
       return;
     }
 
     adminState.shops = overview.shops || [];
     adminState.stats = overview.stats || calculateStats(adminState.shops);
-    adminAccount.textContent = overview.user?.email || "global admin";
+    adminAccount.textContent = overview.user?.email || "ผู้ดูแลระบบ";
     renderAdmin();
     showApp();
   } catch (error) {
     console.warn("Load platform admin failed", error);
-    adminShopList.innerHTML = `<p class="empty-state">ยังโหลดข้อมูลร้านค้าไม่สำเร็จ ตรวจสิทธิ์บัญชีและการเชื่อมต่อ Supabase แล้วรีเฟรชอีกครั้ง</p>`;
+    adminShopList.innerHTML = `<p class="empty-state">ยังโหลดข้อมูลร้านค้าไม่สำเร็จ ตรวจสิทธิ์บัญชีแล้วรีเฟรชอีกครั้ง</p>`;
     showToast("ยังโหลดข้อมูลร้านค้าไม่สำเร็จ");
   } finally {
     setPageLoading(false);
@@ -183,7 +182,7 @@ function renderAdmin() {
   renderShopList();
 }
 
-function calculateStats(shops, serverStats = {}) {
+function calculateStats(shops, remoteStats = {}) {
   const computedStats = {
     totalShops: shops.length,
     activeShops: shops.filter((shop) => shop.status === "active").length,
@@ -192,11 +191,9 @@ function calculateStats(shops, serverStats = {}) {
     todayAppointments: shops.reduce((sum, shop) => sum + Number(shop.todayAppointments || 0), 0),
     tomorrowAppointments: shops.reduce((sum, shop) => sum + Number(shop.tomorrowAppointments || 0), 0),
     upcomingAppointments: shops.reduce((sum, shop) => sum + Number(shop.upcomingAppointments || 0), 0),
-    unsyncedAppointments: shops.reduce((sum, shop) => sum + Number(shop.unsyncedAppointments || 0), 0),
-    calendarConnected: shops.filter((shop) => shop.calendarConnected).length,
     needsAttention: shops.filter(shopNeedsAttention).length
   };
-  return { ...serverStats, ...computedStats };
+  return { ...remoteStats, ...computedStats };
 }
 
 function renderStats() {
@@ -207,7 +204,6 @@ function renderStats() {
     { label: "ปิดใช้งาน", value: stats.inactiveShops || 0, tone: "muted" },
     { label: "คิววันนี้", value: stats.todayAppointments || 0, tone: "" },
     { label: "รอยืนยัน", value: stats.pendingRequests || 0, tone: stats.pendingRequests ? "warn" : "" },
-    { label: "Calendar พร้อม", value: stats.calendarConnected || 0, tone: "good" },
     { label: "ต้องตรวจสอบ", value: stats.needsAttention || 0, tone: stats.needsAttention ? "warn" : "" }
   ];
 
@@ -236,34 +232,25 @@ function renderAttention() {
         <strong>${escapeHtml(shop.name)}</strong>
         <span>${escapeHtml(attentionReasons(shop).join(" · "))}</span>
       </div>
-      <a class="secondary-button" href="/dashboard/${encodeURIComponent(shop.slug)}">เปิดหลังบ้าน</a>
+      <a class="secondary-button" href="${escapeHtml(shopUrl(shop.slug, "dashboard"))}">เปิดหลังบ้าน</a>
     </article>
   `).join("");
 }
 
 function shopNeedsAttention(shop) {
   return Number(shop.pendingRequests || 0) > 0
-    || Number(shop.unsyncedAppointments || 0) > 0
-    || Boolean(shop.calendarLastSyncError)
-    || shop.status !== "active"
-    || (shop.status === "active" && !shop.calendarConnected);
+    || shop.status !== "active";
 }
 
 function attentionScore(shop) {
   return (Number(shop.pendingRequests || 0) * 10)
-    + (Number(shop.unsyncedAppointments || 0) * 8)
-    + (shop.calendarLastSyncError ? 7 : 0)
-    + (shop.status !== "active" ? 5 : 0)
-    + (!shop.calendarConnected ? 3 : 0);
+    + (shop.status !== "active" ? 5 : 0);
 }
 
 function attentionReasons(shop) {
   const reasons = [];
   if (Number(shop.pendingRequests || 0) > 0) reasons.push(`${shop.pendingRequests} คำขอรอยืนยัน`);
-  if (Number(shop.unsyncedAppointments || 0) > 0) reasons.push(`${shop.unsyncedAppointments} คิวรอส่งเข้า Calendar`);
-  if (shop.calendarLastSyncError) reasons.push("Calendar มี error ล่าสุด");
   if (shop.status !== "active") reasons.push("ร้านปิดใช้งาน");
-  if (shop.status === "active" && !shop.calendarConnected) reasons.push("ยังไม่เชื่อม Calendar");
   return reasons;
 }
 
@@ -278,8 +265,6 @@ function filteredShops() {
   const query = adminState.filters.query.trim().toLowerCase();
   return adminState.shops.filter((shop) => {
     if (adminState.filters.status !== "all" && shop.status !== adminState.filters.status) return false;
-    if (adminState.filters.calendar === "connected" && !shop.calendarConnected) return false;
-    if (adminState.filters.calendar === "missing" && shop.calendarConnected) return false;
 
     if (!query) return true;
     const haystack = [
@@ -315,8 +300,6 @@ function renderShopList() {
 
 function shopCard(shop) {
   const statusText = shop.status === "active" ? "เปิดใช้งาน" : "ปิดใช้งาน";
-  const calendarText = shop.calendarConnected ? "เชื่อมแล้ว" : "ยังไม่เชื่อม";
-  const calendarClass = shop.calendarConnected ? "good" : "warn";
   const lastUpdated = formatDateTime(shop.updatedAt);
   const reasons = attentionReasons(shop);
 
@@ -328,11 +311,10 @@ function shopCard(shop) {
           <div>
             <div class="admin-shop-badges">
               <span class="status-pill ${shop.status === "active" ? "" : "muted"}">${escapeHtml(statusText)}</span>
-              <span class="status-pill ${calendarClass}">Calendar ${escapeHtml(calendarText)}</span>
             </div>
             <h3>${escapeHtml(shop.name)}</h3>
             ${shop.tagline ? `<p class="admin-shop-tagline">${escapeHtml(shop.tagline)}</p>` : ""}
-            <p>${escapeHtml(`/book/${shop.slug}`)} · อัปเดต ${escapeHtml(lastUpdated)}</p>
+            <p>${escapeHtml(shopUrl(shop.slug, "booking"))} · อัปเดต ${escapeHtml(lastUpdated)}</p>
           </div>
         </div>
         <button class="secondary-button" type="button" data-action="edit">แก้ข้อมูลร้าน</button>
@@ -343,8 +325,6 @@ function shopCard(shop) {
         <span><strong>${escapeHtml(shop.tomorrowAppointments)}</strong> คิวพรุ่งนี้</span>
         <span><strong>${escapeHtml(shop.upcomingAppointments)}</strong> คิว 7 วัน</span>
         <span><strong>${escapeHtml(shop.pendingRequests)}</strong> รอยืนยัน</span>
-        <span><strong>${escapeHtml(shop.unsyncedAppointments)}</strong> รอส่ง Calendar</span>
-        <span><strong>${escapeHtml(calendarText)}</strong> Google Calendar</span>
       </div>
 
       <div class="admin-shop-contact">
@@ -356,11 +336,18 @@ function shopCard(shop) {
       ${reasons.length ? `<div class="admin-shop-warning">${escapeHtml(reasons.join(" · "))}</div>` : ""}
 
       <div class="admin-shop-actions">
-        <a class="primary-button" href="/dashboard/${encodeURIComponent(shop.slug)}">เปิดหลังบ้านร้าน</a>
-        <a class="secondary-button" href="/book/${encodeURIComponent(shop.slug)}">ดูหน้าลูกค้า</a>
+        <a class="primary-button" href="${escapeHtml(shopUrl(shop.slug, "dashboard"))}">เปิดหลังบ้านร้าน</a>
+        <a class="secondary-button" href="${escapeHtml(shopUrl(shop.slug, "booking"))}">ดูหน้าลูกค้า</a>
       </div>
     </article>
   `;
+}
+
+function shopUrl(slug, type) {
+  const urls = window.FahNailSupabase?.shopUrls?.(slug);
+  if (urls?.[type]) return urls[type];
+  const encoded = encodeURIComponent(slug);
+  return type === "dashboard" ? `/o/${encoded}` : `/b/${encoded}`;
 }
 
 function contactValue(label, value) {

@@ -1,73 +1,44 @@
 # Integrations
 
-## Google Calendar
+## Current Direction
 
-เป้าหมายคือให้คิวที่ร้านยืนยันแล้วถูกบันทึกเข้า Google Calendar ของร้าน
+ระบบไม่เชื่อม Google Calendar แล้วใน product direction ปัจจุบัน
 
-## หลักการทำงาน
+แหล่งข้อมูลหลักของคิวคือ `appointments` ใน Supabase:
 
-Supabase เป็นฐานข้อมูลหลัก ส่วน Google Calendar เป็นปฏิทินเสริม
+- ลูกค้าส่งคำขอเข้ามาที่ `booking_requests`
+- เจ้าของร้านกดยืนยันแล้วระบบสร้างรายการใน `appointments`
+- เจ้าของร้านลงคิวเองแล้วระบบสร้างรายการใน `appointments`
+- ตารางคิวในหลังบ้านอ่านจาก `appointments`
+- หน้าลูกค้าอ่านช่วงเวลาที่ไม่ว่างจาก `appointments`
 
-ห้ามใช้ Google Calendar เป็นแหล่งข้อมูลหลัก เพราะระบบในอนาคตต้องรองรับหลายร้าน หลายช่าง และสิทธิ์การใช้งานแบบ SaaS
+## Login
 
-## Flow การเชื่อมต่อ
+Google ยังใช้เฉพาะการเข้าสู่ระบบเจ้าของร้านและ admin เท่านั้น
+
+OAuth scope ที่ต้องใช้:
 
 ```text
-เจ้าของร้านเปิดหน้าตั้งค่า
-→ กดเชื่อม Google Calendar
-→ ระบบขอสิทธิ์ผ่าน Google OAuth
-→ เจ้าของร้านเลือก Calendar
-→ ระบบบันทึก calendar_id
-→ เมื่อยืนยันคิว ระบบสร้าง event ใน Google Calendar
+email profile
 ```
 
-## เมื่อยืนยันคิว
+ห้ามขอ scope ปฏิทินหรือ offline access สำหรับ flow ปัจจุบัน
 
-ระบบต้อง:
+## In-App Notifications
 
-- สร้าง appointment ใน Supabase
-- สร้าง event ใน Google Calendar
-- เก็บ google_calendar_event_id กลับมาใน appointment
+MVP ของแจ้งเตือนในแอพจะคำนวณจากข้อมูลที่มีอยู่ก่อน:
 
-ระบบ production ต้องส่ง Calendar ผ่าน Supabase Edge Function เท่านั้น:
+- คำขอใหม่จาก `booking_requests`
+- คำขอรอยืนยัน
+- คิววันนี้จาก `appointments`
+- คิวที่ใกล้ถึงเวลา
 
-- `google-calendar-sync` action `connect` บันทึก `calendar_id` และ refresh token ที่เข้ารหัสไว้ใน `calendar_integrations`
-- `google-calendar-sync` action `status` ตรวจว่าร้านนี้มี refresh token พร้อมใช้งานหรือไม่
-- `google-calendar-sync` action `syncAppointment` refresh access token และเรียก Google Calendar API จากฝั่ง server
-- หน้าเว็บไม่เรียก `www.googleapis.com/calendar` โดยตรง และไม่เก็บ refresh token ถาวรใน browser
+ยังไม่ทำ push notification จริงบนมือถือในช่วงแรก
 
-refresh token จะถูกส่งจาก browser ไปยัง Edge Function เฉพาะหลัง Google OAuth redirect ที่ให้สิทธิ์ `offline` แล้ว จากนั้นลบออกจาก `sessionStorage`
+## Future Cleanup
 
-การเข้าสู่ระบบหลังบ้านปกติขอแค่ `email profile` ส่วน scope ของ Calendar จะขอเฉพาะตอนเจ้าของร้านกดเชื่อม Google Calendar
+ข้อมูลเก่าที่เกี่ยวกับ Google Calendar ให้ถือเป็น legacy จนกว่าจะทำ migration ล้าง production อย่างปลอดภัย:
 
-## เมื่อแก้ไขคิว
-
-ระบบต้อง:
-
-- อัปเดต appointment ใน Supabase
-- อัปเดต event เดิมใน Google Calendar
-
-## เมื่อยกเลิกคิว
-
-ระบบต้อง:
-
-- เปลี่ยนสถานะ appointment เป็น cancelled
-- ลบหรืออัปเดต event ใน Google Calendar
-
-## LINE OA และ Facebook Messenger
-
-ช่วงแรกยังไม่จำเป็นต้องทำ automation เต็มรูปแบบ
-
-แนะนำให้เริ่มจาก:
-
-- เก็บช่องทางติดต่อของลูกค้า
-- ให้เจ้าของร้านกดคัดลอกข้อความเพื่อติดต่อกลับ
-- เพิ่มระบบส่งข้อความอัตโนมัติภายหลัง
-
-ข้อความอัตโนมัติในอนาคต:
-
-- รับคำขอจองแล้ว
-- ร้านยืนยันคิวแล้ว
-- แจ้งเตือนก่อนถึงคิว
-- แจ้งเปลี่ยนแปลงคิว
-- แจ้งยกเลิกคิว
+- `calendar_integrations`
+- `google_calendar_event_id`
+- `google_calendar_name`

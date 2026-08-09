@@ -92,8 +92,6 @@ end_time
 selected_service_ids
 status
 source
-google_calendar_event_id
-google_calendar_name
 created_by
 created_at
 updated_at
@@ -168,9 +166,11 @@ created_at
 updated_at
 ```
 
-## calendar_integrations
+## Legacy: calendar_integrations
 
-เก็บข้อมูลการเชื่อม Google Calendar
+ตารางนี้มาจากแนวทางเดิมที่เคยเชื่อม Google Calendar
+
+แนวทางปัจจุบันไม่ใช้ตารางนี้ใน flow เจ้าของร้านและลูกค้าแล้ว ให้คงไว้ก่อนจนกว่าจะทำ migration ล้าง production อย่างปลอดภัย
 
 ```text
 id
@@ -188,4 +188,4 @@ connected_at
 updated_at
 ```
 
-หมายเหตุ: คอลัมน์ token ใช้โดย Supabase Edge Function เท่านั้น frontend role จะอ่านหรือเขียน token โดยตรงไม่ได้
+หมายเหตุ: อย่าเพิ่ม flow ใหม่ที่พึ่งตารางนี้ ยกเว้นเป็นงาน migration หรือ compatibility ชั่วคราว

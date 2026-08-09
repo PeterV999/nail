@@ -46,7 +46,7 @@ function setPageLoading(active, title = "", copy = "") {
 async function initRegister() {
   setPageLoading(true, "กำลังตรวจสอบบัญชี", "กำลังดูสถานะเข้าสู่ระบบก่อนสร้างร้าน");
   if (!window.FahNailSupabase?.isConfigured()) {
-    registerStatus.textContent = "ยังไม่ได้ตั้งค่า Supabase จึงยังลงทะเบียนร้านจริงไม่ได้";
+    registerStatus.textContent = "ระบบยังไม่พร้อมให้ลงทะเบียนร้านจริง";
     registerLoginButton.disabled = true;
     setPageLoading(false);
     return;
@@ -107,7 +107,7 @@ registerForm.addEventListener("submit", async (event) => {
   } catch (error) {
     setPageLoading(false);
     console.warn("Register shop failed", error);
-    registerStatus.textContent = "ยังสร้างร้านไม่สำเร็จ กรุณาลอง URL อื่นหรือตรวจสิทธิ์ Supabase";
+    registerStatus.textContent = "ยังสร้างร้านไม่สำเร็จ กรุณาลอง URL อื่นหรือตรวจสิทธิ์บัญชี";
   }
 });
 
