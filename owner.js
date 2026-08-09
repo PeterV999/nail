@@ -2,7 +2,10 @@ const STORAGE_KEY = "fah-nail-booking-demo";
 const OWNER_TAB_KEY = "fah-nail-owner-tab-v2";
 const OWNER_UI_VERSION_KEY = "fah-nail-owner-ui-version";
 const OWNER_UI_VERSION = "2026-08-10-release-guardrails";
-const NOTIFICATION_SOUND_KEY = "fah-nail-notification-sound";
+const NOTIFICATION_SOUND_ENABLED_KEY = "fah-nail-notification-sound-enabled";
+const SOUNDED_NOTIFICATION_KEY = "fah-nail-notification-sounded";
+const REMINDER_WINDOW_MINUTES = 30;
+const REMINDER_REFRESH_MS = 60 * 1000;
 const today = new Date().toISOString().slice(0, 10);
 
 const defaultTimeSlots = [
@@ -86,7 +89,10 @@ let currentOwnerRole = "";
 let currentMemberShops = [];
 let calendarMonthStart = new Date(`${today}T00:00:00`);
 calendarMonthStart.setDate(1);
-const soundedNotificationKeys = new Set(JSON.parse(sessionStorage.getItem(NOTIFICATION_SOUND_KEY) || "[]"));
+let notificationSoundEnabled = localStorage.getItem(NOTIFICATION_SOUND_ENABLED_KEY) === "1";
+let notificationAudioContext = null;
+let notificationReminderTimer = null;
+const soundedNotificationKeys = new Set(loadSoundedNotificationKeys());
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
@@ -109,6 +115,7 @@ const notificationBadge = document.getElementById("notification-badge");
 const notificationMenu = document.getElementById("notification-menu");
 const notificationCountText = document.getElementById("notification-count-text");
 const notificationList = document.getElementById("notification-list");
+const notificationSoundToggle = document.getElementById("notification-sound-toggle");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
 const manualService = document.getElementById("manual-service");
@@ -319,6 +326,7 @@ async function loadRemoteOwnerState() {
 }
 
 function showAuthPanel(allowDemo) {
+  stopReminderWatcher();
   setPageLoading(false);
   const configured = Boolean(window.FahNailSupabase?.isConfigured?.());
   ownerAuthPanel.hidden = false;
@@ -357,6 +365,7 @@ function showOwnerApp(message) {
   }
   updateRouteLinks();
   render();
+  startReminderWatcher();
   if (message) showToast(message);
 }
 
@@ -533,7 +542,7 @@ function buildNotifications() {
   const dueSoonAppointments = state.appointments
     .filter((item) => item.status === "confirmed")
     .map((item) => ({ item, minutes: minutesUntilAppointment(item) }))
-    .filter(({ minutes }) => minutes >= 0 && minutes <= 30)
+    .filter(({ minutes }) => minutes >= 0 && minutes <= REMINDER_WINDOW_MINUTES)
     .sort((a, b) => a.minutes - b.minutes)
     .slice(0, 3)
     .map(({ item, minutes }) => ({
@@ -574,6 +583,7 @@ function renderNotifications() {
   if (!notificationBadge || !notificationList || !notificationCountText) return;
 
   const notifications = buildNotifications();
+  renderNotificationSoundToggle();
   notificationBadge.textContent = String(notifications.length);
   notificationBadge.hidden = notifications.length === 0;
   notificationCountText.textContent = notifications.length ? `${notifications.length} รายการ` : "ไม่มีรายการใหม่";
@@ -601,6 +611,16 @@ function renderNotifications() {
   playNotificationSoundFor(notifications);
 }
 
+function renderNotificationSoundToggle() {
+  if (!notificationSoundToggle) return;
+  notificationSoundToggle.textContent = notificationSoundEnabled ? "เสียงเปิด" : "เปิดเสียง";
+  notificationSoundToggle.classList.toggle("is-on", notificationSoundEnabled);
+  notificationSoundToggle.setAttribute("aria-pressed", String(notificationSoundEnabled));
+  notificationSoundToggle.title = notificationSoundEnabled
+    ? "ปิดเสียงแจ้งเตือน"
+    : "เปิดเสียงแจ้งเตือนคิวใกล้ถึง";
+}
+
 function parseAppointmentStart(appointment) {
   const startTime = String(appointment?.timeWindow || "").split("-")[0];
   if (!appointment?.bookingDate || !/^\d{2}:\d{2}$/.test(startTime)) return null;
@@ -614,11 +634,21 @@ function minutesUntilAppointment(appointment) {
   return (start.getTime() - Date.now()) / 60000;
 }
 
+function loadSoundedNotificationKeys() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SOUNDED_NOTIFICATION_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function rememberSoundedNotifications() {
-  sessionStorage.setItem(NOTIFICATION_SOUND_KEY, JSON.stringify([...soundedNotificationKeys].slice(-50)));
+  localStorage.setItem(SOUNDED_NOTIFICATION_KEY, JSON.stringify([...soundedNotificationKeys].slice(-80)));
 }
 
 function playNotificationSoundFor(notifications) {
+  if (!notificationSoundEnabled) return;
   const item = notifications.find((notification) => notification.sound && !soundedNotificationKeys.has(notification.key));
   if (!item) return;
 
@@ -626,23 +656,81 @@ function playNotificationSoundFor(notifications) {
   rememberSoundedNotifications();
 
   try {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    const audio = new AudioContextClass();
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, audio.currentTime);
-    gain.gain.setValueAtTime(0.0001, audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.18, audio.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.32);
-    oscillator.connect(gain);
-    gain.connect(audio.destination);
-    oscillator.start();
-    oscillator.stop(audio.currentTime + 0.34);
+    playNotificationChime();
   } catch (error) {
     console.warn("Notification sound skipped", error);
   }
+}
+
+function getNotificationAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!notificationAudioContext) notificationAudioContext = new AudioContextClass();
+  return notificationAudioContext;
+}
+
+async function unlockNotificationSound() {
+  const audio = getNotificationAudioContext();
+  if (!audio) {
+    showToast("เครื่องนี้ยังไม่รองรับเสียงแจ้งเตือน");
+    return false;
+  }
+
+  if (audio.state === "suspended") await audio.resume();
+  playNotificationChime();
+  return true;
+}
+
+function playNotificationChime() {
+  const audio = getNotificationAudioContext();
+  if (!audio || audio.state === "suspended") return;
+
+  const notes = [
+    { frequency: 740, start: 0, duration: 0.14 },
+    { frequency: 988, start: 0.15, duration: 0.22 }
+  ];
+
+  notes.forEach((note) => {
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    const startAt = audio.currentTime + note.start;
+    const stopAt = startAt + note.duration;
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(note.frequency, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(0.14, startAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start(startAt);
+    oscillator.stop(stopAt + 0.02);
+  });
+}
+
+function startReminderWatcher() {
+  if (notificationReminderTimer) return;
+  notificationReminderTimer = window.setInterval(() => {
+    if (!ownerApp.hidden) renderNotifications();
+  }, REMINDER_REFRESH_MS);
+}
+
+function stopReminderWatcher() {
+  if (!notificationReminderTimer) return;
+  window.clearInterval(notificationReminderTimer);
+  notificationReminderTimer = null;
+}
+
+async function toggleNotificationSound() {
+  const nextEnabled = !notificationSoundEnabled;
+  if (nextEnabled) {
+    const unlocked = await unlockNotificationSound();
+    if (!unlocked) return;
+  }
+
+  notificationSoundEnabled = nextEnabled;
+  localStorage.setItem(NOTIFICATION_SOUND_ENABLED_KEY, notificationSoundEnabled ? "1" : "0");
+  renderNotificationSoundToggle();
+  showToast(notificationSoundEnabled ? "เปิดเสียงแจ้งเตือนแล้ว" : "ปิดเสียงแจ้งเตือนแล้ว");
 }
 
 function phoneHref(contact = "") {
@@ -1822,11 +1910,20 @@ notificationToggle?.addEventListener("click", () => {
   setOwnerAddMenuOpen(false);
 });
 
+notificationSoundToggle?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  toggleNotificationSound();
+});
+
 notificationList?.addEventListener("click", (event) => {
   const item = event.target.closest("[data-notification-tab]");
   if (!item) return;
   activateOwnerTab(item.dataset.notificationTab || "queue");
   setNotificationMenuOpen(false);
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && !ownerApp.hidden) renderNotifications();
 });
 
 document.addEventListener("click", (event) => {
