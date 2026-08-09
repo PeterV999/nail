@@ -30,8 +30,8 @@ function routePath(pathname) {
   if (pathname.startsWith("/book/")) return "index.html";
   if (pathname.startsWith("/dashboard/")) return "owner.html";
   if (pathname === "/register" || pathname === "/register/") return "register.html";
-  if (pathname === "/privacy" || pathname === "/privacy/") return "privacy.html";
-  if (pathname === "/terms" || pathname === "/terms/") return "terms.html";
+  if (pathname === "/privacy" || pathname === "/privacy/") return "privacy/index.html";
+  if (pathname === "/terms" || pathname === "/terms/") return "terms/index.html";
   if (parts.length === 1 && first.endsWith("-owner")) return "owner.html";
   if (parts.length === 1 && first && !reservedRoutes.has(first) && !staticFilePattern.test(first)) return "index.html";
   return pathname.replace(/^\/+/, "");
