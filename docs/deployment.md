@@ -24,6 +24,14 @@ Production branch: main
 
 เหตุผล: เว็บระยะแรกเป็น static site ไม่มีขั้นตอน build จึงให้คำสั่งจบด้วย exit code 0 แล้วให้ Cloudflare อัปโหลดไฟล์จาก root directory
 
+ถ้า GitHub auto-deploy ยังไม่เชื่อม ให้ deploy ด้วย Wrangler:
+
+```bash
+npx wrangler pages deploy . --project-name bookingnail --branch main
+```
+
+หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260810-26`
+
 เอกสารอ้างอิง:
 
 - [Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/)
@@ -71,6 +79,7 @@ Then deploy the frontend to Cloudflare Pages as usual. After deployment, verify:
 - `/service-worker.js` returns the latest worker.
 - `/fah` and `/fah-owner` still route correctly.
 - Installing the PWA starts at `/admin/`.
+- If a device still shows the old UI, tap the in-app update banner or run `window.FahNailPWA.clearCacheAndReload()` in the browser console.
 
 ## GitHub
 

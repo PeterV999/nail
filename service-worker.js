@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v25";
+const CACHE_VERSION = "v26";
 const STATIC_CACHE = `fah-nail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `fah-nail-pages-${CACHE_VERSION}`;
 
@@ -24,6 +24,8 @@ const PAGE_ROUTES = [
   "/owner.html",
   "/privacy",
   "/privacy.html",
+  "/terms",
+  "/terms.html",
   "/register",
   "/register.html",
   "/admin/",

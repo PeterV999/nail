@@ -34,6 +34,58 @@
 - [Backlog](docs/backlog.md)
 - [Deployment](docs/deployment.md)
 
+## ลำดับงานจากนี้
+
+### 1. ก่อนเปิดใช้จริงรอบแรก
+
+- เช็ก cache/PWA หลัง deploy ถ้าหน้าเก่ายังค้างให้กดปุ่มอัปเดตที่ระบบแสดง หรือเรียก `window.FahNailPWA.clearCacheAndReload()` ใน browser console
+- Smoke test route หลักด้วย `npm run test:smoke`
+- ตรวจ backend flow จริง: ลูกค้าจองที่ `/fah` → หลังบ้านเห็นคำขอ → เจ้าของร้านยืนยัน → คิวขึ้นในตารางและช่วงเวลานั้นปิดในหน้าลูกค้า
+- ตรวจว่า public views ไม่แสดงชื่อ เบอร์ LINE หรือข้อมูลส่วนตัวลูกค้า
+- ตรวจบัญชีเจ้าของร้านใน `shop_members` และผู้ดูแลระบบกลางใน `platform_admins`
+- สำรอง schema โดยเก็บ `supabase/schema.sql`, `supabase/platform-admin.sql`, และ SQL ที่ใช้แก้จริงไว้ใน Git
+
+### 2. งานที่ทำแล้วในรอบ readiness
+
+- เพิ่ม PWA update banner และ helper สำหรับ clear cache
+- เพิ่ม Terms of Service ที่ `/terms`
+- เพิ่ม smoke test route หลักใน `scripts/smoke-test.js`
+- เพิ่ม GitHub Actions ใน `.github/workflows/check.yml`
+- ปิดปุ่มดำเนินการบนคิวหรือคำขอที่เลยวันแล้ว
+- เพิ่มเสียงแจ้งเตือนในหลังบ้านเมื่อมีคิว confirmed ที่กำลังจะถึงภายใน 30 นาที และหน้าแอปยังเปิดอยู่
+
+### 3. งานถัดไปก่อนขยายเป็น SaaS
+
+- เชื่อม GitHub auto-deploy กับ Cloudflare ให้สำเร็จ ตอนนี้ deploy ได้ด้วย `wrangler pages deploy`
+- เพิ่ม Cloudflare Turnstile หรือ rate limit ก่อนเปิดลิงก์จองกว้าง ๆ บน social
+- เพิ่มหน้า UI สำหรับจัดการสิทธิ์เจ้าของร้านและทีมงาน แทนการแก้ SQL เอง
+- ปรับหน้า `/` ให้เป็นหน้ารวมร้านและตัวอย่างแพลตฟอร์มที่สวยขึ้น
+- ตรวจ mobile/iPad ทุกหน้าด้วย screenshot จริง
+- ทำ flow เพิ่มร้านใหม่ให้จบจริง: สมัครร้าน → ได้ path `/{shopSlug}` และ `/{shopSlug}-owner` → เจ้าของเข้าหลังบ้านได้ทันที
+
+## คำสั่งตรวจงาน
+
+```bash
+npm run check
+npm run test:smoke
+```
+
+## Deploy / Rollback สั้น ๆ
+
+Deploy:
+
+```bash
+npx wrangler pages deploy . --project-name bookingnail --branch main
+```
+
+Rollback:
+
+1. เข้า Cloudflare Pages project `bookingnail`
+2. เปิด Deployments
+3. เลือก deployment ก่อนหน้า
+4. กด Rollback
+5. เปิด `/`, `/fah`, `/fah-owner`, `/admin/` เพื่อตรวจอีกครั้ง
+
 ## หน้าเว็บระยะแรก
 
 ไฟล์เริ่มต้นของหน้าเว็บอยู่ที่ [index.html](index.html)

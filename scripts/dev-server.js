@@ -4,6 +4,9 @@ const { extname, join, normalize } = require("node:path");
 
 const root = process.cwd();
 const port = Number(process.env.PORT || 4177);
+const host = process.env.HOST || "127.0.0.1";
+const staticFilePattern = /\.[a-z0-9]+$/i;
+const reservedRoutes = new Set(["admin", "assets", "privacy", "register", "terms"]);
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -16,6 +19,8 @@ const contentTypes = {
 };
 
 function routePath(pathname) {
+  const parts = pathname.split("/").filter(Boolean);
+  const first = parts[0] || "";
   if (pathname === "/" || pathname === "") return "index.html";
   if (pathname === "/fah") return "index.html";
   if (pathname === "/fah-owner") return "owner.html";
@@ -26,6 +31,9 @@ function routePath(pathname) {
   if (pathname.startsWith("/dashboard/")) return "owner.html";
   if (pathname === "/register" || pathname === "/register/") return "register.html";
   if (pathname === "/privacy" || pathname === "/privacy/") return "privacy.html";
+  if (pathname === "/terms" || pathname === "/terms/") return "terms.html";
+  if (parts.length === 1 && first.endsWith("-owner")) return "owner.html";
+  if (parts.length === 1 && first && !reservedRoutes.has(first) && !staticFilePattern.test(first)) return "index.html";
   return pathname.replace(/^\/+/, "");
 }
 
@@ -56,6 +64,6 @@ createServer(async (request, response) => {
     });
     response.end(error.code === "ENOENT" ? "Not found" : "Server error");
   }
-}).listen(port, () => {
-  console.log(`Fah Nail dev server listening on http://localhost:${port}`);
+}).listen(port, host, () => {
+  console.log(`Fah Nail dev server listening on http://${host}:${port}`);
 });

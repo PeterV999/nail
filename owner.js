@@ -1,7 +1,8 @@
 const STORAGE_KEY = "fah-nail-booking-demo";
 const OWNER_TAB_KEY = "fah-nail-owner-tab-v2";
 const OWNER_UI_VERSION_KEY = "fah-nail-owner-ui-version";
-const OWNER_UI_VERSION = "2026-08-09-plus-actions";
+const OWNER_UI_VERSION = "2026-08-10-release-guardrails";
+const NOTIFICATION_SOUND_KEY = "fah-nail-notification-sound";
 const today = new Date().toISOString().slice(0, 10);
 
 const defaultTimeSlots = [
@@ -85,6 +86,7 @@ let currentOwnerRole = "";
 let currentMemberShops = [];
 let calendarMonthStart = new Date(`${today}T00:00:00`);
 calendarMonthStart.setDate(1);
+const soundedNotificationKeys = new Set(JSON.parse(sessionStorage.getItem(NOTIFICATION_SOUND_KEY) || "[]"));
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
@@ -528,6 +530,21 @@ function buildNotifications() {
       tab: "queue"
     }));
 
+  const dueSoonAppointments = state.appointments
+    .filter((item) => item.status === "confirmed")
+    .map((item) => ({ item, minutes: minutesUntilAppointment(item) }))
+    .filter(({ minutes }) => minutes >= 0 && minutes <= 30)
+    .sort((a, b) => a.minutes - b.minutes)
+    .slice(0, 3)
+    .map(({ item, minutes }) => ({
+      key: `due-${item.id}-${item.bookingDate}-${item.timeWindow}`,
+      sound: true,
+      tone: "warn",
+      title: "ใกล้ถึงคิว",
+      detail: `${item.timeWindow} · ${item.customerName} · อีก ${Math.max(1, Math.round(minutes))} นาที`,
+      tab: "calendar"
+    }));
+
   const todayAppointments = state.appointments
     .filter((item) => item.status === "confirmed" && item.bookingDate === today)
     .sort((a, b) => (a.timeWindow || "").localeCompare(b.timeWindow || ""))
@@ -550,7 +567,7 @@ function buildNotifications() {
       tab: "calendar"
     }));
 
-  return [...pendingRequests, ...todayAppointments, ...upcomingAppointments];
+  return [...pendingRequests, ...dueSoonAppointments, ...todayAppointments, ...upcomingAppointments];
 }
 
 function renderNotifications() {
@@ -581,6 +598,51 @@ function renderNotifications() {
     `;
     notificationList.append(button);
   });
+  playNotificationSoundFor(notifications);
+}
+
+function parseAppointmentStart(appointment) {
+  const startTime = String(appointment?.timeWindow || "").split("-")[0];
+  if (!appointment?.bookingDate || !/^\d{2}:\d{2}$/.test(startTime)) return null;
+  const date = new Date(`${appointment.bookingDate}T${startTime}:00+07:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function minutesUntilAppointment(appointment) {
+  const start = parseAppointmentStart(appointment);
+  if (!start) return Number.POSITIVE_INFINITY;
+  return (start.getTime() - Date.now()) / 60000;
+}
+
+function rememberSoundedNotifications() {
+  sessionStorage.setItem(NOTIFICATION_SOUND_KEY, JSON.stringify([...soundedNotificationKeys].slice(-50)));
+}
+
+function playNotificationSoundFor(notifications) {
+  const item = notifications.find((notification) => notification.sound && !soundedNotificationKeys.has(notification.key));
+  if (!item) return;
+
+  soundedNotificationKeys.add(item.key);
+  rememberSoundedNotifications();
+
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audio = new AudioContextClass();
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(880, audio.currentTime);
+    gain.gain.setValueAtTime(0.0001, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, audio.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.32);
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + 0.34);
+  } catch (error) {
+    console.warn("Notification sound skipped", error);
+  }
 }
 
 function phoneHref(contact = "") {
@@ -608,6 +670,10 @@ function contactActionsMarkup(contact = "", options = {}) {
 function serviceText(item) {
   const services = Array.isArray(item?.services) ? item.services.filter(Boolean) : [];
   return services.length ? services.join(", ") : "บริการ";
+}
+
+function isPastDate(date = today) {
+  return String(date || today) < today;
 }
 
 async function copyContact(value) {
@@ -639,8 +705,9 @@ function renderOwnerLists() {
   }
 
   items.forEach((item) => {
+    const pastItem = isPastDate(item.bookingDate || today);
     const card = document.createElement("article");
-    card.className = item.status === "confirmed" ? "queue-card confirmed" : "queue-card";
+    card.className = `${item.status === "confirmed" ? "queue-card confirmed" : "queue-card"}${pastItem ? " is-past" : ""}`;
     const statusMarkup = item.kind === "appointment"
       ? `<span class="status-pill">${statusLabel(item.status)}</span>`
       : "";
@@ -661,6 +728,15 @@ function renderOwnerLists() {
       </div>
       ${item.note ? `<p class="hint">${escapeHtml(item.note)}</p>` : ""}
     `;
+
+    if (pastItem) {
+      const pastNote = document.createElement("p");
+      pastNote.className = "empty-state compact";
+      pastNote.textContent = "คิวนี้เลยวันแล้ว";
+      card.append(pastNote);
+      requestList.append(card);
+      return;
+    }
 
     if (item.kind === "request") {
       const actions = document.createElement("div");
@@ -1098,6 +1174,10 @@ function renderBookingCalendar() {
 async function confirmRequest(id) {
   const request = state.requests.find((item) => item.id === id);
   if (!request) return;
+  if (isPastDate(request.bookingDate || today)) {
+    showToast("คำขอนี้เลยวันแล้ว");
+    return;
+  }
   const requestSlot = timeSlots().find((slot) => timeSlotLabel(slot) === request.timeWindow);
 
   if (!requestSlot || !isSlotOpen(request.bookingDate || today, requestSlot)) {
@@ -1140,6 +1220,12 @@ async function confirmRequest(id) {
 }
 
 async function rejectRequest(id) {
+  const request = state.requests.find((item) => item.id === id);
+  if (request && isPastDate(request.bookingDate || today)) {
+    showToast("คำขอนี้เลยวันแล้ว");
+    return;
+  }
+
   const confirmed = await confirmOwnerAction({
     title: "ปฏิเสธคำขอนี้หรือไม่",
     message: "คำขอนี้จะถูกนำออกจากรายการรอยืนยันของร้าน",
@@ -1440,6 +1526,12 @@ closedDayToggle.addEventListener("change", async () => {
 });
 
 async function cancelAppointment(id) {
+  const appointment = state.appointments.find((item) => item.id === id);
+  if (appointment && isPastDate(appointment.bookingDate || today)) {
+    showToast("คิวนี้เลยวันแล้ว");
+    return;
+  }
+
   const confirmed = await confirmOwnerAction({
     title: "ยกเลิกคิวนี้หรือไม่",
     message: "คิวนี้จะไม่ถูกนับเป็นช่วงเวลาที่จองแล้ว",

@@ -13,6 +13,8 @@
 /manifest.webmanifest /manifest.webmanifest 200
 /privacy /privacy.html 200
 /privacy.html /privacy.html 200
+/terms /terms.html 200
+/terms.html /terms.html 200
 /register.html /register.html 200
 /owner /owner.html 200
 /fah / 200
