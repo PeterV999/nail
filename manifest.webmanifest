@@ -1,7 +1,7 @@
 {
-  "name": "Fah Nail Booking Admin",
-  "short_name": "Booking Admin",
-  "description": "เว็บแอพหลังบ้านกลางสำหรับดูแลร้านค้าและเปิดหลังบ้านรายร้าน",
+  "name": "BookingNail",
+  "short_name": "BookingNail",
+  "description": "ระบบจองคิวและหลังบ้านสำหรับร้านทำเล็บ ใช้งานง่ายบนมือถือและ iPad",
   "id": "/admin/",
   "lang": "th",
   "dir": "ltr",

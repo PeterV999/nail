@@ -466,6 +466,12 @@ function shopInitials(name = "Fah Nail") {
 
 function renderLogoMark(element, shop) {
   if (!element) return;
+  if (element.dataset.appLogo === "true") {
+    element.classList.add("has-logo", "app-logo-mark");
+    element.innerHTML = `<img src="assets/bookingnail-icononly-pastel.png" alt="">`;
+    return;
+  }
+
   element.classList.remove("has-logo");
   element.textContent = shopInitials(shop?.name);
 

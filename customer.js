@@ -73,8 +73,9 @@ function renderHomePreview() {
   const brandSmall = document.querySelector(".brand small");
   if (brand) brand.href = "/";
   if (brandMark) {
-    brandMark.classList.remove("has-logo");
-    brandMark.textContent = "BN";
+    brandMark.classList.add("has-logo", "app-logo-mark");
+    brandMark.dataset.appLogo = "true";
+    brandMark.innerHTML = `<img src="assets/bookingnail-icononly-pastel.png" alt="">`;
   }
   if (brandName) brandName.textContent = "BookingNail";
   if (brandSmall) brandSmall.textContent = "ตัวอย่างแพลตฟอร์ม";

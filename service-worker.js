@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v32";
+const CACHE_VERSION = "v33";
 const STATIC_CACHE = `fah-nail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `fah-nail-pages-${CACHE_VERSION}`;
 
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   "/admin.js",
   "/pwa.js",
   "/manifest.webmanifest",
+  "/assets/bookingnail-icononly-pastel.png",
   "/assets/sea-nail-mascot.svg",
   "/assets/queue-shell-mascot.svg",
   "/assets/app-icon-192.png",
