@@ -331,7 +331,8 @@ function shopInitials(name = "Fah Nail") {
 
 function renderBrandMark(element, shop) {
   if (!element) return;
-  element.classList.remove("has-logo");
+  element.classList.remove("has-logo", "app-logo-mark");
+  delete element.dataset.appLogo;
   element.textContent = shopInitials(shop?.name);
 
   if (!shop?.logoUrl) return;
