@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#14a9bf">
+    <meta name="theme-color" content="#f25b93">
     <meta name="application-name" content="BookingNail">
     <meta name="description" content="BookingNail ระบบจองคิวและหลังบ้านสำหรับร้านทำเล็บ ใช้งานง่ายบนมือถือและ iPad">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,10 +18,10 @@
     <link rel="preconnect" href="https://challenges.cloudflare.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260813-34">
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260815-03">
   </head>
-  <body>
+  <body class="customer-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
       <div class="page-loader-card">
         <span class="loader-ring" aria-hidden="true"></span>
@@ -49,7 +49,7 @@
             <div class="home-copy">
               <p class="eyebrow">BookingNail</p>
               <h1 id="home-preview-title">เลือกหน้าร้าน หรือสร้างระบบจองคิวของคุณ</h1>
-              <p class="lead">หน้าแรกเป็นศูนย์รวมร้านและตัวอย่างแพลตฟอร์ม ร้านแต่ละร้านใช้ลิงก์ของตัวเอง เช่น /fah และ /fah-owner</p>
+              <p class="lead">หน้าแรกเป็นศูนย์รวมร้านและตัวอย่างแพลตฟอร์ม ตอนนี้ใช้ลิงก์หลัก /fah และ /fah-owner สำหรับ Fah Nail</p>
               <div class="home-actions">
                 <a class="primary-button" href="/fah">ดูหน้าจอง Fah Nail</a>
                 <a class="secondary-button" href="/register/">เพิ่มร้านใหม่</a>
@@ -59,7 +59,7 @@
             <div class="home-preview-card">
               <img src="assets/sea-nail-mascot.svg" alt="">
               <strong>ลิงก์แยกร้าน</strong>
-              <span>/ชื่อร้าน สำหรับลูกค้า<br>/ชื่อร้าน-owner สำหรับเจ้าของร้าน</span>
+              <span>/fah สำหรับลูกค้า<br>/fah-owner สำหรับเจ้าของร้าน</span>
             </div>
           </div>
 
@@ -94,7 +94,7 @@
             <div class="home-flow-grid">
               <div><strong>1</strong><span>เข้าสู่ระบบ Google</span></div>
               <div><strong>2</strong><span>ตั้งชื่อร้านและ URL</span></div>
-              <div><strong>3</strong><span>เปิด /xxx และ /xxx-owner ได้ทันที</span></div>
+              <div><strong>3</strong><span>รับลิงก์จากระบบกลางพร้อมใช้งาน</span></div>
             </div>
           </section>
         </section>
@@ -106,64 +106,97 @@
                 <div class="hero-copy">
                   <p class="eyebrow">Fah Nail</p>
                   <h1 id="customer-title">จองคิวทำเล็บ</h1>
-                  <p class="lead">เลือกบริการและช่วงเวลาที่สะดวก แล้วร้านจะติดต่อกลับเพื่อยืนยันคิว</p>
+                  <p class="lead">เลือกบริการ วัน และเวลาที่สะดวกก่อน ร้านจะยืนยันคิวให้ภายหลัง</p>
                 </div>
-                <div class="mascot-card customer-mascot" aria-hidden="true">
-                  <img src="assets/sea-nail-mascot.svg" alt="">
+              </div>
+
+              <div class="booking-stepper" aria-label="ขั้นตอนการจอง">
+                <div class="booking-step is-active" data-step-indicator="details">
+                  <span aria-hidden="true">✦</span>
+                  <strong>เลือกบริการ</strong>
+                </div>
+                <div class="booking-step" data-step-indicator="date">
+                  <span aria-hidden="true">▣</span>
+                  <strong>เลือกวันที่</strong>
+                </div>
+                <div class="booking-step" data-step-indicator="time">
+                  <span aria-hidden="true">◷</span>
+                  <strong>เลือกเวลา</strong>
+                </div>
+                <div class="booking-step" data-step-indicator="contact">
+                  <span aria-hidden="true">♙</span>
+                  <strong>ข้อมูลลูกค้า</strong>
                 </div>
               </div>
 
               <form id="booking-form" class="booking-form">
-                <fieldset>
-                  <legend><span>1</span> เลือกบริการคร่าว ๆ</legend>
-                  <p class="hint">เลือกได้หลายอย่าง อย่างน้อย 1 รายการ</p>
-                  <div class="service-options" id="service-options"></div>
+                <div class="booking-step-panel" data-booking-step="details">
+                  <fieldset class="booking-select-fieldset">
+                    <legend>เลือกบริการ</legend>
+                    <label class="booking-select-field">
+                      <span class="sr-only">บริการ</span>
+                      <select id="service-options" name="serviceName" required></select>
+                    </label>
+                  </fieldset>
                   <p class="form-error" id="service-error" hidden>กรุณาเลือกบริการอย่างน้อย 1 รายการ</p>
-                </fieldset>
 
-                <fieldset>
-                  <legend><span>2</span> เลือกวันและช่วงเวลาที่สะดวก</legend>
-                  <p class="hint">ยังไม่ใช่การจองที่ยืนยันแล้ว</p>
-                  <label class="date-field">
-                    วันที่ต้องการ
-                    <input type="date" name="bookingDate" id="booking-date" required>
-                  </label>
-                  <div class="time-options" id="time-options"></div>
-                </fieldset>
+                  <fieldset class="booking-select-fieldset">
+                    <legend>เลือกวันที่</legend>
+                    <label class="booking-select-field date-field">
+                      <span class="sr-only">วันที่ต้องการ</span>
+                      <input type="date" name="bookingDate" id="booking-date" required>
+                      <span class="booking-date-display" id="booking-date-display">เลือกวันที่</span>
+                    </label>
+                  </fieldset>
 
-                <fieldset class="contact-fields">
-                  <legend><span>3</span> ข้อมูลติดต่อ</legend>
-                  <label>
-                    ชื่อ
-                    <input name="customerName" autocomplete="name" placeholder="เช่น คุณฟ้า" required>
-                  </label>
-                  <label>
-                    เบอร์ / LINE / Facebook
-                    <input name="contact" autocomplete="tel" placeholder="ช่องทางที่ร้านติดต่อกลับได้" required>
-                  </label>
-                  <label>
-                    หมายเหตุ
-                    <textarea name="note" rows="3" placeholder="เช่น อยากได้โทนชมพูใส หรือมีรูปแบบในใจ"></textarea>
-                  </label>
-                </fieldset>
+                  <fieldset class="booking-time-fieldset">
+                    <legend>เลือกเวลา</legend>
+                    <p class="hint">เลือกช่วงเวลาที่ร้านเปิดรับจอง</p>
+                    <div class="time-options" id="time-options"></div>
+                  </fieldset>
 
-                <div class="notice">
-                  <strong>ร้านจะติดต่อกลับ</strong>
-                  <span>คำขอนี้ยังไม่ใช่การจองที่ยืนยันแล้ว</span>
+                  <button class="primary-button booking-next-button" type="button" id="booking-next-button">ถัดไป</button>
+                  <p class="secure-note" aria-label="ข้อมูลลูกค้าปลอดภัย">ข้อมูลของคุณปลอดภัย 100%</p>
                 </div>
 
-                <label class="consent-field">
-                  <input type="checkbox" name="privacyConsent" id="privacy-consent" required>
-                  <span>ยินยอมให้ร้านใช้ข้อมูลนี้เพื่อติดต่อกลับและจัดการคิว อ่าน <a href="/privacy?v=v26" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a> และ <a href="/terms?v=v26" target="_blank" rel="noopener">ข้อตกลงการใช้งาน</a></span>
-                </label>
-                <p class="form-error" id="privacy-error" hidden>กรุณายินยอมก่อนส่งคำขอจอง</p>
+                <div class="booking-step-panel" data-booking-step="contact" hidden>
+                  <fieldset class="contact-fields">
+                    <legend>ข้อมูลลูกค้า</legend>
+                    <label>
+                      ชื่อ
+                      <input name="customerName" autocomplete="name" placeholder="เช่น คุณฟ้า" required>
+                    </label>
+                    <label>
+                      เบอร์ / LINE / Facebook
+                      <input name="contact" autocomplete="tel" placeholder="ช่องทางที่ร้านติดต่อกลับได้" required>
+                    </label>
+                    <label>
+                      หมายเหตุ
+                      <textarea name="note" rows="3" placeholder="เช่น อยากได้โทนชมพูใส หรือมีรูปแบบในใจ"></textarea>
+                    </label>
+                  </fieldset>
 
-                <div class="turnstile-field" id="turnstile-field" hidden>
-                  <div id="turnstile-widget"></div>
-                  <p class="form-error" id="turnstile-error" hidden>กรุณายืนยันว่าไม่ใช่บอทก่อนจองคิว</p>
+                  <div class="notice">
+                    <strong>ร้านจะติดต่อกลับ</strong>
+                    <span>คำขอนี้ยังไม่ใช่การจองที่ยืนยันแล้ว</span>
+                  </div>
+
+                  <label class="consent-field">
+                    <input type="checkbox" name="privacyConsent" id="privacy-consent" required>
+                    <span>ยินยอมให้ร้านใช้ข้อมูลนี้เพื่อติดต่อกลับและจัดการคิว อ่าน <a href="/privacy?v=v26" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a> และ <a href="/terms?v=v26" target="_blank" rel="noopener">ข้อตกลงการใช้งาน</a></span>
+                  </label>
+                  <p class="form-error" id="privacy-error" hidden>กรุณายินยอมก่อนส่งคำขอจอง</p>
+
+                  <div class="turnstile-field" id="turnstile-field" hidden>
+                    <div id="turnstile-widget"></div>
+                    <p class="form-error" id="turnstile-error" hidden>กรุณายืนยันว่าไม่ใช่บอทก่อนจองคิว</p>
+                  </div>
+
+                  <div class="booking-form-actions">
+                    <button class="secondary-button" type="button" id="booking-back-button">ย้อนกลับ</button>
+                    <button class="primary-button" type="submit" id="booking-submit-button">ส่งคำขอจอง</button>
+                  </div>
                 </div>
-
-                <button class="primary-button" type="submit">จองคิว</button>
               </form>
             </section>
 
@@ -197,9 +230,9 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="app-config.js?v=20260813-34"></script>
-    <script src="supabase-adapter.js?v=20260813-34"></script>
-    <script src="pwa.js?v=20260813-34"></script>
-    <script src="customer.js?v=20260813-34"></script>
+    <script src="app-config.js?v=20260815-03"></script>
+    <script src="supabase-adapter.js?v=20260815-03"></script>
+    <script src="pwa.js?v=20260815-03"></script>
+    <script src="customer.js?v=20260815-03"></script>
   </body>
 </html>

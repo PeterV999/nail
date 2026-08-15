@@ -1,7 +1,8 @@
-const STORAGE_KEY = "fah-nail-booking-demo";
+const STORAGE_KEY = "bookingnail-local-state";
+const LEGACY_STORAGE_KEY = "fah-nail-booking-demo";
 const OWNER_TAB_KEY = "fah-nail-owner-tab-v2";
 const OWNER_UI_VERSION_KEY = "fah-nail-owner-ui-version";
-const OWNER_UI_VERSION = "2026-08-10-release-guardrails";
+const OWNER_UI_VERSION = "2026-08-15-premium-owner";
 const NOTIFICATION_SOUND_ENABLED_KEY = "fah-nail-notification-sound-enabled";
 const SOUNDED_NOTIFICATION_KEY = "fah-nail-notification-sounded";
 const SYSTEM_NOTIFIED_KEY = "fah-nail-system-notified";
@@ -157,7 +158,7 @@ let ownerDialogResult = false;
 const ownerTabsMobileQuery = window.matchMedia?.("(max-width: 620px)");
 
 function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
   if (!saved) return structuredClone(defaultState);
 
   try {
@@ -179,6 +180,7 @@ function loadState() {
 function saveState() {
   if (remoteMode) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
 }
 
 function setPageLoading(active, title = "", copy = "") {
@@ -429,7 +431,7 @@ function updateRouteLinks() {
   const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || {
     booking: "index.html",
     dashboard: "owner.html",
-    register: "register.html"
+    register: "/register"
   };
   const customerLink = document.querySelector(".owner-link");
   const brand = document.querySelector(".brand");
@@ -514,11 +516,13 @@ function renderOwnerStats() {
   if (!ownerStats) return;
   const todayRequests = state.requests.filter((item) => item.bookingDate === today).length;
   const todayAppointments = state.appointments.filter((item) => item.bookingDate === today && item.status === "confirmed").length;
+  const completedToday = state.appointments.filter((item) => item.bookingDate === today && item.status === "completed").length;
   const totalCustomers = state.customers?.length || 0;
 
   const stats = [
     { label: "คำขอวันนี้", value: todayRequests },
     { label: "คิวยืนยันวันนี้", value: todayAppointments },
+    { label: "เสร็จแล้ววันนี้", value: completedToday },
     { label: "ลูกค้าที่บันทึก", value: totalCustomers }
   ];
 
@@ -815,22 +819,44 @@ function isPastDate(date = today) {
 }
 
 async function copyContact(value) {
+  await copyText(value, "คัดลอกช่องทางติดต่อแล้ว");
+}
+
+async function copyText(value, successMessage = "คัดลอกแล้ว") {
   const text = String(value || "").trim();
   if (!text) return;
 
   try {
     await navigator.clipboard.writeText(text);
-    showToast("คัดลอกช่องทางติดต่อแล้ว");
+    showToast(successMessage);
   } catch (error) {
-    console.warn("Copy contact failed", error);
+    console.warn("Copy text failed", error);
     showToast(text);
   }
+}
+
+function bookingMessage(booking, mode = "request") {
+  const shopName = state.shop?.name || "Fah Nail";
+  const dateText = thaiDate(booking.bookingDate || today);
+  const serviceList = serviceText(booking);
+  const customerName = booking.customerName || "ลูกค้า";
+  if (mode === "confirmed") {
+    return `${shopName} ยืนยันคิวแล้วนะคะ\n${customerName}\nบริการ: ${serviceList}\nวันที่: ${dateText}\nเวลา: ${booking.timeWindow}\nหากต้องการเปลี่ยนเวลา แจ้งร้านได้เลยค่ะ`;
+  }
+
+  return `${shopName} ได้รับคำขอจองแล้วนะคะ\n${customerName}\nบริการ: ${serviceList}\nวันที่: ${dateText}\nช่วงเวลา: ${booking.timeWindow}\nร้านจะตรวจคิวและยืนยันกลับอีกครั้งค่ะ`;
+}
+
+function copyBookingMessage(booking, mode = "request") {
+  copyText(bookingMessage(booking, mode), "คัดลอกข้อความตอบลูกค้าแล้ว");
 }
 
 function renderOwnerLists() {
   const items = [
     ...state.requests.map((item) => ({ ...item, kind: "request" })),
-    ...state.appointments.map((item) => ({ ...item, kind: "appointment" }))
+    ...state.appointments
+      .filter((item) => item.status === "confirmed")
+      .map((item) => ({ ...item, kind: "appointment" }))
   ];
 
   requestList.innerHTML = "";
@@ -864,6 +890,7 @@ function renderOwnerLists() {
         <span>${escapeHtml(serviceText(item))}</span>
         <span>${sourceText}</span>
       </div>
+      ${contactActionsMarkup(item.contact)}
       ${item.note ? `<p class="hint">${escapeHtml(item.note)}</p>` : ""}
     `;
 
@@ -892,7 +919,13 @@ function renderOwnerLists() {
       reject.textContent = "ปฏิเสธ";
       reject.addEventListener("click", () => rejectRequest(item.id));
 
-      actions.append(confirm, reject);
+      const message = document.createElement("button");
+      message.type = "button";
+      message.className = "secondary-button";
+      message.textContent = "ข้อความ";
+      message.addEventListener("click", () => copyBookingMessage(item, "request"));
+
+      actions.append(confirm, message, reject);
       card.append(actions);
     }
 
@@ -906,7 +939,19 @@ function renderOwnerLists() {
       cancel.textContent = "ยกเลิกคิว";
       cancel.addEventListener("click", () => cancelAppointment(item.id));
 
-      actions.append(cancel);
+      const message = document.createElement("button");
+      message.type = "button";
+      message.className = "secondary-button";
+      message.textContent = "ข้อความ";
+      message.addEventListener("click", () => copyBookingMessage(item, "confirmed"));
+
+      const complete = document.createElement("button");
+      complete.type = "button";
+      complete.className = "primary-button";
+      complete.textContent = "เสร็จแล้ว";
+      complete.addEventListener("click", () => completeAppointment(item.id));
+
+      actions.append(message, complete, cancel);
       card.append(actions);
     }
 
@@ -1695,6 +1740,30 @@ async function cancelAppointment(id) {
   }
 }
 
+async function completeAppointment(id) {
+  const appointment = state.appointments.find((item) => item.id === id);
+  if (appointment && isPastDate(appointment.bookingDate || today)) {
+    showToast("คิวนี้เลยวันแล้ว");
+    return;
+  }
+
+  try {
+    if (remoteMode) {
+      await window.FahNailSupabase.completeAppointment(id, currentShopSlug);
+      await reloadAfterRemote("บันทึกว่าคิวเสร็จแล้ว");
+      return;
+    }
+
+    if (appointment) appointment.status = "completed";
+    saveState();
+    render();
+    showToast("บันทึกว่าคิวเสร็จแล้ว");
+  } catch (error) {
+    console.warn("Complete appointment failed", error);
+    showToast("ยังบันทึกคิวเสร็จแล้วไม่สำเร็จ");
+  }
+}
+
 function sourceLabel(source) {
   return {
     customer_request: "ลูกค้าจองเอง",
@@ -1711,7 +1780,8 @@ function statusLabel(status) {
     pending_request: "รอยืนยัน",
     confirmed: "ยืนยันแล้ว",
     rejected: "ปฏิเสธแล้ว",
-    cancelled: "ยกเลิกแล้ว"
+    cancelled: "ยกเลิกแล้ว",
+    completed: "เสร็จแล้ว"
   }[status] || "รอยืนยัน";
 }
 

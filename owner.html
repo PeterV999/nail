@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#14a9bf">
+    <meta name="theme-color" content="#f25b93">
     <meta name="application-name" content="BookingNail">
     <meta name="description" content="BookingNail ระบบจองคิวและหลังบ้านสำหรับร้านทำเล็บ ใช้งานง่ายบนมือถือและ iPad">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,10 +17,10 @@
     <link rel="apple-touch-icon" href="assets/app-icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260813-34">
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260815-03">
   </head>
-  <body>
+  <body class="owner-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
       <div class="page-loader-card">
         <span class="loader-ring" aria-hidden="true"></span>
@@ -86,21 +86,36 @@
           <p class="hint" id="auth-status">ข้อมูลหลังบ้านจะแสดงเฉพาะบัญชีที่มีสิทธิ์ดูแลร้าน</p>
         </section>
 
-        <section class="owner-layout" id="owner-app" aria-labelledby="owner-title" hidden>
-          <h1 class="sr-only" id="owner-title">จัดการคำขอและบันทึกคิว</h1>
-          <section class="owner-main owner-header-panel">
-            <div class="owner-tabs" role="tablist" aria-label="เมนูหลังบ้าน" aria-expanded="false">
-              <button class="owner-tab is-active" type="button" id="owner-tab-queue" role="tab" aria-selected="true" aria-controls="owner-panel-queue" data-owner-tab="queue">จัดการคิว</button>
-              <button class="owner-tab" type="button" id="owner-tab-calendar" role="tab" aria-selected="false" aria-controls="owner-panel-calendar" data-owner-tab="calendar">ตารางคิว</button>
+        <section class="owner-layout owner-premium-layout" id="owner-app" aria-labelledby="owner-title" hidden>
+          <nav class="owner-tabs owner-nav" role="tablist" aria-label="เมนูหลังบ้าน" aria-expanded="false">
+            <button class="owner-tab is-active" type="button" id="owner-tab-queue" role="tab" aria-selected="true" aria-controls="owner-panel-queue" data-owner-tab="queue">ภาพรวม</button>
+            <button class="owner-tab" type="button" id="owner-tab-calendar" role="tab" aria-selected="false" aria-controls="owner-panel-calendar" data-owner-tab="calendar">ตารางคิว</button>
+            <button class="owner-tab" type="button" id="owner-tab-manual" role="tab" aria-selected="false" aria-controls="owner-panel-manual" data-owner-tab="manual">ลงคิว</button>
+            <button class="owner-tab" type="button" id="owner-tab-settings" role="tab" aria-selected="false" aria-controls="owner-panel-settings" data-owner-tab="settings">เวลา / บริการ</button>
+            <button class="owner-tab" type="button" id="owner-tab-shop" role="tab" aria-selected="false" aria-controls="owner-panel-shop" data-owner-tab="shop">ข้อมูลร้าน</button>
+          </nav>
+
+          <section class="owner-main owner-command-center">
+            <div class="owner-dashboard-hero">
+              <div>
+                <p class="eyebrow">Premium Salon Dashboard</p>
+                <h1 id="owner-title">จัดการคิวร้านวันนี้</h1>
+                <p class="lead">ยืนยันคำขอ โทรกลับ คัดลอกข้อมูลลูกค้า ลงคิวหน้าร้าน และดูตารางคิวจากหน้าเดียว</p>
+              </div>
+              <img class="owner-mascot" src="assets/queue-shell-mascot.svg" alt="" aria-hidden="true">
             </div>
-          </section>
-
-          <section class="owner-tab-panel" id="owner-panel-queue" role="tabpanel" aria-labelledby="owner-tab-queue" data-owner-panel="queue">
             <div class="owner-stats" id="owner-stats"></div>
-            <div class="queue-list" id="request-list"></div>
-          </section>
+            <section class="owner-tab-panel" id="owner-panel-queue" role="tabpanel" aria-labelledby="owner-tab-queue" data-owner-panel="queue">
+              <div class="section-head compact">
+                <div>
+                  <p class="eyebrow">ต้องทำต่อ</p>
+                  <h2>คำขอและคิวล่าสุด</h2>
+                </div>
+              </div>
+              <div class="queue-list" id="request-list"></div>
+            </section>
 
-          <section class="owner-tab-panel" id="owner-panel-manual" role="region" aria-labelledby="owner-action-manual" data-owner-panel="manual" hidden>
+            <section class="owner-tab-panel" id="owner-panel-manual" role="tabpanel" aria-labelledby="owner-tab-manual" data-owner-panel="manual" hidden>
             <section class="side-card owner-action-panel">
               <h2>ลงคิว</h2>
               <form id="manual-form" class="compact-form">
@@ -139,7 +154,7 @@
             </section>
           </section>
 
-          <section class="owner-tab-panel" id="owner-panel-calendar" role="tabpanel" aria-labelledby="owner-tab-calendar" data-owner-panel="calendar" hidden>
+            <section class="owner-tab-panel" id="owner-panel-calendar" role="tabpanel" aria-labelledby="owner-tab-calendar" data-owner-panel="calendar" hidden>
             <div class="schedule-workspace">
             <section class="side-card schedule-list-card">
               <h2>ตารางคิวร้าน</h2>
@@ -153,7 +168,7 @@
             </div>
           </section>
 
-          <section class="owner-tab-panel" id="owner-panel-shop" role="region" aria-labelledby="owner-action-shop" data-owner-panel="shop" hidden>
+            <section class="owner-tab-panel" id="owner-panel-shop" role="tabpanel" aria-labelledby="owner-tab-shop" data-owner-panel="shop" hidden>
             <section class="side-card owner-action-panel">
               <h2>ข้อมูลร้าน</h2>
               <form id="shop-form" class="compact-form">
@@ -194,7 +209,7 @@
             </section>
           </section>
 
-          <section class="owner-tab-panel" id="owner-panel-settings" role="region" aria-labelledby="owner-action-settings" data-owner-panel="settings" hidden>
+            <section class="owner-tab-panel" id="owner-panel-settings" role="tabpanel" aria-labelledby="owner-tab-settings" data-owner-panel="settings" hidden>
             <div class="owner-panel-grid">
             <section class="side-card">
               <h2>จัดการเวลารับจอง</h2>
@@ -232,6 +247,7 @@
             </section>
             </div>
           </section>
+          </section>
         </section>
       </main>
     </div>
@@ -251,9 +267,9 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js?v=20260813-34"></script>
-    <script src="supabase-adapter.js?v=20260813-34"></script>
-    <script src="pwa.js?v=20260813-34"></script>
-    <script src="owner.js?v=20260813-34"></script>
+    <script src="app-config.js?v=20260815-03"></script>
+    <script src="supabase-adapter.js?v=20260815-03"></script>
+    <script src="pwa.js?v=20260815-03"></script>
+    <script src="owner.js?v=20260815-03"></script>
   </body>
 </html>

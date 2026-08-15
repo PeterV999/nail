@@ -1,6 +1,6 @@
-const CACHE_VERSION = "v34";
-const STATIC_CACHE = `fah-nail-static-${CACHE_VERSION}`;
-const PAGE_CACHE = `fah-nail-pages-${CACHE_VERSION}`;
+const CACHE_VERSION = "v37";
+const STATIC_CACHE = `bookingnail-static-${CACHE_VERSION}`;
+const PAGE_CACHE = `bookingnail-pages-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
   "/styles.css",
@@ -25,23 +25,14 @@ const PAGE_ROUTES = [
   "/owner.html",
   "/privacy",
   "/privacy/index.html",
-  "/privacy.html",
   "/terms",
   "/terms/index.html",
-  "/terms.html",
   "/register",
   "/register/",
   "/register/index.html",
-  "/register.html",
   "/admin/",
   "/fah",
-  "/fah-owner",
-  "/demo-shop",
-  "/demo-shop-owner",
-  "/b/fah-nail",
-  "/o/fah-nail",
-  "/book/fah-nail",
-  "/dashboard/fah-nail"
+  "/fah-owner"
 ];
 
 const OFFLINE_HTML = `<!doctype html>
@@ -49,15 +40,15 @@ const OFFLINE_HTML = `<!doctype html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#14a9bf">
-    <title>ออฟไลน์ | Fah Nail Booking</title>
+    <meta name="theme-color" content="#f25b93">
+    <title>ออฟไลน์ | BookingNail</title>
     <style>
       :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
       body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; color: #143d4a; background: #effcff; }
       main { max-width: 420px; padding: 24px; border: 1px solid #bceaf0; border-radius: 20px; background: #fff; box-shadow: 0 20px 44px rgba(8, 127, 150, .16); }
       h1 { margin: 0 0 10px; font-size: 1.4rem; line-height: 1.25; }
       p { margin: 0; color: #637789; line-height: 1.7; }
-      button { margin-top: 18px; width: 100%; min-height: 44px; border: 0; border-radius: 14px; color: #fff; background: #14a9bf; font-weight: 800; }
+      button { margin-top: 18px; width: 100%; min-height: 44px; border: 0; border-radius: 14px; color: #fff; background: #f25b93; font-weight: 800; }
     </style>
   </head>
   <body>

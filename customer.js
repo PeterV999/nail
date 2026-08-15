@@ -1,4 +1,5 @@
-const STORAGE_KEY = "fah-nail-booking-demo";
+const STORAGE_KEY = "bookingnail-local-state";
+const LEGACY_STORAGE_KEY = "fah-nail-booking-demo";
 const today = new Date().toISOString().slice(0, 10);
 
 const defaultTimeSlots = [
@@ -34,6 +35,7 @@ const serviceOptions = document.getElementById("service-options");
 const timeOptions = document.getElementById("time-options");
 const miniCalendar = document.getElementById("mini-calendar");
 const bookingDate = document.getElementById("booking-date");
+const bookingDateDisplay = document.getElementById("booking-date-display");
 const bookingForm = document.getElementById("booking-form");
 const customerSection = document.getElementById("customer");
 const homePreview = document.getElementById("home-preview");
@@ -54,8 +56,13 @@ const bookingSuccessDialog = document.getElementById("booking-success-dialog");
 const bookingSuccessSummary = document.getElementById("booking-success-summary");
 const bookingDialogClose = document.getElementById("booking-dialog-close");
 const ownerReturnLink = document.getElementById("owner-return-link");
+const bookingNextButton = document.getElementById("booking-next-button");
+const bookingBackButton = document.getElementById("booking-back-button");
+const bookingStepPanels = document.querySelectorAll("[data-booking-step]");
+const bookingStepIndicators = document.querySelectorAll("[data-step-indicator]");
 let turnstileWidgetId = "";
 let turnstileToken = "";
+let bookingStep = "details";
 
 function isHomePreviewRoute() {
   const path = window.location.pathname.replace(/\/+$/g, "") || "/";
@@ -109,9 +116,9 @@ async function renderHomeShopList() {
 }
 
 function homeShopCard(shop) {
-  const urls = window.FahNailSupabase?.shopUrls?.(shop.slug) || { booking: `/${shop.slug}`, dashboard: `/${shop.slug}-owner` };
+  const urls = window.FahNailSupabase?.shopUrls?.(shop.slug) || { booking: "/fah", dashboard: "/fah-owner" };
   const initials = escapeHtml(shopInitials(shop.name));
-  const displayPath = shop.slug === "fah-nail" ? "/fah" : `/${shop.slug}`;
+  const displayPath = urls.booking || "/fah";
   const shopDescription = shop.tagline || displayPath;
   const logo = shop.logoUrl
     ? `<div class="brand-mark has-logo"><img src="${escapeHtml(shop.logoUrl)}" alt="" data-logo-fallback="${initials}"></div>`
@@ -199,7 +206,7 @@ function resetTurnstile() {
 }
 
 function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
   if (!saved) return structuredClone(defaultState);
 
   try {
@@ -219,6 +226,7 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
 }
 
 function setPageLoading(active, title = "", copy = "") {
@@ -290,7 +298,7 @@ function renderShopChrome() {
   const urls = window.FahNailSupabase?.shopUrls?.(shop.slug || currentShopSlug) || {
     booking: "index.html",
     dashboard: "owner.html",
-    register: "register.html"
+    register: "/register"
   };
   const brand = document.querySelector(".brand");
   const brandMark = document.querySelector(".brand-mark");
@@ -313,7 +321,8 @@ async function updateOwnerReturnLink() {
     const authState = await window.FahNailSupabase?.ownerSession?.(currentShopSlug);
     ownerReturnLink.hidden = !(authState?.configured && authState?.session && authState?.member);
   } catch (error) {
-    console.warn("Owner shortcut check failed", error);
+    const isMissingSession = error?.name === "AuthSessionMissingError" || String(error?.message || "").includes("Auth session missing");
+    if (!isMissingSession) console.warn("Owner shortcut check failed", error);
     ownerReturnLink.hidden = true;
   }
 }
@@ -345,42 +354,55 @@ function renderBrandMark(element, shop) {
 }
 
 function renderServices() {
+  const services = activeServices();
   serviceOptions.innerHTML = "";
 
-  activeServices().forEach((service) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = selectedServices.has(service.name) ? "choice active" : "choice";
-    button.innerHTML = `<span class="dot" aria-hidden="true"></span><span>${escapeHtml(service.name)}</span>`;
-    button.addEventListener("click", () => {
-      if (selectedServices.has(service.name)) {
-        selectedServices.delete(service.name);
-      } else {
-        selectedServices.add(service.name);
-      }
-      serviceError.hidden = true;
-      renderServices();
-    });
-    serviceOptions.append(button);
+  if (!services.length) {
+    serviceOptions.disabled = true;
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "ยังไม่มีบริการที่เปิดรับจอง";
+    serviceOptions.append(option);
+    selectedServices.clear();
+    updateBookingStepper();
+    return;
+  }
+
+  serviceOptions.disabled = false;
+  if (!services.some((service) => selectedServices.has(service.name))) {
+    selectedServices.clear();
+    selectedServices.add(services[0].name);
+  }
+
+  services.forEach((service) => {
+    const option = document.createElement("option");
+    option.value = service.name;
+    option.textContent = service.name;
+    option.selected = selectedServices.has(service.name);
+    serviceOptions.append(option);
   });
+
+  updateBookingStepper();
 }
 
 function renderTimeWindows() {
   const busy = busyWindows();
   const date = selectedBookingDate();
   timeOptions.innerHTML = "";
+  let firstAvailableTime = "";
 
   timeSlots().forEach((slot) => {
     const timeWindow = timeSlotLabel(slot);
     const isBusy = busy.has(timeWindow);
     const isClosed = !isSlotOpen(date, slot);
+    if (!firstAvailableTime && !isBusy && !isClosed) firstAvailableTime = timeWindow;
     const button = document.createElement("button");
     button.type = "button";
     button.className = selectedTime === timeWindow ? "choice active" : "choice";
     button.disabled = isBusy || isClosed;
     button.innerHTML = `
       <span class="dot" aria-hidden="true"></span>
-      <span>${timeWindow}<small>${slotStatusText(date, slot, isBusy)}</small></span>
+      <span>${slot.startTime}<small>${slotStatusText(date, slot, isBusy)}</small></span>
     `;
     button.addEventListener("click", () => {
       selectedTime = timeWindow;
@@ -391,8 +413,11 @@ function renderTimeWindows() {
 
   const selectedSlot = timeSlots().find((slot) => timeSlotLabel(slot) === selectedTime);
   if (busy.has(selectedTime) || !selectedSlot || !isSlotOpen(date, selectedSlot)) {
-    selectedTime = "";
+    selectedTime = firstAvailableTime;
+    if (selectedTime) renderTimeWindows();
+    return;
   }
+  updateBookingStepper();
 }
 
 function renderMiniCalendar() {
@@ -400,6 +425,7 @@ function renderMiniCalendar() {
   const date = selectedBookingDate();
   miniCalendar.innerHTML = "";
   statusDateTitle.textContent = thaiDate(date);
+  updateBookingDateDisplay();
 
   timeSlots().forEach((slot) => {
     const timeWindow = timeSlotLabel(slot);
@@ -412,19 +438,56 @@ function renderMiniCalendar() {
   });
 }
 
-bookingForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(bookingForm);
+function updateBookingDateDisplay() {
+  if (bookingDateDisplay) bookingDateDisplay.textContent = thaiDate(selectedBookingDate());
+}
 
+function setBookingStep(step) {
+  bookingStep = step;
+  bookingStepPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.bookingStep !== step;
+  });
+  updateBookingStepper();
+  bookingForm?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function updateBookingStepper() {
+  const hasService = selectedServices.size > 0;
+  const hasDate = Boolean(selectedBookingDate());
+  const hasTime = Boolean(selectedTime);
+  bookingStepIndicators.forEach((indicator) => {
+    const step = indicator.dataset.stepIndicator;
+    const isActive = step === "contact" ? bookingStep === "contact" : bookingStep === "details";
+    const isComplete = (step === "details" && hasService)
+      || (step === "date" && hasDate)
+      || (step === "time" && hasTime)
+      || (step === "contact" && bookingStep === "contact");
+    indicator.classList.toggle("is-active", isActive);
+    indicator.classList.toggle("is-complete", isComplete);
+  });
+}
+
+function validateBookingDetails() {
   if (selectedServices.size === 0) {
     serviceError.hidden = false;
-    return;
+    serviceOptions?.focus();
+    return false;
   }
 
   if (!selectedTime) {
     showToast("กรุณาเลือกช่วงเวลาที่สะดวก");
-    return;
+    timeOptions?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return false;
   }
+
+  return true;
+}
+
+bookingForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(bookingForm);
+
+  if (!validateBookingDetails()) return;
 
   if (!privacyConsent?.checked) {
     if (privacyError) privacyError.hidden = false;
@@ -458,6 +521,7 @@ bookingForm.addEventListener("submit", async (event) => {
   if (privacyError) privacyError.hidden = true;
   selectedServices.clear();
   selectedTime = "";
+  setBookingStep("details");
   saveState();
   render();
 
@@ -516,7 +580,20 @@ bookingForm.addEventListener("submit", async (event) => {
   }
 });
 
-bookingDate.addEventListener("change", render);
+serviceOptions?.addEventListener("change", () => {
+  selectedServices.clear();
+  if (serviceOptions.value) selectedServices.add(serviceOptions.value);
+  serviceError.hidden = true;
+  updateBookingStepper();
+});
+bookingNextButton?.addEventListener("click", () => {
+  if (validateBookingDetails()) setBookingStep("contact");
+});
+bookingBackButton?.addEventListener("click", () => setBookingStep("details"));
+bookingDate.addEventListener("change", () => {
+  selectedTime = "";
+  render();
+});
 privacyConsent?.addEventListener("change", () => {
   if (privacyConsent.checked && privacyError) privacyError.hidden = true;
 });

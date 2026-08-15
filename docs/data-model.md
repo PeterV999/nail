@@ -166,26 +166,6 @@ created_at
 updated_at
 ```
 
-## Legacy: calendar_integrations
+## Removed Legacy: Google Calendar
 
-ตารางนี้มาจากแนวทางเดิมที่เคยเชื่อม Google Calendar
-
-แนวทางปัจจุบันไม่ใช้ตารางนี้ใน flow เจ้าของร้านและลูกค้าแล้ว ให้คงไว้ก่อนจนกว่าจะทำ migration ล้าง production อย่างปลอดภัย
-
-```text
-id
-shop_id
-provider
-calendar_id
-access_token_encrypted
-refresh_token_encrypted
-token_type
-scope
-access_token_expires_at
-connected_by
-last_sync_error
-connected_at
-updated_at
-```
-
-หมายเหตุ: อย่าเพิ่ม flow ใหม่ที่พึ่งตารางนี้ ยกเว้นเป็นงาน migration หรือ compatibility ชั่วคราว
+source schema ปัจจุบันไม่ใช้ Google Calendar แล้ว ตารางหรือคอลัมน์จากแนวทางเดิมไม่ควรอยู่ใน schema ใหม่

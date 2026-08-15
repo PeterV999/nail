@@ -4,7 +4,7 @@
 
 - `index.html` คือหน้าลูกค้าสาธารณะ
 - `owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
-- `_redirects` ทำให้ URL production ใช้ `/` เป็นหน้า preview, `/fah`, `/fah-owner`, `/:shopSlug`, `/:shopSlug-owner`, route เก่า `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/register`
+- `_redirects` ทำให้ URL production ใช้ `/` เป็นหน้า preview, `/fah`, `/fah-owner`, และ `/register`
 - `customer.js` ดูแล flow จองคิวฝั่งลูกค้า
 - `owner.js` ดูแล flow หลังบ้าน
 - `register.js` ดูแล flow ลงทะเบียนร้านใหม่
@@ -30,7 +30,7 @@ Production branch: main
 npx wrangler pages deploy . --project-name bookingnail --branch main
 ```
 
-หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260813-34`
+หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260815-03`
 
 เอกสารอ้างอิง:
 
@@ -42,9 +42,6 @@ npx wrangler pages deploy . --project-name bookingnail --branch main
 ```text
 SUPABASE_URL
 SUPABASE_ANON_KEY
-GOOGLE_OAUTH_CLIENT_ID
-GOOGLE_OAUTH_CLIENT_SECRET
-GOOGLE_TOKEN_ENCRYPTION_KEY
 APP_URL
 ```
 
@@ -55,12 +52,21 @@ Production domain: https://bookingnail.pages.dev
 Public booking: /fah
 Owner dashboard: /fah-owner
 Platform preview: /
-Future shop routes: /{shopSlug} and /{shopSlug}-owner
+Other shop routes: /?shop={shopSlug} and /fah-owner?shop={shopSlug}
 New shop registration: /register
 Platform admin: /admin
+Closed legacy routes: /b/{shopSlug}, /book/{shopSlug}, /o/{shopSlug}, /dashboard/{shopSlug}
 ```
 
 หมายเหตุสำหรับ `*.pages.dev`: Cloudflare Pages ไม่รองรับการเปลี่ยน subdomain ของ project เดิมจาก `fah-nail-booking.pages.dev` เป็น `bookingnail.pages.dev` โดยตรง ถ้าต้องใช้ URL ใหม่เป็น `bookingnail.pages.dev` ให้สร้าง Pages project ใหม่ชื่อ `bookingnail` แล้วเชื่อม repository/branch เดิม จากนั้นตั้งค่า Supabase redirect ให้ตรงกับ domain ใหม่ก่อนใช้งานจริง
+
+หลังย้ายมาใช้ `bookingnail.pages.dev` แล้ว ให้ลบ Pages project เก่า `fah-nail-booking` ใน Cloudflare หากไม่มี production traffic ที่ต้องเก็บไว้แล้ว
+
+## Legacy Cleanup
+
+- Route เก่า `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, และ `/dashboard/:shopSlug` ถูกถอดออกจาก `_redirects`, dev server, และ service worker แล้ว
+- หาก production Supabase เคยมี Google Calendar objects จาก deployment เก่า ให้ backup ก่อน แล้ว run `supabase/remove-legacy-calendar.sql` ใน SQL Editor
+- หลัง deploy ให้เปิด old routes เพื่อยืนยันว่าไม่ควรได้ `200 OK`
 
 ## PWA + Admin Deployment Notes
 

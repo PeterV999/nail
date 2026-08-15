@@ -25,15 +25,9 @@ function routePath(pathname) {
   if (pathname === "/fah") return "index.html";
   if (pathname === "/fah-owner") return "owner.html";
   if (pathname === "/admin" || pathname === "/admin/") return "admin/index.html";
-  if (pathname.startsWith("/b/")) return "index.html";
-  if (pathname.startsWith("/o/")) return "owner.html";
-  if (pathname.startsWith("/book/")) return "index.html";
-  if (pathname.startsWith("/dashboard/")) return "owner.html";
-  if (pathname === "/register" || pathname === "/register/") return "register.html";
+  if (pathname === "/register" || pathname === "/register/") return "register/index.html";
   if (pathname === "/privacy" || pathname === "/privacy/") return "privacy/index.html";
   if (pathname === "/terms" || pathname === "/terms/") return "terms/index.html";
-  if (parts.length === 1 && first.endsWith("-owner")) return "owner.html";
-  if (parts.length === 1 && first && !reservedRoutes.has(first) && !staticFilePattern.test(first)) return "index.html";
   return pathname.replace(/^\/+/, "");
 }
 

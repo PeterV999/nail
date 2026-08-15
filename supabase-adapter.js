@@ -106,9 +106,8 @@
     "manifest.webmanifest",
     "owner.html",
     "privacy",
-    "privacy.html",
     "register",
-    "register.html"
+    "terms"
   ]);
 
   const publicShopAliases = {
@@ -137,10 +136,6 @@
     const queryShop = params.get("shop");
     if (queryShop) return queryShop;
 
-    if ((firstPart === "book" || firstPart === "dashboard" || firstPart === "b" || firstPart === "o") && parts[1]) {
-      return shopSlugFromPublicPath(parts[1]) || parts[1];
-    }
-
     if (firstPart.endsWith("-owner")) {
       return shopSlugFromPublicPath(firstPart.slice(0, -6)) || config().shopSlug || "fah-nail";
     }
@@ -153,14 +148,23 @@
       return {
         booking: localPageUrl("index.html", slug),
         dashboard: localPageUrl("owner.html", slug),
-        register: localPageUrl("register.html")
+        register: "/register"
       };
     }
 
-    const publicSlug = encodeURIComponent(publicPathFromShopSlug(slug));
+    const publicSlug = publicPathFromShopSlug(slug);
+    if (publicSlug !== "fah") {
+      const querySlug = encodeURIComponent(slug);
+      return {
+        booking: `/?shop=${querySlug}`,
+        dashboard: `/fah-owner?shop=${querySlug}`,
+        register: "/register/"
+      };
+    }
+
     return {
-      booking: `/${publicSlug}`,
-      dashboard: `/${publicSlug}-owner`,
+      booking: "/fah",
+      dashboard: "/fah-owner",
       register: "/register/"
     };
   }
@@ -675,6 +679,21 @@
     return true;
   }
 
+  async function completeAppointment(appointmentId, slug = routeShopSlug()) {
+    const db = client();
+    if (!db) return false;
+
+    const shop = await getShop(slug);
+    const { error } = await db
+      .from("appointments")
+      .update({ status: "completed", updated_at: new Date().toISOString() })
+      .eq("id", appointmentId)
+      .eq("shop_id", shop.id);
+
+    if (error) throw error;
+    return true;
+  }
+
   async function createService(name, slug = routeShopSlug()) {
     const db = client();
     if (!db) return false;
@@ -986,6 +1005,7 @@
     removeShopLogo,
     createOwnerAppointment,
     cancelAppointment,
+    completeAppointment,
     createService,
     updateService,
     deleteService,

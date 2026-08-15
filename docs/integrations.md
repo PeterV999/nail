@@ -35,10 +35,6 @@ MVP ของแจ้งเตือนในแอพจะคำนวณจ�
 
 ยังไม่ทำ push notification จริงบนมือถือในช่วงแรก
 
-## Future Cleanup
+## Removed Legacy
 
-ข้อมูลเก่าที่เกี่ยวกับ Google Calendar ให้ถือเป็น legacy จนกว่าจะทำ migration ล้าง production อย่างปลอดภัย:
-
-- `calendar_integrations`
-- `google_calendar_event_id`
-- `google_calendar_name`
+source schema ปัจจุบันไม่ใช้ Google Calendar แล้ว หาก production Supabase ยังมีตารางหรือคอลัมน์เก่าจาก deployment ก่อนหน้า ให้ตรวจและลบด้วย SQL migration แยกต่างหากหลัง backup ข้อมูลแล้ว

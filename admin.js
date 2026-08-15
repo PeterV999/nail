@@ -361,7 +361,7 @@ function shopUrl(slug, type) {
   const urls = window.FahNailSupabase?.shopUrls?.(slug);
   if (urls?.[type]) return urls[type];
   const encoded = encodeURIComponent(slug);
-  return type === "dashboard" ? `/o/${encoded}` : `/b/${encoded}`;
+  return type === "dashboard" ? `/fah-owner?shop=${encoded}` : `/?shop=${encoded}`;
 }
 
 function contactValue(label, value) {

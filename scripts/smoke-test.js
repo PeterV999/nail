@@ -8,11 +8,18 @@ const routes = [
   { path: "/", includes: ["home-preview", "BookingNail"] },
   { path: "/fah", includes: ["customer-title", "จองคิวทำเล็บ"] },
   { path: "/fah-owner", includes: ["owner-auth-panel", "เข้าสู่ระบบหลังบ้าน"] },
-  { path: "/demo-shop", includes: ["customer-title", "จองคิวทำเล็บ"] },
-  { path: "/demo-shop-owner", includes: ["owner-auth-panel", "เข้าสู่ระบบหลังบ้าน"] },
   { path: "/privacy", includes: ["นโยบายความเป็นส่วนตัว"] },
   { path: "/terms", includes: ["ข้อตกลงการใช้งาน"] },
   { path: "/admin/", includes: ["admin-auth-panel", "ศูนย์ดูแลร้าน"] },
+];
+
+const legacyRoutes = [
+  "/demo-shop",
+  "/demo-shop-owner",
+  "/b/fah-nail",
+  "/o/fah-nail",
+  "/book/fah-nail",
+  "/dashboard/fah-nail"
 ];
 
 function wait(ms) {
@@ -41,6 +48,11 @@ async function assertRoute(route) {
   }
 }
 
+async function assertLegacyRouteClosed(path) {
+  const response = await fetch(`${baseUrl}${path}`);
+  if (response.ok) throw new Error(`${path} should be closed but returned ${response.status}`);
+}
+
 async function main() {
   const server = spawn(process.execPath, ["scripts/dev-server.js"], {
     cwd: process.cwd(),
@@ -58,7 +70,10 @@ async function main() {
     for (const route of routes) {
       await assertRoute(route);
     }
-    console.log(`Smoke test passed for ${routes.length} routes`);
+    for (const legacyRoute of legacyRoutes) {
+      await assertLegacyRouteClosed(legacyRoute);
+    }
+    console.log(`Smoke test passed for ${routes.length} routes and ${legacyRoutes.length} closed legacy routes`);
   } finally {
     server.kill();
   }
