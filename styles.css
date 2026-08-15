@@ -3357,9 +3357,15 @@ body.customer-page #customer .time-options .choice:disabled {
 }
 
 .calendar-section-head .hint {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   color: #8c8f9f;
   font-weight: 600;
+  line-height: 1.28;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calendar-open-button {
@@ -3371,6 +3377,7 @@ body.customer-page #customer .time-options .choice:disabled {
   color: #d74379;
   background: rgba(255, 240, 246, .9);
   font-weight: 800;
+  white-space: nowrap;
 }
 
 body.customer-page #customer .date-field {
@@ -4228,13 +4235,14 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   }
 
   .calendar-section-head {
-    align-items: flex-start;
+    align-items: center;
+    gap: 10px;
   }
 
   .calendar-open-button {
     min-height: 40px;
     padding-inline: 12px;
-    white-space: nowrap;
+    font-size: .92rem;
   }
 
   .date-quick-chip {
@@ -4350,6 +4358,181 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   opacity: .56;
 }
 
+@media (max-width: 430px) {
+  body.customer-page #customer .booking-panel {
+    padding: clamp(20px, 5.9vw, 30px);
+    border-radius: 30px;
+  }
+
+  body.customer-page #customer .customer-hero .eyebrow {
+    margin-bottom: 16px;
+    font-size: clamp(1.12rem, 5.2vw, 1.5rem);
+  }
+
+  body.customer-page #customer .customer-hero h1 {
+    font-size: clamp(1.85rem, 7.9vw, 2.65rem);
+  }
+
+  body.customer-page #customer .customer-hero .lead {
+    max-width: 300px;
+    margin-top: 10px;
+    font-size: .9rem;
+    line-height: 1.45;
+  }
+
+  .booking-stepper {
+    gap: 9px;
+    margin: 20px 0 22px;
+  }
+
+  .booking-step {
+    gap: 6px;
+  }
+
+  .booking-step span {
+    width: clamp(44px, 12.4vw, 54px);
+    height: clamp(44px, 12.4vw, 54px);
+    font-size: 1.18rem;
+  }
+
+  .booking-step strong {
+    font-size: clamp(.66rem, 2.45vw, .82rem);
+  }
+
+  .booking-step-panel {
+    gap: 18px;
+  }
+
+  body.customer-page #customer fieldset {
+    gap: 8px;
+  }
+
+  body.customer-page #customer legend {
+    font-size: 1.08rem;
+  }
+
+  .calendar-section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .calendar-section-head .hint {
+    font-size: .86rem;
+  }
+
+  .calendar-open-button {
+    min-height: 38px;
+    padding: 7px 11px;
+    font-size: .86rem;
+  }
+
+  .date-quick-options {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .date-quick-chip {
+    min-width: 76px;
+    min-height: 104px;
+    padding: 9px 8px;
+  }
+
+  body.customer-page #customer .time-options {
+    gap: 10px;
+  }
+
+  body.customer-page #customer .time-options .choice {
+    min-height: 68px;
+    border-radius: 15px;
+  }
+}
+
+@media (max-width: 390px) {
+  body.customer-page #customer .booking-panel {
+    padding: 20px;
+    border-radius: 26px;
+  }
+
+  body.customer-page #customer .customer-hero .eyebrow {
+    margin-bottom: 12px;
+  }
+
+  body.customer-page #customer .customer-hero .lead {
+    font-size: .86rem;
+  }
+
+  .booking-stepper {
+    gap: 7px;
+    margin: 18px 0 20px;
+  }
+
+  .booking-step span {
+    width: 44px;
+    height: 44px;
+  }
+
+  .booking-step-panel {
+    gap: 16px;
+  }
+
+  body.customer-page #customer legend {
+    font-size: 1.02rem;
+  }
+
+  .calendar-section-head .hint {
+    font-size: .82rem;
+  }
+
+  .calendar-open-button {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: .82rem;
+  }
+
+  .date-quick-chip {
+    min-width: 72px;
+    min-height: 98px;
+  }
+}
+
+@media (max-width: 370px) {
+  body.customer-page #customer .booking-panel {
+    padding: 18px;
+  }
+
+  .booking-stepper {
+    gap: 6px;
+  }
+
+  .booking-step span {
+    width: 42px;
+    height: 42px;
+    font-size: 1.1rem;
+  }
+
+  .booking-step strong {
+    font-size: .62rem;
+  }
+
+  .calendar-section-head {
+    gap: 6px;
+  }
+
+  .calendar-section-head .hint {
+    font-size: .78rem;
+  }
+
+  .calendar-open-button {
+    padding-inline: 9px;
+  }
+
+  .date-quick-chip {
+    min-width: 70px;
+    min-height: 96px;
+  }
+}
+
 @media (max-width: 420px) {
   .service-options {
     grid-template-columns: 1fr;
@@ -4415,13 +4598,6 @@ body.customer-page #customer .booking-form-actions .secondary-button {
     padding: 9px 10px;
   }
 
-  .calendar-section-head {
-    display: grid;
-  }
-
-  .calendar-open-button {
-    width: 100%;
-  }
 
   body.customer-page #customer .time-options {
     grid-template-columns: repeat(3, minmax(0, 1fr));
