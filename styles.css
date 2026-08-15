@@ -3222,18 +3222,18 @@ body.customer-page #customer .date-field {
 .service-choice-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .service-choice {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
   align-items: center;
-  min-height: 58px;
-  padding: 12px 14px;
+  min-height: 50px;
+  padding: 9px 10px;
   border: 2px solid rgba(113, 79, 95, .1);
-  border-radius: 16px;
+  border-radius: 14px;
   color: #35405a;
   background: rgba(255, 255, 255, .76);
   box-shadow: 0 12px 24px rgba(63, 54, 86, .04);
@@ -3249,8 +3249,8 @@ body.customer-page #customer .date-field {
 }
 
 .service-check {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border: 2px solid rgba(128, 82, 100, .22);
   border-radius: 7px;
   background: #fff;
@@ -3259,7 +3259,7 @@ body.customer-page #customer .date-field {
 .service-choice.active .service-check {
   border-color: #f06f98;
   background: #f06f98;
-  box-shadow: inset 0 0 0 4px #fff;
+  box-shadow: inset 0 0 0 3px #fff;
 }
 
 .service-limit-hint {
@@ -3347,60 +3347,6 @@ body.customer-page #customer .time-options .choice:disabled {
   color: #b7aeb7;
   background: #f5f0f3;
   opacity: .78;
-}
-
-.booking-service-card {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  gap: 16px;
-  align-items: center;
-  min-height: 128px;
-  padding: 14px;
-  border: 1px solid rgba(113, 79, 95, .1);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(255, 248, 252, .9));
-  box-shadow: 0 16px 32px rgba(65, 49, 76, .08);
-}
-
-.booking-service-thumb {
-  display: grid;
-  place-items: center;
-  width: 104px;
-  height: 96px;
-  border-radius: 14px;
-  overflow: hidden;
-  color: #fff;
-  background:
-    radial-gradient(circle at 36% 28%, rgba(255, 255, 255, .86), transparent 18%),
-    radial-gradient(circle at 70% 74%, rgba(141, 207, 255, .64), transparent 34%),
-    linear-gradient(135deg, #ffd7e5, #f25b93 58%, #8dcfff);
-  font-size: 1.35rem;
-  font-weight: 900;
-  letter-spacing: -.04em;
-}
-
-.service-card-kicker {
-  margin: 0 0 4px;
-  color: #e94982;
-  font-size: .78rem;
-  font-weight: 800;
-}
-
-.booking-service-card h2 {
-  margin: 0;
-  color: #252033;
-  font-size: clamp(1.28rem, 5vw, 1.7rem);
-  line-height: 1.18;
-  letter-spacing: -.04em;
-}
-
-.booking-service-card p:last-child {
-  margin: 8px 0 0;
-  color: #737b90;
-  font-size: .9rem;
-  font-weight: 600;
-  line-height: 1.4;
 }
 
 .calendar-section-head {
@@ -4281,19 +4227,6 @@ body.customer-page #customer .booking-form-actions .secondary-button {
     margin-top: 18px;
   }
 
-  .booking-service-card {
-    grid-template-columns: 84px minmax(0, 1fr);
-    gap: 12px;
-    min-height: 108px;
-    padding: 12px;
-    border-radius: 16px;
-  }
-
-  .booking-service-thumb {
-    width: 84px;
-    height: 82px;
-  }
-
   .calendar-section-head {
     align-items: flex-start;
   }
@@ -4418,9 +4351,28 @@ body.customer-page #customer .booking-form-actions .secondary-button {
 }
 
 @media (max-width: 420px) {
-  .service-options,
-  .service-choice-list {
+  .service-options {
     grid-template-columns: 1fr;
+  }
+
+  .service-choice-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .service-choice {
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 7px;
+    min-height: 46px;
+    padding: 8px 9px;
+    border-radius: 13px;
+    font-size: .9rem;
+  }
+
+  .service-check {
+    width: 15px;
+    height: 15px;
+    border-radius: 5px;
   }
 
   .owner-stats {
@@ -4461,15 +4413,6 @@ body.customer-page #customer .booking-form-actions .secondary-button {
 
   .tab-link {
     padding: 9px 10px;
-  }
-
-  .booking-service-card {
-    grid-template-columns: 1fr;
-  }
-
-  .booking-service-thumb {
-    width: 100%;
-    height: 86px;
   }
 
   .calendar-section-head {

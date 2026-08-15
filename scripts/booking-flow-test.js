@@ -54,12 +54,16 @@ async function main() {
     await page.goto(`${baseUrl}/fah`, { waitUntil: "networkidle" });
 
     await page.locator(".service-choice").nth(1).click();
-    const selectedServices = await page.locator(".service-choice.active").count();
-    if (selectedServices !== 2) throw new Error(`Expected 2 selected services, got ${selectedServices}`);
-
     await page.locator(".service-choice").nth(2).click();
+    await page.locator(".service-choice").nth(3).click();
+    const selectedServices = await page.locator(".service-choice.active").count();
+    if (selectedServices !== 4) throw new Error(`Expected 4 selected services, got ${selectedServices}`);
+
+    await page.locator(".service-choice").nth(4).click();
     const cappedServices = await page.locator(".service-choice.active").count();
-    if (cappedServices !== 2) throw new Error(`Service selection cap failed, got ${cappedServices}`);
+    if (cappedServices !== 4) throw new Error(`Service selection cap failed, got ${cappedServices}`);
+    const serviceError = await page.locator("#service-error").textContent();
+    if (!serviceError?.includes("4")) throw new Error(`Expected service limit error for 4 services, got: ${serviceError}`);
 
     const beforeDate = await page.locator("#booking-date-display").textContent();
     await page.locator(".date-quick-chip.available").nth(1).click();
@@ -83,9 +87,9 @@ async function main() {
 
     await page.locator("#booking-success-dialog").waitFor({ state: "visible", timeout: 5000 });
     const summary = await page.locator("#booking-success-summary").textContent();
-    if (!summary || !summary.includes(",")) throw new Error(`Expected two services in summary, got: ${summary}`);
+    if (!summary || !summary.includes(",")) throw new Error(`Expected selected services in summary, got: ${summary}`);
 
-    console.log("Booking flow test passed: 2 services, quick date, calendar sheet, and submit success");
+    console.log("Booking flow test passed: 4 services, quick date, calendar sheet, and submit success");
   } finally {
     if (browser) await browser.close();
     server.kill();

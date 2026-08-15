@@ -1,6 +1,6 @@
 const STORAGE_KEY = "bookingnail-local-state";
 const LEGACY_STORAGE_KEY = "fah-nail-booking-demo";
-const SERVICE_LIMIT = 2;
+const SERVICE_LIMIT = 4;
 const today = localDateString();
 
 const defaultTimeSlots = [
@@ -45,8 +45,6 @@ const calendarSheetGrid = document.getElementById("calendar-sheet-grid");
 const calendarPrevMonth = document.getElementById("calendar-prev-month");
 const calendarNextMonth = document.getElementById("calendar-next-month");
 const calendarConfirmButton = document.getElementById("calendar-confirm-button");
-const selectedServiceSummary = document.getElementById("selected-service-summary");
-const selectedServiceMeta = document.getElementById("selected-service-meta");
 const bookingForm = document.getElementById("booking-form");
 const customerSection = document.getElementById("customer");
 const homePreview = document.getElementById("home-preview");
@@ -312,7 +310,6 @@ function busyWindows(date = selectedBookingDate()) {
 function render() {
   renderShopChrome();
   renderServices();
-  renderServiceSummary();
   renderDateQuickOptions();
   renderTimeWindows();
   renderMiniCalendar();
@@ -425,16 +422,6 @@ function toggleService(serviceName) {
   serviceError.textContent = "กรุณาเลือกบริการอย่างน้อย 1 รายการ";
   serviceError.hidden = true;
   renderServices();
-}
-
-function renderServiceSummary() {
-  if (!selectedServiceSummary || !selectedServiceMeta) return;
-
-  const services = Array.from(selectedServices);
-  selectedServiceSummary.textContent = services.length ? services.join(" + ") : "เลือกบริการ";
-  selectedServiceMeta.textContent = services.length > 1
-    ? "เลือกไว้ " + services.length + " รายการ | ร้านยืนยันคิวภายหลัง"
-    : "เลือกได้สูงสุด 2 รายการ | ร้านยืนยันคิวภายหลัง";
 }
 
 function renderDateQuickOptions() {

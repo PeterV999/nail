@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260815-08">
+    <link rel="stylesheet" href="styles.css?v=20260815-09">
   </head>
   <body class="customer-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -131,21 +131,10 @@
 
               <form id="booking-form" class="booking-form">
                 <div class="booking-step-panel" data-booking-step="details">
-                  <article class="booking-service-card" aria-label="บริการที่เลือก">
-                    <div class="booking-service-thumb" aria-hidden="true">
-                      <span>BN</span>
-                    </div>
-                    <div>
-                      <p class="service-card-kicker">บริการที่เลือก</p>
-                      <h2 id="selected-service-summary">กำลังโหลดบริการ</h2>
-                      <p id="selected-service-meta">เลือกรายการที่ต้องการ แล้วร้านจะยืนยันเวลาอีกครั้ง</p>
-                    </div>
-                  </article>
-
                   <fieldset class="booking-select-fieldset">
                     <legend>เลือกบริการ</legend>
                     <div class="service-choice-list" id="service-options" aria-label="เลือกบริการ"></div>
-                    <p class="hint service-limit-hint">เลือกได้สูงสุด 2 รายการ</p>
+                    <p class="hint service-limit-hint">เลือกได้สูงสุด 4 รายการ</p>
                   </fieldset>
                   <p class="form-error" id="service-error" hidden>กรุณาเลือกบริการอย่างน้อย 1 รายการ</p>
 
@@ -271,9 +260,9 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="app-config.js?v=20260815-08"></script>
-    <script src="supabase-adapter.js?v=20260815-08"></script>
-    <script src="pwa.js?v=20260815-08"></script>
-    <script src="customer.js?v=20260815-08"></script>
+    <script src="app-config.js?v=20260815-09"></script>
+    <script src="supabase-adapter.js?v=20260815-09"></script>
+    <script src="pwa.js?v=20260815-09"></script>
+    <script src="customer.js?v=20260815-09"></script>
   </body>
 </html>
