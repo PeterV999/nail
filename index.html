@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260815-05">
+    <link rel="stylesheet" href="styles.css?v=20260815-06">
   </head>
   <body class="customer-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -133,10 +133,8 @@
                 <div class="booking-step-panel" data-booking-step="details">
                   <fieldset class="booking-select-fieldset">
                     <legend>เลือกบริการ</legend>
-                    <label class="booking-select-field">
-                      <span class="sr-only">บริการ</span>
-                      <select id="service-options" name="serviceName" required></select>
-                    </label>
+                    <div class="service-choice-list" id="service-options" aria-label="เลือกบริการ"></div>
+                    <p class="hint service-limit-hint">เลือกได้สูงสุด 2 รายการ</p>
                   </fieldset>
                   <p class="form-error" id="service-error" hidden>กรุณาเลือกบริการอย่างน้อย 1 รายการ</p>
 
@@ -147,6 +145,7 @@
                       <input type="date" name="bookingDate" id="booking-date" required>
                       <span class="booking-date-display" id="booking-date-display">เลือกวันที่</span>
                     </label>
+                    <div class="date-quick-options" id="date-quick-options" aria-label="เลือกวันที่แบบเร็ว"></div>
                   </fieldset>
 
                   <fieldset class="booking-time-fieldset">
@@ -230,9 +229,9 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="app-config.js?v=20260815-05"></script>
-    <script src="supabase-adapter.js?v=20260815-05"></script>
-    <script src="pwa.js?v=20260815-05"></script>
-    <script src="customer.js?v=20260815-05"></script>
+    <script src="app-config.js?v=20260815-06"></script>
+    <script src="supabase-adapter.js?v=20260815-06"></script>
+    <script src="pwa.js?v=20260815-06"></script>
+    <script src="customer.js?v=20260815-06"></script>
   </body>
 </html>

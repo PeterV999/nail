@@ -1,6 +1,7 @@
 const STORAGE_KEY = "bookingnail-local-state";
 const LEGACY_STORAGE_KEY = "fah-nail-booking-demo";
-const today = new Date().toISOString().slice(0, 10);
+const SERVICE_LIMIT = 2;
+const today = localDateString();
 
 const defaultTimeSlots = [
   { id: "slot-0800", startTime: "08:00", endTime: "10:00", active: true },
@@ -36,6 +37,7 @@ const timeOptions = document.getElementById("time-options");
 const miniCalendar = document.getElementById("mini-calendar");
 const bookingDate = document.getElementById("booking-date");
 const bookingDateDisplay = document.getElementById("booking-date-display");
+const dateQuickOptions = document.getElementById("date-quick-options");
 const bookingForm = document.getElementById("booking-form");
 const customerSection = document.getElementById("customer");
 const homePreview = document.getElementById("home-preview");
@@ -162,6 +164,8 @@ function initTurnstile() {
   }
 
   turnstileField.hidden = false;
+  if (bookingStep !== "contact") return;
+
   if (turnstileWidgetId || !window.turnstile?.ready) {
     if (!turnstileWidgetId) window.setTimeout(initTurnstile, 300);
     return;
@@ -289,6 +293,7 @@ function busyWindows(date = selectedBookingDate()) {
 function render() {
   renderShopChrome();
   renderServices();
+  renderDateQuickOptions();
   renderTimeWindows();
   renderMiniCalendar();
 }
@@ -358,33 +363,79 @@ function renderServices() {
   serviceOptions.innerHTML = "";
 
   if (!services.length) {
-    serviceOptions.disabled = true;
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "ยังไม่มีบริการที่เปิดรับจอง";
-    serviceOptions.append(option);
+    serviceOptions.setAttribute("aria-disabled", "true");
+    serviceOptions.innerHTML = '<div class="empty-state">ยังไม่มีบริการที่เปิดรับจอง</div>';
     selectedServices.clear();
     updateBookingStepper();
     return;
   }
 
-  serviceOptions.disabled = false;
+  serviceOptions.removeAttribute("aria-disabled");
   if (!services.some((service) => selectedServices.has(service.name))) {
     selectedServices.clear();
     selectedServices.add(services[0].name);
   }
 
   services.forEach((service) => {
-    const option = document.createElement("option");
-    option.value = service.name;
-    option.textContent = service.name;
-    option.selected = selectedServices.has(service.name);
-    serviceOptions.append(option);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = selectedServices.has(service.name) ? "service-choice active" : "service-choice";
+    button.setAttribute("aria-pressed", selectedServices.has(service.name) ? "true" : "false");
+    button.dataset.serviceName = service.name;
+    button.innerHTML = '<span class="service-check" aria-hidden="true"></span><span>' + escapeHtml(service.name) + '</span>';
+    button.addEventListener("click", () => toggleService(service.name));
+    serviceOptions.append(button);
   });
 
   updateBookingStepper();
 }
 
+function toggleService(serviceName) {
+  if (selectedServices.has(serviceName)) {
+    if (selectedServices.size > 1) selectedServices.delete(serviceName);
+  } else if (selectedServices.size < SERVICE_LIMIT) {
+    selectedServices.add(serviceName);
+  } else {
+    serviceError.textContent = "เลือกบริการได้สูงสุด " + SERVICE_LIMIT + " รายการ";
+    serviceError.hidden = false;
+    return;
+  }
+
+  serviceError.textContent = "กรุณาเลือกบริการอย่างน้อย 1 รายการ";
+  serviceError.hidden = true;
+  renderServices();
+}
+
+function renderDateQuickOptions() {
+  if (!dateQuickOptions) return;
+  const selectedDate = selectedBookingDate();
+  dateQuickOptions.innerHTML = "";
+
+  for (let offset = 0; offset < 7; offset += 1) {
+    const date = parseLocalDate(today);
+    date.setDate(date.getDate() + offset);
+    const value = localDateString(date);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = value === selectedDate ? "date-quick-chip active" : "date-quick-chip";
+    button.textContent = offset === 0 ? "วันนี้" : shortThaiDate(value);
+    button.addEventListener("click", () => {
+      bookingDate.value = value;
+      selectedTime = "";
+      render();
+    });
+    dateQuickOptions.append(button);
+  }
+}
+
+function openDatePicker() {
+  if (!bookingDate) return;
+  if (typeof bookingDate.showPicker === "function") {
+    bookingDate.showPicker();
+    return;
+  }
+  bookingDate.focus();
+}
 function renderTimeWindows() {
   const busy = busyWindows();
   const date = selectedBookingDate();
@@ -448,6 +499,7 @@ function setBookingStep(step) {
     panel.hidden = panel.dataset.bookingStep !== step;
   });
   updateBookingStepper();
+  if (step === "contact") initTurnstile();
   bookingForm?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -497,7 +549,12 @@ bookingForm.addEventListener("submit", async (event) => {
 
   const turnstileResponse = currentTurnstileToken();
   if (isTurnstileRequired() && !turnstileResponse) {
-    if (turnstileError) turnstileError.hidden = false;
+    initTurnstile();
+    if (turnstileError) {
+      turnstileError.textContent = "กรุณายืนยันว่าไม่ใช่บอทก่อนส่งคำขอจอง";
+      turnstileError.hidden = false;
+    }
+    turnstileField.hidden = false;
     turnstileWidget?.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
@@ -580,16 +637,12 @@ bookingForm.addEventListener("submit", async (event) => {
   }
 });
 
-serviceOptions?.addEventListener("change", () => {
-  selectedServices.clear();
-  if (serviceOptions.value) selectedServices.add(serviceOptions.value);
-  serviceError.hidden = true;
-  updateBookingStepper();
-});
 bookingNextButton?.addEventListener("click", () => {
   if (validateBookingDetails()) setBookingStep("contact");
 });
 bookingBackButton?.addEventListener("click", () => setBookingStep("details"));
+bookingDateDisplay?.addEventListener("click", openDatePicker);
+bookingDate.addEventListener("click", openDatePicker);
 bookingDate.addEventListener("change", () => {
   selectedTime = "";
   render();
@@ -621,7 +674,26 @@ function thaiDate(value) {
     day: "numeric",
     month: "short",
     year: "numeric"
-  }).format(new Date(`${value}T00:00:00`));
+  }).format(parseLocalDate(value));
+}
+
+function shortThaiDate(value) {
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "short"
+  }).format(parseLocalDate(value));
+}
+
+function localDateString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalDate(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function showToast(message) {
@@ -679,7 +751,6 @@ async function init() {
     return;
   }
 
-  initTurnstile();
   setPageLoading(true, "กำลังโหลดข้อมูลร้าน", "กำลังดึงบริการ เวลา และคิวล่าสุด");
   bookingDate.value = today;
   bookingDate.min = today;

@@ -3177,7 +3177,6 @@ body.customer-page #customer legend {
   pointer-events: none;
 }
 
-body.customer-page #customer .booking-select-field select,
 body.customer-page #customer .booking-select-field input {
   min-height: 66px;
   padding: 18px 50px 18px 20px;
@@ -3194,6 +3193,7 @@ body.customer-page #customer .booking-select-field input {
 body.customer-page #customer .date-field input {
   position: absolute;
   inset: 0;
+  z-index: 2;
   min-height: 100%;
   opacity: 0;
   cursor: pointer;
@@ -3201,6 +3201,7 @@ body.customer-page #customer .date-field input {
 
 .booking-date-display {
   display: flex;
+  pointer-events: none;
   align-items: center;
   min-height: 66px;
   padding: 18px 50px 18px 20px;
@@ -3216,6 +3217,82 @@ body.customer-page #customer .date-field input {
 body.customer-page #customer .date-field {
   width: 100%;
   margin: 0;
+}
+
+.service-choice-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.service-choice {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 2px solid rgba(113, 79, 95, .1);
+  border-radius: 16px;
+  color: #35405a;
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 12px 24px rgba(63, 54, 86, .04);
+  font-weight: 800;
+  text-align: left;
+}
+
+.service-choice.active {
+  border-color: #f06f98;
+  color: #d74379;
+  background: #fff0f6;
+  box-shadow: 0 14px 26px rgba(233, 73, 130, .16);
+}
+
+.service-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(128, 82, 100, .22);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.service-choice.active .service-check {
+  border-color: #f06f98;
+  background: #f06f98;
+  box-shadow: inset 0 0 0 4px #fff;
+}
+
+.service-limit-hint {
+  margin: -2px 0 0;
+}
+
+.date-quick-options {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  scrollbar-width: none;
+}
+
+.date-quick-options::-webkit-scrollbar {
+  display: none;
+}
+
+.date-quick-chip {
+  flex: 0 0 auto;
+  min-height: 46px;
+  border: 1px solid rgba(113, 79, 95, .1);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #6f5362;
+  background: rgba(255, 255, 255, .76);
+  font-weight: 800;
+}
+
+.date-quick-chip.active {
+  color: #d74379;
+  border-color: #f06f98;
+  background: #fff0f6;
 }
 
 body.customer-page #customer .booking-time-fieldset {
@@ -3304,6 +3381,18 @@ body.customer-page #customer .contact-fields input,
 body.customer-page #customer .contact-fields textarea {
   min-height: 58px;
   border-radius: 16px;
+}
+
+body.customer-page #customer .turnstile-field {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid rgba(113, 79, 95, .1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .74);
+}
+
+body.customer-page #customer #turnstile-widget {
+  min-height: 65px;
 }
 
 .booking-form-actions {
@@ -3915,7 +4004,8 @@ body.customer-page #customer .booking-form-actions .secondary-button {
 }
 
 @media (max-width: 420px) {
-  .service-options {
+  .service-options,
+  .service-choice-list {
     grid-template-columns: 1fr;
   }
 
