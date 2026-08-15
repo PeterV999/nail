@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v38";
+const CACHE_VERSION = "v39";
 const STATIC_CACHE = `bookingnail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `bookingnail-pages-${CACHE_VERSION}`;
 
@@ -22,7 +22,7 @@ const STATIC_ASSETS = [
 const PAGE_ROUTES = [
   "/",
   "/index.html",
-  "/fah-owner.html",
+  "/fah-owner/index.html",
   "/privacy",
   "/privacy/index.html",
   "/terms",

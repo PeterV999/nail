@@ -100,7 +100,7 @@ Rollback:
 - `/admin/` สำหรับหลังบ้านกลางของผู้ดูแลระบบ และเป็นหน้าเริ่มต้นเมื่อเปิดแบบ PWA
 - `/register` สำหรับร้านใหม่ที่ต้องการลงทะเบียน
 - [index.html](index.html) เป็นไฟล์ implementation ของหน้าลูกค้า
-- [fah-owner.html](fah-owner.html) เป็นไฟล์ implementation ของหลังบ้าน
+- [fah-owner/index.html](fah-owner/index.html) เป็นไฟล์ implementation ของหลังบ้าน
 - [customer.js](customer.js) สำหรับ logic หน้าลูกค้า
 - [owner.js](owner.js) สำหรับ logic หลังบ้าน
 - [register.js](register.js) สำหรับ logic ลงทะเบียนร้านใหม่

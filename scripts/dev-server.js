@@ -23,7 +23,7 @@ function routePath(pathname) {
   const first = parts[0] || "";
   if (pathname === "/" || pathname === "") return "index.html";
   if (pathname === "/fah") return "index.html";
-  if (pathname === "/fah-owner") return "fah-owner.html";
+  if (pathname === "/fah-owner") return "fah-owner/index.html";
   if (pathname === "/admin" || pathname === "/admin/") return "admin/index.html";
   if (pathname === "/register" || pathname === "/register/") return "register/index.html";
   if (pathname === "/privacy" || pathname === "/privacy/") return "privacy/index.html";
