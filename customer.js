@@ -176,13 +176,14 @@ function initTurnstile() {
   turnstileField.hidden = false;
   if (bookingStep !== "contact") return;
 
-  if (turnstileWidgetId || !window.turnstile?.ready) {
-    if (!turnstileWidgetId) window.setTimeout(initTurnstile, 300);
+  if (turnstileWidgetId) return;
+
+  if (!window.turnstile?.render) {
+    window.setTimeout(initTurnstile, 300);
     return;
   }
 
-  window.turnstile.ready(() => {
-    if (turnstileWidgetId) return;
+  try {
     turnstileWidgetId = window.turnstile.render("#turnstile-widget", {
       sitekey: turnstileSiteKey(),
       action: "booking_request",
@@ -201,7 +202,15 @@ function initTurnstile() {
         if (turnstileError) turnstileError.hidden = false;
       }
     });
-  });
+  } catch (error) {
+    turnstileWidgetId = "";
+    turnstileToken = "";
+    console.warn("Turnstile render failed", error);
+    if (turnstileError) {
+      turnstileError.textContent = "ระบบยืนยันความปลอดภัยยังไม่พร้อม กรุณารอสักครู่แล้วลองอีกครั้ง";
+      turnstileError.hidden = false;
+    }
+  }
 }
 
 function currentTurnstileToken() {
