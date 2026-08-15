@@ -19,7 +19,9 @@ const legacyRoutes = [
   "/b/fah-nail",
   "/o/fah-nail",
   "/book/fah-nail",
-  "/dashboard/fah-nail"
+  "/dashboard/fah-nail",
+  "/owner",
+  "/owner.html"
 ];
 
 function wait(ms) {

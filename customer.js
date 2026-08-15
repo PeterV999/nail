@@ -297,7 +297,7 @@ function renderShopChrome() {
   const shop = state.shop || { name: "Fah Nail", slug: currentShopSlug };
   const urls = window.FahNailSupabase?.shopUrls?.(shop.slug || currentShopSlug) || {
     booking: "index.html",
-    dashboard: "owner.html",
+    dashboard: "/fah-owner",
     register: "/register"
   };
   const brand = document.querySelector(".brand");

@@ -58,7 +58,7 @@ BookingNail Platform
 - `/fah-owner?shop={shopSlug}` สำหรับหลังบ้านร้านอื่นแบบควบคุม route
 - `/register` สำหรับร้านใหม่ลงทะเบียน
 Route เก่า `/b/{shopSlug}`, `/book/{shopSlug}`, `/o/{shopSlug}`, และ `/dashboard/{shopSlug}` ถูกปิดแล้ว
-ชื่อไฟล์ `index.html` และ `owner.html` เป็นรายละเอียดภายในของ static hosting ไม่ควรใช้เป็น URL ที่ส่งให้ลูกค้าหรือเจ้าของร้าน
+ชื่อไฟล์ `index.html` และ `fah-owner.html` เป็นรายละเอียดภายในของ static hosting ไม่ควรใช้เป็น URL ที่ส่งให้ลูกค้าหรือเจ้าของร้าน
 
 ## หลักการออกแบบ
 

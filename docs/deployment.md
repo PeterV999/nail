@@ -3,7 +3,7 @@
 ## โครงสร้างเว็บจริงระยะแรก
 
 - `index.html` คือหน้าลูกค้าสาธารณะ
-- `owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
+- `fah-owner.html` คือหน้าร้านสำหรับเจ้าของร้าน
 - `_redirects` ทำให้ URL production ใช้ `/` เป็นหน้า preview, `/fah`, `/fah-owner`, และ `/register`
 - `customer.js` ดูแล flow จองคิวฝั่งลูกค้า
 - `owner.js` ดูแล flow หลังบ้าน
@@ -30,7 +30,7 @@ Production branch: main
 npx wrangler pages deploy . --project-name bookingnail --branch main
 ```
 
-หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260815-03`
+หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260815-04`
 
 เอกสารอ้างอิง:
 

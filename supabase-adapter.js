@@ -104,7 +104,7 @@
     "assets",
     "index.html",
     "manifest.webmanifest",
-    "owner.html",
+    "fah-owner.html",
     "privacy",
     "register",
     "terms"
@@ -147,7 +147,7 @@
     if (isLocalPreview()) {
       return {
         booking: localPageUrl("index.html", slug),
-        dashboard: localPageUrl("owner.html", slug),
+        dashboard: localPageUrl("fah-owner.html", slug),
         register: "/register"
       };
     }
@@ -357,7 +357,7 @@
     if (!db) return;
     const dashboardUrl = shopUrls(routeShopSlug()).dashboard;
     const redirectTo = options.redirectTo
-      || (isLocalPreview() ? localPageUrl("owner.html", routeShopSlug()) : new URL(dashboardUrl, window.location.origin).href)
+      || (isLocalPreview() ? localPageUrl("fah-owner.html", routeShopSlug()) : new URL(dashboardUrl, window.location.origin).href)
       || config().ownerRedirectUrl
       || window.location.href;
 

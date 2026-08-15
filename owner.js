@@ -430,7 +430,7 @@ function updateRouteLinks() {
   const shop = state.shop || { name: "Fah Nail", slug: currentShopSlug };
   const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || {
     booking: "index.html",
-    dashboard: "owner.html",
+    dashboard: "/fah-owner",
     register: "/register"
   };
   const customerLink = document.querySelector(".owner-link");
