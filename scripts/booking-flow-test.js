@@ -62,9 +62,17 @@ async function main() {
     if (cappedServices !== 2) throw new Error(`Service selection cap failed, got ${cappedServices}`);
 
     const beforeDate = await page.locator("#booking-date-display").textContent();
-    await page.locator(".date-quick-chip").nth(1).click();
-    const afterDate = await page.locator("#booking-date-display").textContent();
-    if (beforeDate === afterDate) throw new Error("Quick date did not update the selected date");
+    await page.locator(".date-quick-chip.available").nth(1).click();
+    const afterQuickDate = await page.locator("#booking-date-display").textContent();
+    if (beforeDate === afterQuickDate) throw new Error("Quick date did not update the selected date");
+
+    await page.locator("#calendar-open-button").click();
+    await page.locator("#calendar-sheet").waitFor({ state: "visible", timeout: 5000 });
+    await page.locator(".calendar-day-cell.available:not(.active)").first().click();
+    await page.locator("#calendar-confirm-button").click();
+    await page.waitForFunction(() => !document.querySelector("#calendar-sheet")?.open);
+    const afterCalendarDate = await page.locator("#booking-date-display").textContent();
+    if (afterCalendarDate === afterQuickDate) throw new Error("Calendar sheet date did not update the selected date");
 
     await page.locator("#booking-next-button").click();
     await page.locator('input[name="customerName"]').fill("test01");
@@ -77,7 +85,7 @@ async function main() {
     const summary = await page.locator("#booking-success-summary").textContent();
     if (!summary || !summary.includes(",")) throw new Error(`Expected two services in summary, got: ${summary}`);
 
-    console.log("Booking flow test passed: 2 services, quick date, and submit success");
+    console.log("Booking flow test passed: 2 services, quick date, calendar sheet, and submit success");
   } finally {
     if (browser) await browser.close();
     server.kill();

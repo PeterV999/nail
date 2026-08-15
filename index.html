@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260815-06">
+    <link rel="stylesheet" href="styles.css?v=20260815-07">
   </head>
   <body class="customer-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -131,6 +131,17 @@
 
               <form id="booking-form" class="booking-form">
                 <div class="booking-step-panel" data-booking-step="details">
+                  <article class="booking-service-card" aria-label="บริการที่เลือก">
+                    <div class="booking-service-thumb" aria-hidden="true">
+                      <span>BN</span>
+                    </div>
+                    <div>
+                      <p class="service-card-kicker">บริการที่เลือก</p>
+                      <h2 id="selected-service-summary">กำลังโหลดบริการ</h2>
+                      <p id="selected-service-meta">เลือกรายการที่ต้องการ แล้วร้านจะยืนยันเวลาอีกครั้ง</p>
+                    </div>
+                  </article>
+
                   <fieldset class="booking-select-fieldset">
                     <legend>เลือกบริการ</legend>
                     <div class="service-choice-list" id="service-options" aria-label="เลือกบริการ"></div>
@@ -140,12 +151,21 @@
 
                   <fieldset class="booking-select-fieldset">
                     <legend>เลือกวันที่</legend>
-                    <label class="booking-select-field date-field">
+                    <div class="calendar-section-head">
+                      <p class="hint">ดูสถานะว่าง เต็ม หรือวันปิดร้านได้ทันที</p>
+                      <button class="calendar-open-button" type="button" id="calendar-open-button">ดูปฏิทิน</button>
+                    </div>
+                    <label class="booking-select-field date-field" aria-label="วันที่ที่เลือก">
                       <span class="sr-only">วันที่ต้องการ</span>
                       <input type="date" name="bookingDate" id="booking-date" required>
                       <span class="booking-date-display" id="booking-date-display">เลือกวันที่</span>
                     </label>
                     <div class="date-quick-options" id="date-quick-options" aria-label="เลือกวันที่แบบเร็ว"></div>
+                    <div class="date-status-legend" aria-label="คำอธิบายสถานะวัน">
+                      <span><i class="legend-dot available"></i>ว่าง</span>
+                      <span><i class="legend-dot full"></i>เต็ม</span>
+                      <span><i class="legend-dot closed"></i>ปิด</span>
+                    </div>
                   </fieldset>
 
                   <fieldset class="booking-time-fieldset">
@@ -226,12 +246,34 @@
       </div>
     </dialog>
 
+    <dialog class="calendar-sheet" id="calendar-sheet" aria-labelledby="calendar-sheet-title">
+      <div class="calendar-sheet-card">
+        <div class="calendar-sheet-handle" aria-hidden="true"></div>
+        <div class="calendar-sheet-head">
+          <button class="calendar-month-button" type="button" id="calendar-prev-month" aria-label="เดือนก่อนหน้า">‹</button>
+          <h2 id="calendar-sheet-title">เลือกวันที่</h2>
+          <button class="calendar-month-button" type="button" id="calendar-next-month" aria-label="เดือนถัดไป">›</button>
+        </div>
+        <div class="calendar-sheet-weekdays" aria-hidden="true">
+          <span>อา.</span>
+          <span>จ.</span>
+          <span>อ.</span>
+          <span>พ.</span>
+          <span>พฤ.</span>
+          <span>ศ.</span>
+          <span>ส.</span>
+        </div>
+        <div class="calendar-sheet-grid" id="calendar-sheet-grid" aria-label="ปฏิทินรายเดือน"></div>
+        <button class="primary-button calendar-confirm-button" type="button" id="calendar-confirm-button">ยืนยันวันที่</button>
+      </div>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
-    <script src="app-config.js?v=20260815-06"></script>
-    <script src="supabase-adapter.js?v=20260815-06"></script>
-    <script src="pwa.js?v=20260815-06"></script>
-    <script src="customer.js?v=20260815-06"></script>
+    <script src="app-config.js?v=20260815-07"></script>
+    <script src="supabase-adapter.js?v=20260815-07"></script>
+    <script src="pwa.js?v=20260815-07"></script>
+    <script src="customer.js?v=20260815-07"></script>
   </body>
 </html>

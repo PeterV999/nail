@@ -38,6 +38,15 @@ const miniCalendar = document.getElementById("mini-calendar");
 const bookingDate = document.getElementById("booking-date");
 const bookingDateDisplay = document.getElementById("booking-date-display");
 const dateQuickOptions = document.getElementById("date-quick-options");
+const calendarOpenButton = document.getElementById("calendar-open-button");
+const calendarSheet = document.getElementById("calendar-sheet");
+const calendarSheetTitle = document.getElementById("calendar-sheet-title");
+const calendarSheetGrid = document.getElementById("calendar-sheet-grid");
+const calendarPrevMonth = document.getElementById("calendar-prev-month");
+const calendarNextMonth = document.getElementById("calendar-next-month");
+const calendarConfirmButton = document.getElementById("calendar-confirm-button");
+const selectedServiceSummary = document.getElementById("selected-service-summary");
+const selectedServiceMeta = document.getElementById("selected-service-meta");
 const bookingForm = document.getElementById("booking-form");
 const customerSection = document.getElementById("customer");
 const homePreview = document.getElementById("home-preview");
@@ -65,6 +74,7 @@ const bookingStepIndicators = document.querySelectorAll("[data-step-indicator]")
 let turnstileWidgetId = "";
 let turnstileToken = "";
 let bookingStep = "details";
+let calendarViewDate = parseLocalDate(today);
 
 function isHomePreviewRoute() {
   const path = window.location.pathname.replace(/\/+$/g, "") || "/";
@@ -293,9 +303,11 @@ function busyWindows(date = selectedBookingDate()) {
 function render() {
   renderShopChrome();
   renderServices();
+  renderServiceSummary();
   renderDateQuickOptions();
   renderTimeWindows();
   renderMiniCalendar();
+  renderCalendarSheet();
 }
 
 function renderShopChrome() {
@@ -406,6 +418,16 @@ function toggleService(serviceName) {
   renderServices();
 }
 
+function renderServiceSummary() {
+  if (!selectedServiceSummary || !selectedServiceMeta) return;
+
+  const services = Array.from(selectedServices);
+  selectedServiceSummary.textContent = services.length ? services.join(" + ") : "เลือกบริการ";
+  selectedServiceMeta.textContent = services.length > 1
+    ? "เลือกไว้ " + services.length + " รายการ | ร้านยืนยันคิวภายหลัง"
+    : "เลือกได้สูงสุด 2 รายการ | ร้านยืนยันคิวภายหลัง";
+}
+
 function renderDateQuickOptions() {
   if (!dateQuickOptions) return;
   const selectedDate = selectedBookingDate();
@@ -415,26 +437,100 @@ function renderDateQuickOptions() {
     const date = parseLocalDate(today);
     date.setDate(date.getDate() + offset);
     const value = localDateString(date);
+    const availability = dateAvailability(value);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = value === selectedDate ? "date-quick-chip active" : "date-quick-chip";
-    button.textContent = offset === 0 ? "วันนี้" : shortThaiDate(value);
-    button.addEventListener("click", () => {
-      bookingDate.value = value;
-      selectedTime = "";
-      render();
-    });
+    button.className = ["date-quick-chip", availability.status, value === selectedDate ? "active" : ""].filter(Boolean).join(" ");
+    button.disabled = availability.disabled && value !== selectedDate;
+    button.setAttribute("aria-pressed", value === selectedDate ? "true" : "false");
+    button.innerHTML = `
+      <span class="quick-day-label">${offset === 0 ? "วันนี้" : weekdayShort(value)}</span>
+      <strong>${date.getDate()}</strong>
+      <small>${monthShort(value)}</small>
+      <em>${availability.label}</em>
+    `;
+    button.addEventListener("click", () => selectBookingDate(value));
     dateQuickOptions.append(button);
   }
 }
 
+function selectBookingDate(value) {
+  if (!bookingDate || !value) return;
+  bookingDate.value = value;
+  calendarViewDate = parseLocalDate(value);
+  selectedTime = "";
+  render();
+}
+
 function openDatePicker() {
-  if (!bookingDate) return;
-  if (typeof bookingDate.showPicker === "function") {
-    bookingDate.showPicker();
+  openCalendarSheet();
+}
+
+function openCalendarSheet() {
+  if (!calendarSheet) return;
+  calendarViewDate = parseLocalDate(selectedBookingDate());
+  renderCalendarSheet();
+
+  if (typeof calendarSheet.showModal === "function") {
+    calendarSheet.showModal();
     return;
   }
-  bookingDate.focus();
+
+  calendarSheet.hidden = false;
+  calendarSheet.classList.add("open");
+}
+
+function closeCalendarSheet() {
+  if (!calendarSheet) return;
+
+  if (calendarSheet.open && typeof calendarSheet.close === "function") {
+    calendarSheet.close();
+    return;
+  }
+
+  calendarSheet.classList.remove("open");
+  calendarSheet.hidden = true;
+}
+
+function renderCalendarSheet() {
+  if (!calendarSheetGrid || !calendarSheetTitle) return;
+
+  const monthStart = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth(), 1);
+  const monthEnd = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 0);
+  const selectedDate = selectedBookingDate();
+  calendarSheetTitle.textContent = new Intl.DateTimeFormat("th-TH", { month: "short", year: "numeric" }).format(monthStart);
+  calendarSheetGrid.innerHTML = "";
+
+  for (let blank = 0; blank < monthStart.getDay(); blank += 1) {
+    const spacer = document.createElement("span");
+    spacer.className = "calendar-day-spacer";
+    calendarSheetGrid.append(spacer);
+  }
+
+  for (let day = 1; day <= monthEnd.getDate(); day += 1) {
+    const date = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth(), day);
+    const value = localDateString(date);
+    const availability = dateAvailability(value);
+    const isPast = value < today;
+    const isSelected = value === selectedDate;
+    const isToday = value === today;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = ["calendar-day-cell", availability.status, isSelected ? "active" : "", isToday ? "today" : ""].filter(Boolean).join(" ");
+    button.disabled = isPast || (availability.disabled && !isSelected);
+    button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    button.innerHTML = `
+      <strong>${day}</strong>
+      <span>${isToday ? "วันนี้" : availability.shortLabel}</span>
+    `;
+    button.addEventListener("click", () => selectBookingDate(value));
+    calendarSheetGrid.append(button);
+  }
+}
+
+function changeCalendarMonth(offset) {
+  calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + offset, 1);
+  renderCalendarSheet();
 }
 function renderTimeWindows() {
   const busy = busyWindows();
@@ -449,11 +545,11 @@ function renderTimeWindows() {
     if (!firstAvailableTime && !isBusy && !isClosed) firstAvailableTime = timeWindow;
     const button = document.createElement("button");
     button.type = "button";
-    button.className = selectedTime === timeWindow ? "choice active" : "choice";
+    button.className = ["choice", selectedTime === timeWindow ? "active" : "", isBusy ? "full" : "", isClosed ? "closed" : ""].filter(Boolean).join(" ");
     button.disabled = isBusy || isClosed;
     button.innerHTML = `
-      <span class="dot" aria-hidden="true"></span>
-      <span>${slot.startTime}<small>${slotStatusText(date, slot, isBusy)}</small></span>
+      <span class="slot-time">${slot.startTime}</span>
+      <small class="slot-availability">${slotStatusText(date, slot, isBusy)}</small>
     `;
     button.addEventListener("click", () => {
       selectedTime = timeWindow;
@@ -643,9 +739,13 @@ bookingNextButton?.addEventListener("click", () => {
 bookingBackButton?.addEventListener("click", () => setBookingStep("details"));
 bookingDateDisplay?.addEventListener("click", openDatePicker);
 bookingDate.addEventListener("click", openDatePicker);
-bookingDate.addEventListener("change", () => {
-  selectedTime = "";
-  render();
+bookingDate.addEventListener("change", () => selectBookingDate(bookingDate.value));
+calendarOpenButton?.addEventListener("click", openCalendarSheet);
+calendarPrevMonth?.addEventListener("click", () => changeCalendarMonth(-1));
+calendarNextMonth?.addEventListener("click", () => changeCalendarMonth(1));
+calendarConfirmButton?.addEventListener("click", closeCalendarSheet);
+calendarSheet?.addEventListener("click", (event) => {
+  if (event.target === calendarSheet) closeCalendarSheet();
 });
 privacyConsent?.addEventListener("change", () => {
   if (privacyConsent.checked && privacyError) privacyError.hidden = true;
@@ -656,10 +756,35 @@ bookingSuccessDialog?.addEventListener("click", (event) => {
 });
 
 function slotStatusText(date, slot, isBusy = false) {
-  if (isDayClosed(date)) return "หยุดร้าน";
-  if (!slot.active) return "ปิดรับจอง";
-  if (isBusy) return "เต็มแล้ว";
-  return "เลือกช่วงนี้";
+  if (isDayClosed(date)) return "ปิด";
+  if (!slot.active) return "ปิด";
+  if (isBusy) return "เต็ม";
+  return "ว่าง";
+}
+
+function dateAvailability(date) {
+  if (date < today) {
+    return { status: "closed", label: "ผ่านแล้ว", shortLabel: "ผ่านแล้ว", disabled: true, availableCount: 0 };
+  }
+
+  if (isDayClosed(date)) {
+    return { status: "closed", label: "ปิด", shortLabel: "ปิด", disabled: true, availableCount: 0 };
+  }
+
+  const busy = busyWindows(date);
+  const availableCount = timeSlots().filter((slot) => isSlotOpen(date, slot) && !busy.has(timeSlotLabel(slot))).length;
+
+  if (!availableCount) {
+    return { status: "full", label: "เต็ม", shortLabel: "เต็ม", disabled: true, availableCount: 0 };
+  }
+
+  return {
+    status: "available",
+    label: "ว่าง " + availableCount + " คิว",
+    shortLabel: "ว่าง " + availableCount,
+    disabled: false,
+    availableCount
+  };
 }
 
 function miniSlotStatusText(date, slot, isBusy = false) {
@@ -682,6 +807,14 @@ function shortThaiDate(value) {
     day: "numeric",
     month: "short"
   }).format(parseLocalDate(value));
+}
+
+function weekdayShort(value) {
+  return new Intl.DateTimeFormat("th-TH", { weekday: "short" }).format(parseLocalDate(value));
+}
+
+function monthShort(value) {
+  return new Intl.DateTimeFormat("th-TH", { month: "short" }).format(parseLocalDate(value));
 }
 
 function localDateString(date = new Date()) {
