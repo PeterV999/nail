@@ -10,5 +10,8 @@
     "test:screenshots": "node scripts/screenshot-test.js",
     "test:booking-flow": "node scripts/booking-flow-test.js",
     "test:booking-flow:db": "node scripts/booking-flow-db-test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
   }
 }
