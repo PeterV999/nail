@@ -18,6 +18,7 @@
     "image/jpeg": "jpg",
     "image/webp": "webp"
   };
+  const DEFAULT_THEME_KEY = window.BookingNailTheme?.defaultThemeKey || "aqua_mint";
   const latestProviderTokens = {
     accessToken: ""
   };
@@ -71,6 +72,7 @@
       lineId: item.line_id || item.lineId || "",
       facebookPage: item.facebook_page || item.facebookPage || "",
       tagline: item.tagline || "",
+      themeKey: window.BookingNailTheme?.themeKey?.(item.theme_key || item.themeKey) || DEFAULT_THEME_KEY,
       logoPath,
       logoUrl: item.logo_url || item.logoUrl || shopLogoPublicUrl(logoPath)
     };
@@ -144,7 +146,7 @@
   }
 
   function shopUrls(slug = routeShopSlug()) {
-    if (isLocalPreview()) {
+    if (window.location.protocol === "file:") {
       return {
         booking: localPageUrl("index.html", slug),
         dashboard: localPageUrl("fah-owner/index.html", slug),
@@ -156,8 +158,8 @@
     if (publicSlug !== "fah") {
       const querySlug = encodeURIComponent(slug);
       return {
-        booking: `/?shop=${querySlug}`,
-        dashboard: `/fah-owner?shop=${querySlug}`,
+        booking: `/${querySlug}`,
+        dashboard: `/${querySlug}-owner`,
         register: "/register/"
       };
     }
@@ -176,7 +178,7 @@
 
     const { data, error } = await db
       .from("public_shops")
-      .select("id,name,slug,status,phone,line_id,facebook_page,tagline,logo_path")
+      .select("*")
       .eq("slug", slug)
       .single();
 
@@ -192,7 +194,7 @@
 
     const { data, error } = await db
       .from("public_shops")
-      .select("id,name,slug,status,phone,line_id,facebook_page,tagline,logo_path")
+      .select("*")
       .order("name", { ascending: true });
 
     if (error) throw error;
@@ -298,7 +300,7 @@
 
     const { data: memberships, error: membershipError } = await db
       .from("shop_members")
-      .select("role, shops(id,name,slug,status,phone,line_id,facebook_page,tagline,logo_path)")
+      .select("role, shops(*)")
       .order("created_at", { ascending: true });
 
     if (membershipError) throw membershipError;
@@ -357,7 +359,7 @@
     if (!db) return;
     const dashboardUrl = shopUrls(routeShopSlug()).dashboard;
     const redirectTo = options.redirectTo
-      || (isLocalPreview() ? localPageUrl("fah-owner/index.html", routeShopSlug()) : new URL(dashboardUrl, window.location.origin).href)
+      || (window.location.protocol === "file:" ? localPageUrl("fah-owner/index.html", routeShopSlug()) : new URL(dashboardUrl, window.location.origin).href)
       || config().ownerRedirectUrl
       || window.location.href;
 
@@ -390,7 +392,7 @@
       { data: appointments, error: appointmentsError },
       { data: customers, error: customersError }
     ] = await Promise.all([
-      db.from("shops").select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status").eq("id", shop.id).single(),
+      db.from("shops").select("*").eq("id", shop.id).single(),
       db.from("services").select("id,name,is_active,sort_order").eq("shop_id", shop.id).order("sort_order"),
       db.from("booking_time_slots").select("id,start_time,end_time,is_active,sort_order").eq("shop_id", shop.id).order("sort_order"),
       db.from("booking_day_overrides").select("id,date,is_closed,note").eq("shop_id", shop.id),
@@ -428,6 +430,7 @@
         lineId: ownerShop.line_id || "",
         facebookPage: ownerShop.facebook_page || "",
         tagline: ownerShop.tagline || "",
+        themeKey: mapShopProfile(ownerShop).themeKey,
         logoPath: ownerShop.logo_path || "",
         logoUrl: shopLogoPublicUrl(ownerShop.logo_path || ""),
         status: ownerShop.status
@@ -567,7 +570,7 @@
       .from("shops")
       .update(payload)
       .eq("id", shop.id)
-      .select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status")
+      .select("*")
       .single();
 
     if (error) throw error;
@@ -591,7 +594,7 @@
         updated_at: new Date().toISOString()
       })
       .eq("id", shop.id)
-      .select("id,name,slug,phone,line_id,facebook_page,tagline,logo_path,status")
+      .select("*")
       .single();
 
     if (error) throw error;
@@ -856,7 +859,8 @@
         shop_line_id: changes.lineId || null,
         shop_facebook_page: changes.facebookPage || null,
         shop_status: changes.status || "active",
-        shop_tagline: changes.tagline || null
+        shop_tagline: changes.tagline || null,
+        shop_theme_key: window.BookingNailTheme?.themeKey?.(changes.themeKey) || DEFAULT_THEME_KEY
       })
       .single();
 
@@ -873,6 +877,7 @@
       lineId: data.line_id || "",
       facebookPage: data.facebook_page || "",
       tagline: data.tagline || "",
+      themeKey: window.BookingNailTheme?.themeKey?.(data.theme_key) || DEFAULT_THEME_KEY,
       logoPath: data.logo_path || "",
       logoUrl: shopLogoPublicUrl(data.logo_path || ""),
       updatedAt: data.updated_at

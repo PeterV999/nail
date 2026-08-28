@@ -21,6 +21,8 @@ const adminShopPhone = document.getElementById("admin-shop-phone");
 const adminShopLine = document.getElementById("admin-shop-line");
 const adminShopFacebook = document.getElementById("admin-shop-facebook");
 const adminShopStatus = document.getElementById("admin-shop-status");
+const adminShopTheme = document.getElementById("admin-shop-theme");
+const adminThemeChoiceGrid = document.getElementById("admin-theme-choice-grid");
 const adminDialogCancel = document.getElementById("admin-dialog-cancel");
 const adminDialogSave = document.getElementById("admin-dialog-save");
 const adminMemberDialog = document.getElementById("admin-member-dialog");
@@ -48,6 +50,9 @@ const adminState = {
     status: "all"
   }
 };
+
+const themeOptions = window.BookingNailTheme?.options || [];
+const defaultThemeKey = window.BookingNailTheme?.defaultThemeKey || "aqua_mint";
 
 function showToast(message) {
   toast.textContent = message;
@@ -91,6 +96,42 @@ function shopLogoMarkup(shop) {
       <img src="${escapeHtml(shop.logoUrl)}" alt="" data-logo-fallback="${fallback}">
     </span>
   `;
+}
+
+function themeLabel(themeKey) {
+  return window.BookingNailTheme?.theme?.(themeKey)?.name || "ฟ้ามิ้นต์";
+}
+
+function themeColors(themeKey) {
+  return window.BookingNailTheme?.theme?.(themeKey)?.colors || ["#E3FDFD", "#CBF1F5", "#A6E3E9", "#71C9CE"];
+}
+
+function renderThemeSwatch(themeKey, className = "admin-theme-swatch") {
+  return `
+    <span class="${className}" aria-hidden="true">
+      ${themeColors(themeKey).map((color) => `<i style="background:${escapeHtml(color)}"></i>`).join("")}
+    </span>
+  `;
+}
+
+function setupThemeSelector() {
+  if (!adminShopTheme) return;
+  const options = themeOptions.length ? themeOptions : [window.BookingNailTheme?.theme?.(defaultThemeKey)].filter(Boolean);
+  adminShopTheme.innerHTML = options.map((theme) => (
+    `<option value="${escapeHtml(theme.key)}">${escapeHtml(theme.name)}</option>`
+  )).join("");
+}
+
+function renderThemeChoices(selectedKey = defaultThemeKey) {
+  if (!adminThemeChoiceGrid) return;
+  const normalizedKey = window.BookingNailTheme?.themeKey?.(selectedKey) || defaultThemeKey;
+  const options = themeOptions.length ? themeOptions : [window.BookingNailTheme?.theme?.(normalizedKey)].filter(Boolean);
+  adminThemeChoiceGrid.innerHTML = options.map((theme) => `
+    <button class="admin-theme-choice ${theme.key === normalizedKey ? "is-active" : ""}" type="button" data-theme-key="${escapeHtml(theme.key)}" aria-pressed="${theme.key === normalizedKey ? "true" : "false"}">
+      ${renderThemeSwatch(theme.key)}
+      <span>${escapeHtml(theme.name)}</span>
+    </button>
+  `).join("");
 }
 
 function bindShopLogoFallbacks(scope = document) {
@@ -284,7 +325,8 @@ function filteredShops() {
       shop.phone,
       shop.lineId,
       shop.facebookPage,
-      shop.tagline
+      shop.tagline,
+      themeLabel(shop.themeKey)
     ].join(" ").toLowerCase();
     return haystack.includes(query);
   });
@@ -322,6 +364,7 @@ function shopCard(shop) {
           <div>
             <div class="admin-shop-badges">
               <span class="status-pill ${shop.status === "active" ? "" : "muted"}">${escapeHtml(statusText)}</span>
+              <span class="status-pill admin-theme-pill">${renderThemeSwatch(shop.themeKey, "admin-theme-mini")} ${escapeHtml(themeLabel(shop.themeKey))}</span>
             </div>
             <h3>${escapeHtml(shop.name)}</h3>
             ${shop.tagline ? `<p class="admin-shop-tagline">${escapeHtml(shop.tagline)}</p>` : ""}
@@ -361,7 +404,7 @@ function shopUrl(slug, type) {
   const urls = window.FahNailSupabase?.shopUrls?.(slug);
   if (urls?.[type]) return urls[type];
   const encoded = encodeURIComponent(slug);
-  return type === "dashboard" ? `/fah-owner?shop=${encoded}` : `/?shop=${encoded}`;
+  return type === "dashboard" ? `/${encoded}-owner` : `/${encoded}`;
 }
 
 function contactValue(label, value) {
@@ -389,6 +432,8 @@ function openEditor(shopId) {
   adminShopLine.value = shop.lineId || "";
   adminShopFacebook.value = shop.facebookPage || "";
   adminShopStatus.value = shop.status || "active";
+  if (adminShopTheme) adminShopTheme.value = window.BookingNailTheme?.themeKey?.(shop.themeKey) || defaultThemeKey;
+  renderThemeChoices(adminShopTheme?.value || shop.themeKey);
   adminShopDialog.showModal();
 }
 
@@ -514,7 +559,8 @@ adminShopForm.addEventListener("submit", async (event) => {
     phone: adminShopPhone.value.trim(),
     lineId: adminShopLine.value.trim(),
     facebookPage: adminShopFacebook.value.trim(),
-    status: adminShopStatus.value
+    status: adminShopStatus.value,
+    themeKey: window.BookingNailTheme?.themeKey?.(adminShopTheme?.value) || defaultThemeKey
   };
 
   if (!changes.name) {
@@ -541,6 +587,17 @@ adminShopForm.addEventListener("submit", async (event) => {
 
 adminShopDialog.addEventListener("click", (event) => {
   if (event.target === adminShopDialog) adminShopDialog.close();
+});
+
+adminShopTheme?.addEventListener("change", () => {
+  renderThemeChoices(adminShopTheme.value);
+});
+
+adminThemeChoiceGrid?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-theme-key]");
+  if (!button || !adminShopTheme) return;
+  adminShopTheme.value = button.dataset.themeKey;
+  renderThemeChoices(adminShopTheme.value);
 });
 
 adminMemberCancel.addEventListener("click", () => {
@@ -608,4 +665,5 @@ adminMemberForm.addEventListener("submit", async (event) => {
   }
 });
 
+setupThemeSelector();
 initAdmin();

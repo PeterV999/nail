@@ -1765,6 +1765,335 @@ textarea {
   background: linear-gradient(135deg, rgba(255, 240, 246, .9), rgba(255, 255, 255, .96));
 }
 
+
+.owner-page .owner-dashboard-hero {
+  position: relative;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 148px;
+  padding: clamp(18px, 3vw, 24px);
+  border-color: rgba(232, 205, 224, .9);
+  background:
+    radial-gradient(circle at 92% 22%, rgba(141, 207, 255, .32), transparent 28%),
+    radial-gradient(circle at 9% 82%, rgba(255, 217, 233, .66), transparent 25%),
+    linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(255, 244, 249, .92) 48%, rgba(239, 246, 255, .94));
+}
+
+
+.owner-page .owner-dashboard-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.owner-page .owner-dashboard-hero .eyebrow {
+  color: var(--primary-dark);
+  letter-spacing: .01em;
+}
+
+.owner-page .owner-dashboard-hero h1 {
+  color: #24324f;
+  font-size: clamp(1.9rem, 3.8vw, 2.75rem);
+  letter-spacing: -.03em;
+}
+
+.owner-page .owner-dashboard-hero .lead {
+  color: #65738e;
+  font-size: clamp(.96rem, 1.7vw, 1.06rem);
+  font-weight: 700;
+}
+
+.owner-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.owner-quick-action {
+  min-height: 42px;
+  border: 1px solid rgba(232, 205, 224, .95);
+  border-radius: 999px;
+  padding: 9px 14px;
+  color: #bf3c72;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 0 10px 22px rgba(205, 78, 130, .08);
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.owner-quick-action.primary {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #f25b93, #cf407a);
+  box-shadow: 0 14px 28px rgba(242, 91, 147, .24);
+}
+
+.owner-quick-action:focus-visible {
+  outline: 3px solid rgba(242, 91, 147, .28);
+  outline-offset: 2px;
+}
+
+.owner-page .owner-nav .owner-tab {
+  gap: 9px;
+  letter-spacing: -.01em;
+}
+
+.owner-page .owner-nav .owner-tab::before {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: #cc3f78;
+  background: rgba(255, 240, 246, .9);
+  font-size: 1.02rem;
+  font-weight: 900;
+}
+
+.owner-page .owner-nav .owner-tab:nth-child(1)::before { content: "⌂"; }
+.owner-page .owner-nav .owner-tab:nth-child(2)::before { content: "□"; }
+.owner-page .owner-nav .owner-tab:nth-child(3)::before { content: "+"; }
+.owner-page .owner-nav .owner-tab:nth-child(4)::before { content: "◷"; }
+.owner-page .owner-nav .owner-tab:nth-child(5)::before { content: "i"; }
+
+.owner-page .owner-nav .owner-tab.is-active::before,
+.owner-page .owner-nav .owner-tab:hover::before {
+  color: #fff;
+  background: linear-gradient(135deg, #f25b93, #cc3f78);
+}
+
+.owner-page .owner-stats {
+  gap: 12px;
+}
+
+.owner-page .stat-chip.owner-stat-card {
+  position: relative;
+  min-height: 104px;
+  gap: 7px;
+  padding: 16px;
+  border-color: rgba(232, 205, 224, .92);
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 14px 30px rgba(205, 78, 130, .08);
+}
+
+.owner-page .stat-chip.owner-stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  border-radius: 16px 0 0 16px;
+  background: var(--primary);
+}
+
+.owner-page .stat-chip.owner-stat-card.warn::before { background: #f25b93; }
+.owner-page .stat-chip.owner-stat-card.info::before { background: #6fa7ff; }
+.owner-page .stat-chip.owner-stat-card.aqua::before { background: #20b9cf; }
+.owner-page .stat-chip.owner-stat-card.good::before { background: #35bd78; }
+
+.owner-page .stat-chip.owner-stat-card .stat-label {
+  color: #65738e;
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.owner-page .stat-chip.owner-stat-card strong {
+  color: #24324f;
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  letter-spacing: -.04em;
+}
+
+.owner-page .stat-chip.owner-stat-card small {
+  color: #7a879e;
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.owner-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.03fr) minmax(340px, .97fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.owner-page .owner-overview-card {
+  min-width: 0;
+  padding: clamp(15px, 2.2vw, 18px);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .88);
+}
+
+.owner-page .owner-attention-card {
+  border-color: rgba(242, 91, 147, .22);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(255, 244, 249, .94));
+}
+
+.owner-page .owner-today-card {
+  border-color: rgba(141, 207, 255, .28);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(240, 248, 255, .94));
+}
+
+.owner-section-note {
+  align-self: start;
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #6f7e99;
+  background: rgba(255, 255, 255, .78);
+  font-size: .76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.owner-focus-list {
+  gap: 12px;
+}
+
+.owner-empty-state {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px dashed rgba(232, 205, 224, .95);
+  border-radius: 18px;
+  color: #6f7e99;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .86), rgba(255, 248, 252, .86));
+}
+
+.owner-empty-state strong {
+  color: #273653;
+  font-size: 1rem;
+}
+
+.owner-empty-state span {
+  font-size: .9rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.owner-empty-state .owner-quick-action {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+.owner-page .queue-card.owner-queue-card {
+  position: relative;
+  gap: 12px;
+  padding: 15px;
+  border-color: rgba(232, 205, 224, .9);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .98), rgba(255, 250, 253, .95));
+  box-shadow: 0 14px 32px rgba(205, 78, 130, .08);
+}
+
+.owner-page .queue-card.owner-queue-card.confirmed {
+  border-color: rgba(107, 206, 179, .28);
+  background: linear-gradient(135deg, rgba(239, 251, 248, .96), rgba(255, 255, 255, .96));
+}
+
+.owner-page .queue-card.owner-queue-card.completed {
+  border-color: rgba(53, 189, 120, .28);
+  background: linear-gradient(135deg, rgba(240, 255, 247, .95), rgba(255, 255, 255, .96));
+}
+
+.owner-page .queue-kind {
+  display: inline-flex;
+  margin-bottom: 4px;
+  color: #cc3f78;
+  font-size: .76rem;
+  font-weight: 900;
+}
+
+.owner-page .owner-queue-card .queue-top strong {
+  display: block;
+  color: #253450;
+  font-size: 1.04rem;
+  line-height: 1.25;
+}
+
+.owner-page .owner-queue-card .hint {
+  margin-top: 2px;
+  color: #71819d;
+  font-size: .88rem;
+  font-weight: 700;
+}
+
+.owner-page .owner-queue-card .queue-meta {
+  gap: 7px;
+}
+
+.owner-page .owner-queue-card .queue-meta span {
+  border: 1px solid rgba(232, 205, 224, .72);
+  color: #5f6f8c;
+  background: rgba(246, 250, 255, .9);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.owner-page .queue-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: #5f6f8c;
+  background: rgba(255, 240, 246, .74);
+  font-size: .88rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.owner-page .status-pill.warn {
+  color: #bd366e;
+  background: #ffe1ec;
+}
+
+.owner-page .status-pill.info {
+  color: #2766bd;
+  background: #e7f0ff;
+}
+
+.owner-page .status-pill.good {
+  color: #087246;
+  background: #dcfaea;
+}
+
+.owner-page .status-pill.danger {
+  color: #b2334c;
+  background: #ffe2e7;
+}
+
+.owner-page .contact-button.call {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #14a9bf, #087f96);
+  box-shadow: 0 12px 24px rgba(20, 169, 191, .2);
+}
+
+.owner-page .contact-button:not(.call),
+.owner-page .secondary-button,
+.owner-page .icon-button,
+.owner-page .calendar-month-button {
+  color: #bd366e;
+  border-color: rgba(232, 205, 224, .95);
+  background: linear-gradient(135deg, #ffffff, #fff4f9);
+}
+
+.owner-page .primary-button {
+  color: #fff;
+  background: linear-gradient(135deg, #f25b93, #cc3f78);
+  box-shadow: 0 14px 26px rgba(242, 91, 147, .22);
+}
+
+.owner-page .danger-button {
+  color: #fff;
+  background: linear-gradient(135deg, #df6678, #b93a55);
+  box-shadow: 0 12px 22px rgba(185, 58, 85, .18);
+}
+
+.owner-page .queue-actions {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
 .owner-action-panel {
   width: min(680px, 100%);
 }
@@ -2021,6 +2350,74 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.admin-theme-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-theme-mini,
+.admin-theme-swatch {
+  display: inline-grid;
+  grid-template-columns: repeat(4, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .82);
+  background: #fff;
+}
+
+.admin-theme-mini {
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+}
+
+.admin-theme-swatch {
+  width: 58px;
+  height: 34px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(32, 61, 72, .05);
+}
+
+.admin-theme-mini i,
+.admin-theme-swatch i {
+  display: block;
+  min-width: 0;
+}
+
+.admin-theme-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-theme-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 54px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  background: var(--surface-strong);
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-theme-choice:hover,
+.admin-theme-choice.is-active {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--soft-mint);
+}
+
+.admin-theme-choice.is-active {
+  box-shadow: 0 10px 22px rgba(20, 169, 191, .12);
 }
 
 .admin-shop-top h3 {
@@ -3787,6 +4184,14 @@ body.customer-page #customer .booking-form-actions .secondary-button {
     grid-template-columns: 1fr;
   }
 
+  .owner-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-page .owner-dashboard-hero {
+    grid-template-columns: 1fr;
+  }
+
   .owner-page .owner-nav {
     position: static;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -3916,13 +4321,36 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   }
 
   .owner-page .owner-dashboard-hero {
-    grid-template-columns: minmax(0, 1fr) 64px;
-    padding: 14px;
-    border-radius: 16px;
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+
+  .owner-page .owner-dashboard-hero h1 {
+    font-size: clamp(1.7rem, 8vw, 2.05rem);
+  }
+
+  .owner-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-top: 14px;
+  }
+
+  .owner-quick-action {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: .84rem;
+  }
+
+  .owner-quick-action.primary {
+    grid-column: 1 / -1;
   }
 
   .owner-page .owner-mascot {
-    width: 62px;
+    display: none;
   }
 
   .owner-page .owner-nav {
@@ -3932,13 +4360,43 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   }
 
   .owner-page .owner-nav .owner-tab {
-    min-height: 42px;
-    padding: 8px 6px;
+    min-height: 46px;
+    padding: 8px 7px;
     font-size: .82rem;
+  }
+
+  .owner-page .owner-nav .owner-tab::before {
+    width: 32px;
+    height: 32px;
+    font-size: .98rem;
   }
 
   .owner-page .owner-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .owner-page .stat-chip.owner-stat-card {
+    min-height: 96px;
+    padding: 13px 12px 13px 14px;
+  }
+
+  .owner-page .owner-overview-card {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .owner-section-note {
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .owner-page .owner-queue-card .queue-meta span {
+    font-size: .74rem;
+  }
+
+  .owner-page .queue-actions {
+    grid-template-columns: 1fr;
   }
 
   .owner-panel-grid {
@@ -4602,4 +5060,1525 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   body.customer-page #customer .time-options {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+.owner-page .topbar-actions .owner-add-button,
+.owner-page .topbar-actions .notification-button {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  border-radius: 18px;
+}
+
+.owner-page .topbar-actions .owner-add-button {
+  font-size: 1.48rem;
+  line-height: 1;
+}
+
+.owner-page .topbar-actions .sound-toggle-button {
+  min-height: 52px;
+  padding: 0 17px;
+  border-radius: 18px;
+}
+
+.owner-page .topbar-actions .sound-toggle-button span {
+  font-size: 1.06rem;
+}
+
+.owner-page .topbar-actions .notification-icon {
+  width: 25px;
+  height: 25px;
+}
+
+.owner-page .topbar-actions .notification-button strong {
+  min-width: 22px;
+  height: 22px;
+  font-size: .78rem;
+}
+
+@media (max-width: 620px) {
+  .owner-page .topbar-actions .owner-add-button,
+  .owner-page .topbar-actions .notification-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 16px;
+  }
+
+  .owner-page .topbar-actions .sound-toggle-button {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 16px;
+  }
+
+  .owner-page .topbar-actions .notification-icon {
+    width: 23px;
+    height: 23px;
+  }
+}
+
+
+/* Owner icon refresh: real SVG marks replace the earlier text-based pseudo icons. */
+.owner-page .owner-nav .owner-tab::before {
+  content: none;
+  display: none;
+}
+
+.owner-page .owner-nav .owner-tab {
+  gap: 12px;
+  min-height: 56px;
+  padding: 9px 10px;
+}
+
+.owner-tab-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid rgba(242, 91, 147, .16);
+  border-radius: 15px;
+  color: #cc3f78;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, .9), transparent 31%),
+    linear-gradient(135deg, #fff0f6, #ffffff);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+}
+
+.owner-tab-icon svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.owner-page .owner-nav .owner-tab.is-active .owner-tab-icon,
+.owner-page .owner-nav .owner-tab:hover .owner-tab-icon {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #f25b93, #cc3f78);
+  box-shadow: 0 10px 20px rgba(242, 91, 147, .22);
+}
+
+.owner-page .topbar-actions .owner-add-button,
+.owner-page .topbar-actions .notification-button {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  border-radius: 20px;
+}
+
+.owner-page .topbar-actions .owner-add-button svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+}
+
+.owner-page .topbar-actions .sound-toggle-button {
+  min-width: 122px;
+  min-height: 56px;
+  gap: 9px;
+  padding: 0 18px;
+  border-radius: 20px;
+}
+
+.owner-page .sound-toggle-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, #f25b93, #cc3f78);
+}
+
+.owner-page .sound-toggle-button.is-on .sound-toggle-icon {
+  color: #cc3f78;
+  background: #fff;
+}
+
+.owner-page .sound-toggle-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.owner-page .topbar-actions .notification-icon {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.3;
+}
+
+.owner-page .topbar-actions .notification-button strong {
+  top: -7px;
+  right: -7px;
+  min-width: 24px;
+  height: 24px;
+  font-size: .8rem;
+}
+
+@media (max-width: 900px) {
+  .owner-page .owner-nav .owner-tab {
+    min-height: 52px;
+    gap: 8px;
+  }
+
+  .owner-tab-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 13px;
+  }
+
+  .owner-tab-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 620px) {
+  .owner-page .topbar-actions .owner-add-button,
+  .owner-page .topbar-actions .notification-button {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 17px;
+  }
+
+  .owner-page .topbar-actions .owner-add-button svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .owner-page .topbar-actions .sound-toggle-button {
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
+    padding: 0;
+    border-radius: 17px;
+  }
+
+  .owner-page .sound-toggle-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+  }
+
+  .owner-page .sound-toggle-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .owner-page .topbar-actions .notification-icon {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Fah Nail warm blush theme based on #FFDCDC / #FFF2EB / #FFE8CD / #FFD6BA. */
+body.customer-page,
+body.owner-page {
+  --bg: #fff2eb;
+  --surface: #fff2eb;
+  --surface-strong: #fffaf7;
+  --soft-pink: #ffdcdc;
+  --soft-mint: #fff2eb;
+  --soft-lavender: #ffe8cd;
+  --soft-peach: #ffd6ba;
+  --ink: #3f2a35;
+  --muted: #7b6670;
+  --line: #efc9c4;
+  --primary: #d85f7c;
+  --primary-dark: #9f4058;
+  --aqua: #ffd6ba;
+  --coral: #ffdcdc;
+  --sun: #ffe8cd;
+  --danger: #a83e4d;
+  --disabled: #f7e9e2;
+  --shadow: 0 20px 46px rgba(159, 64, 88, .14);
+  background:
+    radial-gradient(circle at 8% 9%, rgba(255, 220, 220, .86), transparent 26%),
+    radial-gradient(circle at 90% 3%, rgba(255, 214, 186, .68), transparent 30%),
+    radial-gradient(circle at 82% 86%, rgba(255, 232, 205, .82), transparent 28%),
+    linear-gradient(135deg, #fff2eb 0%, #fffaf7 46%, #ffdcdc 100%);
+}
+
+body.customer-page .brand,
+body.admin-page .brand,
+body.owner-page .topbar .brand,
+body.customer-page .booking-panel,
+body.customer-page .status-panel,
+body.customer-page .home-hero,
+body.customer-page .home-section,
+body.owner-page .owner-command-center,
+body.owner-page .owner-nav,
+body.owner-page .side-card,
+body.owner-page .queue-card,
+body.owner-page .schedule-item,
+body.owner-page .calendar-day-detail,
+body.owner-page .calendar-detail-item,
+body.owner-page .shop-logo-editor {
+  border-color: rgba(239, 201, 196, .92);
+  background:
+    linear-gradient(145deg, rgba(255, 250, 247, .97), rgba(255, 242, 235, .9)),
+    #fffaf7;
+  box-shadow: 0 22px 52px rgba(159, 64, 88, .12);
+}
+
+body.customer-page .booking-panel::before {
+  background:
+    radial-gradient(circle at 94% 5%, rgba(255, 214, 186, .58), transparent 28%),
+    linear-gradient(90deg, rgba(255, 250, 247, 0), rgba(255, 220, 220, .48));
+}
+
+body.owner-page .owner-dashboard-hero {
+  border-color: rgba(239, 201, 196, .92);
+  background:
+    radial-gradient(circle at 92% 18%, rgba(255, 214, 186, .64), transparent 30%),
+    radial-gradient(circle at 10% 82%, rgba(255, 220, 220, .86), transparent 28%),
+    linear-gradient(135deg, rgba(255, 250, 247, .98), rgba(255, 242, 235, .94) 50%, rgba(255, 232, 205, .9));
+}
+
+body.customer-page .customer-hero h1,
+body.customer-page .home-copy h1,
+body.owner-page .owner-dashboard-hero h1,
+body.owner-page .owner-queue-card .queue-top strong,
+body.owner-page .owner-empty-state strong,
+body.owner-page .stat-chip.owner-stat-card strong {
+  color: #3f2a35;
+}
+
+body.customer-page .customer-hero .lead,
+body.customer-page .home-copy .lead,
+body.owner-page .owner-dashboard-hero .lead,
+body.owner-page .owner-queue-card .hint,
+body.owner-page .stat-chip.owner-stat-card .stat-label,
+body.owner-page .stat-chip.owner-stat-card small,
+body.owner-page .owner-section-note {
+  color: #7b6670;
+}
+
+body.customer-page .eyebrow,
+body.owner-page .eyebrow,
+body.owner-page .queue-kind,
+body.owner-page .owner-nav .owner-tab,
+body.owner-page .owner-link,
+body.owner-page .sound-toggle-button,
+body.owner-page .notification-button,
+body.owner-page .owner-add-button {
+  color: #9f4058;
+}
+
+body.customer-page .primary-button,
+body.admin-page .primary-button,
+body.customer-page .tab-link.active,
+body.owner-page .primary-button,
+body.owner-page .owner-quick-action.primary,
+body.owner-page .owner-nav .owner-tab.is-active .owner-tab-icon,
+body.owner-page .owner-nav .owner-tab:hover .owner-tab-icon,
+body.owner-page .sound-toggle-icon {
+  color: #fff;
+  background: linear-gradient(135deg, #d85f7c, #9f4058);
+  box-shadow: 0 16px 30px rgba(159, 64, 88, .22);
+}
+
+body.customer-page .secondary-button,
+body.customer-page .owner-link,
+body.customer-page .filter-chip,
+body.owner-page .secondary-button,
+body.owner-page .contact-button:not(.call),
+body.owner-page .icon-button,
+body.owner-page .calendar-month-button,
+body.owner-page .owner-quick-action,
+body.owner-page .owner-link,
+body.owner-page .sound-toggle-button,
+body.owner-page .notification-button,
+body.owner-page .owner-add-button {
+  color: #9f4058;
+  border-color: rgba(239, 201, 196, .95);
+  background: linear-gradient(135deg, rgba(255, 250, 247, .96), rgba(255, 232, 205, .74));
+}
+
+body.owner-page .owner-add-button {
+  color: #9f4058;
+}
+
+body.owner-page .sound-toggle-button.is-on {
+  color: #fff;
+  background: linear-gradient(135deg, #d85f7c, #9f4058);
+}
+
+body.owner-page .sound-toggle-button.is-on .sound-toggle-icon {
+  color: #9f4058;
+  background: #fffaf7;
+}
+
+body.customer-page input,
+body.customer-page select,
+body.customer-page textarea,
+body.owner-page input,
+body.owner-page select,
+body.owner-page textarea {
+  color: #3f2a35;
+  border-color: rgba(239, 201, 196, .96);
+  background: rgba(255, 250, 247, .96);
+}
+
+body.customer-page input:focus,
+body.customer-page select:focus,
+body.customer-page textarea:focus,
+body.owner-page input:focus,
+body.owner-page select:focus,
+body.owner-page textarea:focus {
+  outline-color: rgba(216, 95, 124, .2);
+  border-color: rgba(216, 95, 124, .68);
+}
+
+body.customer-page fieldset,
+body.customer-page .notice,
+body.customer-page .consent-field,
+body.owner-page .owner-overview-card,
+body.owner-page .owner-empty-state {
+  border-color: rgba(239, 201, 196, .9);
+  background: linear-gradient(135deg, rgba(255, 250, 247, .9), rgba(255, 242, 235, .82));
+}
+
+body.customer-page legend span,
+body.customer-page .calendar-day-cell.active,
+body.customer-page #customer .booking-next-button,
+body.customer-page #customer #booking-submit-button {
+  color: #fff;
+  background: linear-gradient(135deg, #d85f7c, #9f4058);
+  box-shadow: 0 16px 30px rgba(159, 64, 88, .22);
+}
+
+body.customer-page .choice,
+.service-choice,
+.date-quick-chip,
+body.customer-page #customer .time-options .choice,
+.calendar-open-button,
+.calendar-day-cell,
+body.owner-page .owner-queue-card .queue-meta span {
+  color: #4a3640;
+  border-color: rgba(239, 201, 196, .9);
+  background: rgba(255, 250, 247, .86);
+  box-shadow: 0 12px 24px rgba(159, 64, 88, .07);
+}
+
+body.customer-page .choice.active,
+.service-choice.active,
+.date-quick-chip.active,
+body.customer-page #customer .time-options .choice.active,
+.calendar-day-cell.today,
+body.customer-page .status-pill,
+body.owner-page .status-pill.warn {
+  color: #9f4058;
+  border-color: rgba(216, 95, 124, .72);
+  background: #ffdcdc;
+}
+
+body.customer-page .choice.active .dot,
+.service-choice.active .service-check {
+  border-color: #d85f7c;
+  background: #d85f7c;
+}
+
+body.customer-page .choice.active .dot {
+  background: radial-gradient(circle, #fff 0 34%, #d85f7c 38% 100%);
+}
+
+.calendar-open-button,
+body.customer-page #customer .booking-form-actions .secondary-button {
+  color: #9f4058;
+  border-color: rgba(216, 95, 124, .28);
+  background: linear-gradient(135deg, #fffaf7, #ffe8cd);
+}
+
+.date-quick-chip.active,
+.calendar-day-cell.active {
+  border-color: #d85f7c;
+}
+
+body.customer-page .customer-mascot,
+body.customer-page .home-preview-card,
+body.customer-page .privacy-note {
+  border-color: rgba(239, 201, 196, .86);
+  background:
+    radial-gradient(circle at 70% 15%, rgba(255, 232, 205, .95), transparent 30%),
+    linear-gradient(145deg, rgba(255, 250, 247, .96), rgba(255, 220, 220, .9));
+  box-shadow: 0 18px 34px rgba(159, 64, 88, .12);
+}
+
+body.owner-page .owner-attention-card {
+  border-color: rgba(216, 95, 124, .26);
+  background: linear-gradient(145deg, rgba(255, 250, 247, .98), rgba(255, 220, 220, .72));
+}
+
+body.owner-page .owner-today-card,
+body.owner-page .queue-card.owner-queue-card.confirmed,
+body.owner-page .queue-card.owner-queue-card.completed {
+  border-color: rgba(239, 201, 196, .92);
+  background: linear-gradient(145deg, rgba(255, 250, 247, .98), rgba(255, 232, 205, .74));
+}
+
+body.owner-page .owner-nav .owner-tab.is-active,
+body.owner-page .owner-nav .owner-tab:hover {
+  color: #9f4058;
+  background: linear-gradient(135deg, #ffdcdc, rgba(255, 250, 247, .96));
+  box-shadow: inset 0 0 0 1px rgba(216, 95, 124, .18);
+}
+
+.owner-tab-icon {
+  color: #9f4058;
+  border-color: rgba(216, 95, 124, .18);
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, .9), transparent 31%),
+    linear-gradient(135deg, #ffdcdc, #fffaf7);
+}
+
+body.owner-page .stat-chip.owner-stat-card {
+  border-color: rgba(239, 201, 196, .92);
+  background: rgba(255, 250, 247, .9);
+}
+
+body.owner-page .stat-chip.owner-stat-card.warn::before,
+body.owner-page .stat-chip.owner-stat-card.info::before,
+body.owner-page .stat-chip.owner-stat-card.aqua::before,
+body.owner-page .stat-chip.owner-stat-card.good::before {
+  background: #d85f7c;
+}
+
+body.owner-page .status-pill.info {
+  color: #8b4a23;
+  background: #ffe8cd;
+}
+
+body.owner-page .status-pill.good,
+.date-quick-chip.available em,
+.calendar-day-cell.available span {
+  color: #0c7a45;
+}
+
+body.owner-page .contact-button.call {
+  color: #fff;
+  background: linear-gradient(135deg, #c76552, #9f4058);
+  box-shadow: 0 12px 24px rgba(159, 64, 88, .2);
+}
+
+/* Owner brand polish: use the real app mark instead of the temporary FN block. */
+body.owner-page .topbar .brand {
+  gap: 12px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid rgba(239, 201, 196, .92);
+  border-radius: 24px;
+  background: rgba(255, 250, 247, .86);
+  box-shadow: 0 16px 32px rgba(159, 64, 88, .1);
+  backdrop-filter: blur(18px);
+}
+
+body.owner-page .topbar .brand-mark.owner-brand-logo {
+  width: 54px;
+  height: 54px;
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: 999px;
+  color: #d85f7c;
+  background: linear-gradient(145deg, #fffaf7, #ffdcdc);
+  font-size: .82rem;
+  font-weight: 900;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(239, 201, 196, .9),
+    0 12px 22px rgba(159, 64, 88, .14);
+}
+
+body.owner-page .topbar .brand-mark.owner-brand-logo.has-logo {
+  color: transparent;
+}
+
+body.owner-page .topbar .brand-mark.owner-brand-logo img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  display: block;
+}
+
+body.owner-page .topbar .brand strong {
+  color: #3f2a35;
+  font-size: 1.02rem;
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+body.owner-page .topbar .brand small {
+  color: #7b6670;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+@media (max-width: 620px) {
+  body.owner-page .topbar .brand {
+    gap: 9px;
+    padding: 5px 9px 5px 5px;
+    border-radius: 20px;
+  }
+
+  body.owner-page .topbar .brand-mark.owner-brand-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+  }
+
+  body.owner-page .topbar .brand strong {
+    font-size: .96rem;
+  }
+
+  body.owner-page .topbar .brand small {
+    font-size: .76rem;
+  }
+}
+
+
+/* Owner mobile command mode: keep the first screen focused on urgent queue work. */
+@media (max-width: 620px) {
+  body.owner-page {
+    min-height: 100svh;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.owner-page .app-shell {
+    width: min(100% - 14px, 460px);
+    padding-top: 6px;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.owner-page .topbar {
+    gap: 6px;
+    padding: 4px 0 8px;
+  }
+
+  body.owner-page .brand-cluster {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  body.owner-page .topbar .brand {
+    min-width: 0;
+    max-width: 142px;
+    gap: 7px;
+    padding: 4px 8px 4px 4px;
+    border-radius: 999px;
+  }
+
+  body.owner-page .topbar .brand-mark.owner-brand-logo {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+  }
+
+  body.owner-page .topbar .brand strong {
+    max-width: 76px;
+    font-size: .84rem;
+    line-height: 1.02;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.owner-page .topbar .brand small {
+    max-width: 76px;
+    margin-top: 0;
+    font-size: .66rem;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.owner-page .booking-link {
+    display: none;
+  }
+
+  body.owner-page .topbar-actions {
+    gap: 5px;
+  }
+
+  body.owner-page .topbar-actions .owner-add-button,
+  body.owner-page .topbar-actions .notification-button,
+  body.owner-page .topbar-actions .sound-toggle-button {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    border-radius: 15px;
+  }
+
+  body.owner-page .sound-toggle-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 11px;
+  }
+
+  body.owner-page .sound-toggle-icon svg,
+  body.owner-page .topbar-actions .owner-add-button svg,
+  body.owner-page .topbar-actions .notification-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  body.owner-page .topbar-actions .notification-button strong {
+    top: -5px;
+    right: -5px;
+    min-width: 20px;
+    height: 20px;
+    font-size: .7rem;
+  }
+
+  body.owner-page .owner-premium-layout {
+    display: block;
+  }
+
+  body.owner-page .owner-nav {
+    position: fixed;
+    inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    z-index: 70;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    width: auto;
+    padding: 7px;
+    border: 1px solid rgba(239, 201, 196, .96);
+    border-radius: 24px;
+    background: rgba(255, 250, 247, .94);
+    box-shadow: 0 18px 44px rgba(63, 42, 53, .18);
+    backdrop-filter: blur(22px);
+  }
+
+  body.owner-page .owner-nav .owner-tab {
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    min-height: 58px;
+    padding: 5px 2px 4px;
+    border-radius: 18px;
+    font-size: .68rem;
+    line-height: 1;
+  }
+
+  body.owner-page .owner-nav .owner-tab .owner-tab-label {
+    font-size: 0;
+  }
+
+  body.owner-page .owner-nav .owner-tab .owner-tab-label::after {
+    content: attr(data-mobile-label);
+    display: block;
+    color: currentColor;
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    border-radius: 12px;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.35;
+  }
+
+  body.owner-page .owner-command-center {
+    gap: 10px;
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  body.owner-page .owner-dashboard-hero {
+    order: 1;
+  }
+
+  body.owner-page .owner-tab-panel {
+    order: 2;
+  }
+
+  body.owner-page .owner-stats {
+    order: 3;
+  }
+
+  body.owner-page .owner-dashboard-hero {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  body.owner-page .owner-dashboard-hero .eyebrow {
+    margin-bottom: 3px;
+    font-size: .72rem;
+  }
+
+  body.owner-page .owner-dashboard-hero h1 {
+    max-width: none;
+    font-size: clamp(1.28rem, 6vw, 1.58rem);
+    line-height: 1.1;
+    letter-spacing: -.035em;
+  }
+
+  body.owner-page .owner-dashboard-hero .lead {
+    margin-top: 5px;
+    font-size: .78rem;
+    line-height: 1.34;
+  }
+
+  body.owner-page .owner-quick-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  body.owner-page .owner-quick-action {
+    min-height: 38px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+  }
+
+  body.owner-page .owner-quick-action.primary {
+    grid-column: auto;
+  }
+
+  body.owner-page .owner-quick-actions .owner-quick-action:nth-child(3) {
+    display: none;
+  }
+
+  body.owner-page .owner-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card {
+    min-height: 62px;
+    gap: 2px;
+    padding: 9px 10px 9px 13px;
+    border-radius: 16px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card::before {
+    width: 4px;
+    border-radius: 16px 0 0 16px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card .stat-label {
+    font-size: .7rem;
+    line-height: 1.05;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card strong {
+    font-size: 1.34rem;
+    line-height: .95;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card small {
+    display: none;
+  }
+
+  body.owner-page .owner-overview-grid {
+    gap: 10px;
+  }
+
+  body.owner-page .owner-overview-card {
+    padding: 11px;
+    border-radius: 18px;
+  }
+
+  body.owner-page .section-head.compact {
+    gap: 8px;
+  }
+
+  body.owner-page .section-head.compact h2 {
+    font-size: 1.05rem;
+    line-height: 1.12;
+  }
+
+  body.owner-page .owner-section-note {
+    display: none;
+  }
+
+  body.owner-page .owner-focus-list {
+    gap: 9px;
+  }
+
+  body.owner-page .queue-card.owner-queue-card {
+    gap: 9px;
+    padding: 11px;
+    border-radius: 18px;
+  }
+
+  body.owner-page .queue-top {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  body.owner-page .queue-kind {
+    margin-bottom: 2px;
+    font-size: .68rem;
+  }
+
+  body.owner-page .owner-queue-card .queue-top strong {
+    font-size: .96rem;
+    line-height: 1.16;
+  }
+
+  body.owner-page .owner-queue-card .hint {
+    margin-top: 1px;
+    font-size: .78rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  body.owner-page .status-pill {
+    padding: 6px 8px;
+    border-radius: 999px;
+    font-size: .68rem;
+    white-space: nowrap;
+  }
+
+  body.owner-page .owner-queue-card .queue-meta {
+    gap: 5px;
+  }
+
+  body.owner-page .owner-queue-card .queue-meta span {
+    padding: 5px 7px;
+    font-size: .68rem;
+    line-height: 1.1;
+  }
+
+  body.owner-page .contact-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  body.owner-page .contact-button {
+    min-height: 38px;
+    padding: 7px 9px;
+    border-radius: 13px;
+    font-size: .78rem;
+  }
+
+  body.owner-page .queue-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  body.owner-page .queue-actions .primary-button,
+  body.owner-page .queue-actions .secondary-button,
+  body.owner-page .queue-actions .danger-button {
+    min-height: 40px;
+    padding: 8px 8px;
+    border-radius: 13px;
+    font-size: .76rem;
+  }
+
+  body.owner-page .queue-actions .primary-button:first-child {
+    grid-column: span 2;
+  }
+
+  body.owner-page .queue-note {
+    padding: 8px 10px;
+    border-radius: 13px;
+    font-size: .78rem;
+    line-height: 1.4;
+  }
+
+  body.owner-page .owner-empty-state {
+    gap: 6px;
+    padding: 13px;
+    border-radius: 16px;
+  }
+
+  body.owner-page .owner-empty-state strong {
+    font-size: .9rem;
+  }
+
+  body.owner-page .owner-empty-state span {
+    font-size: .78rem;
+    line-height: 1.42;
+  }
+}
+
+@media (max-width: 370px) {
+  body.owner-page .topbar .brand {
+    max-width: 112px;
+  }
+
+  body.owner-page .topbar .brand strong,
+  body.owner-page .topbar .brand small {
+    max-width: 52px;
+  }
+
+  body.owner-page .topbar-actions .owner-add-button,
+  body.owner-page .topbar-actions .notification-button,
+  body.owner-page .topbar-actions .sound-toggle-button {
+    width: 39px;
+    height: 39px;
+    min-width: 39px;
+    min-height: 39px;
+    border-radius: 14px;
+  }
+
+  body.owner-page .owner-command-center {
+    padding: 8px;
+  }
+
+  body.owner-page .owner-dashboard-hero h1 {
+    font-size: 1.22rem;
+  }
+
+  body.owner-page .owner-nav {
+    inset-inline: 6px;
+    padding: 6px;
+    border-radius: 22px;
+  }
+
+  body.owner-page .owner-nav .owner-tab {
+    min-height: 55px;
+    border-radius: 16px;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  body.owner-page .owner-nav .owner-tab .owner-tab-label::after {
+    font-size: .64rem;
+  }
+
+  body.owner-page .queue-actions .primary-button:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* Owner mobile card density: make queue work fit real phone screens better. */
+@media (max-width: 620px) {
+  body.owner-page .owner-overview-grid {
+    gap: 8px;
+  }
+
+  body.owner-page .owner-overview-card {
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  body.owner-page .owner-attention-card,
+  body.owner-page .owner-today-card {
+    box-shadow: 0 12px 28px rgba(159, 64, 88, .08);
+  }
+
+  body.owner-page .section-head.compact {
+    margin-bottom: 6px;
+  }
+
+  body.owner-page .section-head.compact .eyebrow {
+    margin-bottom: 1px;
+    font-size: .68rem;
+  }
+
+  body.owner-page .section-head.compact h2 {
+    font-size: .98rem;
+  }
+
+  body.owner-page .owner-focus-list {
+    gap: 7px;
+  }
+
+  body.owner-page .queue-card.owner-queue-card {
+    gap: 7px;
+    padding: 8px;
+    border-radius: 15px;
+    box-shadow: 0 10px 22px rgba(159, 64, 88, .07);
+  }
+
+  body.owner-page .queue-top {
+    gap: 7px;
+  }
+
+  body.owner-page .queue-kind {
+    display: none;
+  }
+
+  body.owner-page .owner-queue-card .queue-top strong {
+    font-size: .9rem;
+    line-height: 1.12;
+  }
+
+  body.owner-page .owner-queue-card .hint {
+    font-size: .72rem;
+    line-height: 1.16;
+  }
+
+  body.owner-page .status-pill {
+    padding: 5px 7px;
+    font-size: .63rem;
+    line-height: 1;
+  }
+
+  body.owner-page .owner-queue-card .queue-meta {
+    gap: 4px;
+  }
+
+  body.owner-page .owner-queue-card .queue-meta span {
+    padding: 4px 6px;
+    border-radius: 999px;
+    font-size: .62rem;
+    line-height: 1.05;
+  }
+
+  body.owner-page .contact-actions {
+    gap: 5px;
+  }
+
+  body.owner-page .contact-button {
+    min-height: 36px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: .72rem;
+  }
+
+  body.owner-page .queue-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  body.owner-page .queue-actions .primary-button,
+  body.owner-page .queue-actions .secondary-button,
+  body.owner-page .queue-actions .danger-button {
+    min-width: 0;
+    min-height: 38px;
+    padding: 7px 5px;
+    border-radius: 12px;
+    font-size: .7rem;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  body.owner-page .queue-actions .primary-button:first-child {
+    grid-column: auto;
+  }
+
+  body.owner-page .queue-note {
+    display: -webkit-box;
+    max-height: 3.1em;
+    overflow: hidden;
+    padding: 7px 9px;
+    border-radius: 12px;
+    font-size: .72rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  body.owner-page .owner-empty-state {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 370px) {
+  body.owner-page .owner-overview-card {
+    padding: 7px;
+  }
+
+  body.owner-page .queue-card.owner-queue-card {
+    gap: 6px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  body.owner-page .owner-queue-card .queue-top strong {
+    font-size: .86rem;
+  }
+
+  body.owner-page .owner-queue-card .hint,
+  body.owner-page .contact-button,
+  body.owner-page .queue-actions .primary-button,
+  body.owner-page .queue-actions .secondary-button,
+  body.owner-page .queue-actions .danger-button,
+  body.owner-page .queue-note {
+    font-size: .64rem;
+  }
+
+  body.owner-page .queue-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.owner-page .queue-actions .primary-button:first-child {
+    grid-column: auto;
+  }
+
+  body.owner-page .status-pill,
+  body.owner-page .owner-queue-card .queue-meta span {
+    font-size: .58rem;
+  }
+}
+
+
+/* Customer booking icon and calendar badge polish. */
+.booking-step-icon svg {
+  width: 58%;
+  height: 58%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.booking-step[data-step-indicator="details"] .booking-step-icon svg {
+  fill: currentColor;
+  stroke-width: 1.55;
+}
+
+.booking-step span.booking-step-icon {
+  color: #9f4058;
+}
+
+.booking-step.is-active span.booking-step-icon,
+.booking-step.is-complete span.booking-step-icon {
+  color: #d85f7c;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, .94), transparent 30%),
+    #ffdcdc;
+}
+
+.calendar-day-cell {
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+}
+
+.calendar-day-cell span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 22px;
+  height: 22px;
+  margin-top: 0;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: .64rem;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.calendar-day-cell.active span,
+.calendar-day-cell.available span,
+.calendar-day-cell.full span,
+.calendar-day-cell.closed span {
+  min-width: 44px;
+  height: 22px;
+}
+
+@media (max-width: 430px) {
+  .booking-step-icon svg {
+    width: 62%;
+    height: 62%;
+    stroke-width: 2.45;
+  }
+
+  .booking-step[data-step-indicator="details"] .booking-step-icon svg {
+    stroke-width: 1.65;
+  }
+
+  .calendar-sheet-grid {
+    gap: 5px;
+  }
+
+  .calendar-day-cell {
+    min-height: 56px;
+    border-radius: 16px;
+    padding: 6px 1px;
+  }
+
+  .calendar-day-cell strong {
+    font-size: 1.06rem;
+  }
+
+  .calendar-day-cell span {
+    min-width: 40px;
+    height: 21px;
+    min-height: 21px;
+    padding-inline: 7px;
+    font-size: .6rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .booking-step-icon svg {
+    width: 64%;
+    height: 64%;
+  }
+
+  .calendar-sheet-grid {
+    gap: 4px;
+  }
+
+  .calendar-day-cell {
+    min-height: 52px;
+    border-radius: 14px;
+  }
+
+  .calendar-day-cell strong {
+    font-size: 1rem;
+  }
+
+  .calendar-day-cell span {
+    min-width: 36px;
+    height: 19px;
+    min-height: 19px;
+    padding-inline: 6px;
+    font-size: .54rem;
+  }
+}
+
+
+/* Customer date badge contrast: selected available days must stay readable. */
+.date-quick-chip em {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 58px;
+  min-height: 25px;
+  padding: 5px 9px;
+  line-height: 1;
+  text-align: center;
+}
+
+.date-quick-chip.active.available em {
+  color: #ffffff;
+  background: #0c7a45;
+  box-shadow: 0 8px 16px rgba(12, 122, 69, .18);
+}
+
+.date-quick-chip.active.full em {
+  color: #ffffff;
+  background: #a83e4d;
+}
+
+.date-quick-chip.active.closed em {
+  color: #4a3640;
+  background: #ffe8cd;
+}
+
+@media (max-width: 430px) {
+  .date-quick-chip em {
+    min-width: 54px;
+    min-height: 24px;
+    padding-inline: 8px;
+    font-size: .7rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .date-quick-chip em {
+    min-width: 50px;
+    min-height: 22px;
+    padding-inline: 7px;
+    font-size: .66rem;
+  }
+}
+
+/* Runtime shop themes: platform admin chooses one fixed palette per shop. */
+body[data-shop-theme].customer-page .brand,
+body[data-shop-theme].admin-page .brand,
+body[data-shop-theme].owner-page .topbar .brand,
+body[data-shop-theme].customer-page .booking-panel,
+body[data-shop-theme].customer-page .status-panel,
+body[data-shop-theme].customer-page .home-hero,
+body[data-shop-theme].customer-page .home-section,
+body[data-shop-theme].owner-page .owner-command-center,
+body[data-shop-theme].owner-page .owner-nav,
+body[data-shop-theme].owner-page .side-card,
+body[data-shop-theme].owner-page .queue-card,
+body[data-shop-theme].owner-page .schedule-item,
+body[data-shop-theme].owner-page .calendar-day-detail,
+body[data-shop-theme].owner-page .calendar-detail-item,
+body[data-shop-theme].owner-page .shop-logo-editor {
+  border-color: color-mix(in srgb, var(--line) 82%, #ffffff 18%);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-strong) 94%, #ffffff 6%), color-mix(in srgb, var(--surface) 76%, var(--soft-mint) 24%)),
+    var(--surface-strong);
+  box-shadow: var(--shadow);
+}
+
+body[data-shop-theme].customer-page .booking-panel::before,
+body[data-shop-theme].owner-page .owner-dashboard-hero {
+  background:
+    radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--coral) 42%, transparent), transparent 30%),
+    radial-gradient(circle at 10% 82%, color-mix(in srgb, var(--aqua) 46%, transparent), transparent 28%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 92%, transparent), color-mix(in srgb, var(--soft-mint) 66%, transparent));
+}
+
+body[data-shop-theme].customer-page .customer-hero h1,
+body[data-shop-theme].customer-page .home-copy h1,
+body[data-shop-theme].owner-page .owner-dashboard-hero h1,
+body[data-shop-theme].owner-page .owner-queue-card .queue-top strong,
+body[data-shop-theme].owner-page .owner-empty-state strong,
+body[data-shop-theme].owner-page .stat-chip.owner-stat-card strong,
+body[data-shop-theme].customer-page input,
+body[data-shop-theme].customer-page select,
+body[data-shop-theme].customer-page textarea,
+body[data-shop-theme].owner-page input,
+body[data-shop-theme].owner-page select,
+body[data-shop-theme].owner-page textarea {
+  color: var(--ink);
+}
+
+body[data-shop-theme].customer-page .customer-hero .lead,
+body[data-shop-theme].customer-page .home-copy .lead,
+body[data-shop-theme].owner-page .owner-dashboard-hero .lead,
+body[data-shop-theme].owner-page .owner-queue-card .hint,
+body[data-shop-theme].owner-page .stat-chip.owner-stat-card .stat-label,
+body[data-shop-theme].owner-page .stat-chip.owner-stat-card small,
+body[data-shop-theme].owner-page .owner-section-note {
+  color: var(--muted);
+}
+
+body[data-shop-theme].customer-page .eyebrow,
+body[data-shop-theme].owner-page .eyebrow,
+body[data-shop-theme].owner-page .queue-kind,
+body[data-shop-theme].owner-page .owner-nav .owner-tab,
+body[data-shop-theme].owner-page .owner-link,
+body[data-shop-theme].owner-page .sound-toggle-button,
+body[data-shop-theme].owner-page .notification-button,
+body[data-shop-theme].owner-page .owner-add-button {
+  color: var(--primary-dark);
+}
+
+body[data-shop-theme].customer-page .primary-button,
+body[data-shop-theme].admin-page .primary-button,
+body[data-shop-theme].customer-page .tab-link.active,
+body[data-shop-theme].owner-page .primary-button,
+body[data-shop-theme].owner-page .owner-quick-action.primary,
+body[data-shop-theme].owner-page .owner-nav .owner-tab.is-active .owner-tab-icon,
+body[data-shop-theme].owner-page .owner-nav .owner-tab:hover .owner-tab-icon,
+body[data-shop-theme].owner-page .sound-toggle-icon,
+body[data-shop-theme].customer-page legend span,
+body[data-shop-theme].customer-page .calendar-day-cell.active,
+body[data-shop-theme].customer-page #customer .booking-next-button,
+body[data-shop-theme].customer-page #customer #booking-submit-button {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 16px 30px color-mix(in srgb, var(--primary-dark) 22%, transparent);
+}
+
+body[data-shop-theme].customer-page .secondary-button,
+body[data-shop-theme].customer-page .owner-link,
+body[data-shop-theme].customer-page .filter-chip,
+body[data-shop-theme].owner-page .secondary-button,
+body[data-shop-theme].owner-page .contact-button:not(.call),
+body[data-shop-theme].owner-page .icon-button,
+body[data-shop-theme].owner-page .calendar-month-button,
+body[data-shop-theme].owner-page .owner-quick-action,
+body[data-shop-theme].owner-page .owner-link,
+body[data-shop-theme].owner-page .sound-toggle-button,
+body[data-shop-theme].owner-page .notification-button,
+body[data-shop-theme].owner-page .owner-add-button,
+body[data-shop-theme].calendar-open-button,
+body[data-shop-theme].customer-page #customer .booking-form-actions .secondary-button {
+  color: var(--primary-dark);
+  border-color: color-mix(in srgb, var(--line) 86%, #ffffff 14%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 94%, transparent), color-mix(in srgb, var(--soft-peach) 54%, var(--surface) 46%));
+}
+
+body[data-shop-theme].customer-page input,
+body[data-shop-theme].customer-page select,
+body[data-shop-theme].customer-page textarea,
+body[data-shop-theme].owner-page input,
+body[data-shop-theme].owner-page select,
+body[data-shop-theme].owner-page textarea,
+body[data-shop-theme].customer-page .choice,
+body[data-shop-theme] .service-choice,
+body[data-shop-theme] .date-quick-chip,
+body[data-shop-theme].customer-page #customer .time-options .choice,
+body[data-shop-theme] .calendar-day-cell,
+body[data-shop-theme].owner-page .owner-queue-card .queue-meta span {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line) 86%, #ffffff 14%);
+  background: color-mix(in srgb, var(--surface-strong) 86%, var(--surface) 14%);
+}
+
+body[data-shop-theme].customer-page input:focus,
+body[data-shop-theme].customer-page select:focus,
+body[data-shop-theme].customer-page textarea:focus,
+body[data-shop-theme].owner-page input:focus,
+body[data-shop-theme].owner-page select:focus,
+body[data-shop-theme].owner-page textarea:focus {
+  outline-color: color-mix(in srgb, var(--primary) 20%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 68%, #ffffff 32%);
+}
+
+body[data-shop-theme].customer-page fieldset,
+body[data-shop-theme].customer-page .notice,
+body[data-shop-theme].customer-page .consent-field,
+body[data-shop-theme].owner-page .owner-overview-card,
+body[data-shop-theme].owner-page .owner-empty-state {
+  border-color: color-mix(in srgb, var(--line) 82%, #ffffff 18%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 86%, transparent), color-mix(in srgb, var(--soft-mint) 54%, var(--surface) 46%));
+}
+
+body[data-shop-theme].customer-page .choice.active,
+body[data-shop-theme] .service-choice.active,
+body[data-shop-theme] .date-quick-chip.active,
+body[data-shop-theme].customer-page #customer .time-options .choice.active,
+body[data-shop-theme] .calendar-day-cell.today,
+body[data-shop-theme].customer-page .status-pill,
+body[data-shop-theme].owner-page .status-pill.warn {
+  color: var(--primary-dark);
+  border-color: color-mix(in srgb, var(--primary) 72%, #ffffff 28%);
+  background: var(--soft-pink);
+}
+
+body[data-shop-theme].customer-page .choice.active .dot,
+body[data-shop-theme] .service-choice.active .service-check {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+body[data-shop-theme] .date-quick-chip.active,
+body[data-shop-theme] .calendar-day-cell.active {
+  border-color: var(--primary);
+}
+
+body[data-shop-theme].owner-page .contact-button.call {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--primary-dark) 20%, transparent);
 }

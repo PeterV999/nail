@@ -54,8 +54,8 @@ BookingNail Platform
 - `/` สำหรับหน้า preview/รายการตัวอย่างของแพลตฟอร์ม ไม่ใช่หน้าจองร้านจริง
 - `/fah` สำหรับหน้าจองคิว Fah Nail แบบสั้นสำหรับแปะ social และ map ไปยัง shop slug `fah-nail`
 - `/fah-owner` สำหรับหลังบ้าน Fah Nail แบบสั้นสำหรับเจ้าของร้าน
-- `/?shop={shopSlug}` สำหรับหน้าจองคิวร้านอื่นแบบควบคุม route
-- `/fah-owner?shop={shopSlug}` สำหรับหลังบ้านร้านอื่นแบบควบคุม route
+- `/{shopSlug}` สำหรับหน้าจองคิวร้านอื่น
+- `/{shopSlug}-owner` สำหรับหลังบ้านร้านอื่น
 - `/register` สำหรับร้านใหม่ลงทะเบียน
 Route เก่า `/b/{shopSlug}`, `/book/{shopSlug}`, `/o/{shopSlug}`, และ `/dashboard/{shopSlug}` ถูกปิดแล้ว
 ชื่อไฟล์ `index.html` และ `fah-owner/index.html` เป็นรายละเอียดภายในของ static hosting ไม่ควรใช้เป็น URL ที่ส่งให้ลูกค้าหรือเจ้าของร้าน

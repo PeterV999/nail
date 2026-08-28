@@ -1,11 +1,3 @@
-create table if not exists public.platform_admins (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  role text not null default 'admin',
-  created_at timestamptz not null default now()
-);
-
-alter table public.platform_admins enable row level security;
-
 alter table public.shops
 add column if not exists theme_key text not null default 'aqua_mint';
 
@@ -28,86 +20,18 @@ add constraint shops_theme_key_valid check (
   )
 );
 
-create or replace function public.is_platform_admin(target_user_id uuid default auth.uid())
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select target_user_id is not null
-    and exists (
-      select 1
-      from public.platform_admins
-      where platform_admins.user_id = target_user_id
-    );
-$$;
+create or replace view public.public_shops as
+select id, name, slug, status, phone, line_id, facebook_page, tagline, logo_path, theme_key
+from public.shops
+where status = 'active';
 
-create or replace function public.current_user_is_platform_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select public.is_platform_admin(auth.uid());
-$$;
-
-create or replace function public.is_shop_member(target_shop_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select public.is_platform_admin(auth.uid()) or exists (
-    select 1
-    from public.shop_members
-    where shop_members.shop_id = target_shop_id
-      and shop_members.user_id = auth.uid()
-  );
-$$;
-
-drop policy if exists "platform admins can read own admin status" on public.platform_admins;
-create policy "platform admins can read own admin status"
-on public.platform_admins for select
-using (user_id = auth.uid());
-
-create or replace function public.get_shop_access(shop_slug text)
-returns table(
-  id uuid,
-  name text,
-  slug text,
-  status text,
-  role text
-)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select
-    shops.id,
-    shops.name,
-    shops.slug,
-    shops.status,
-    case
-      when public.is_platform_admin(auth.uid()) then 'platform_admin'
-      else shop_members.role
-    end as role
-  from public.shops
-  left join public.shop_members
-    on shop_members.shop_id = shops.id
-   and shop_members.user_id = auth.uid()
-  where shops.slug = btrim(shop_slug)
-    and (
-      public.is_platform_admin(auth.uid())
-      or shop_members.user_id = auth.uid()
-    )
-  limit 1;
-$$;
+grant select on public.public_shops to anon, authenticated;
+grant select, update on public.shops to authenticated;
 
 drop function if exists public.list_accessible_shops();
+drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text);
+drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text, text);
+drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text);
 
 create or replace function public.list_accessible_shops()
 returns table(
@@ -188,10 +112,6 @@ as $$
     and (actor.is_admin or shop_members.user_id = actor.user_id)
   order by shops.created_at asc;
 $$;
-
-drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text);
-drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text, text);
-drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text);
 
 create or replace function public.update_platform_shop_settings(
   target_shop_id uuid,
@@ -279,26 +199,5 @@ begin
 end;
 $$;
 
-grant execute on function public.is_platform_admin(uuid) to authenticated;
-grant execute on function public.current_user_is_platform_admin() to authenticated;
-grant execute on function public.get_shop_access(text) to authenticated;
 grant execute on function public.list_accessible_shops() to authenticated;
 grant execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text) to authenticated;
-grant select on public.platform_admins to authenticated;
-
-create index if not exists platform_admins_role_idx on public.platform_admins (role);
-
-insert into public.platform_admins (user_id, role)
-select auth.users.id, 'admin'
-from auth.users
-where lower(auth.users.email) = lower('peter091021.v1@gmail.com')
-on conflict (user_id) do update
-set role = excluded.role;
-
-insert into public.shop_members (shop_id, user_id, role)
-select shops.id, auth.users.id, 'owner'
-from public.shops
-cross join auth.users
-where lower(auth.users.email) = lower('peter091021.v1@gmail.com')
-on conflict (shop_id, user_id) do update
-set role = excluded.role;

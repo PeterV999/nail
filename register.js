@@ -25,8 +25,8 @@ function normalizeSlug(value) {
 
 function updatePreview() {
   const slug = normalizeSlug(shopSlug.value || shopName.value) || "your-shop";
-  slugPreview.textContent = slug === "fah-nail" ? "/fah" : `/?shop=${slug}`;
-  dashboardPreview.textContent = slug === "fah-nail" ? "/fah-owner" : `/fah-owner?shop=${slug}`;
+  slugPreview.textContent = slug === "fah-nail" ? "/fah" : `/${slug}`;
+  dashboardPreview.textContent = slug === "fah-nail" ? "/fah-owner" : `/${slug}-owner`;
   if (shopSlug.value !== slug && document.activeElement !== shopSlug) {
     shopSlug.value = slug === "your-shop" ? "" : slug;
   }

@@ -80,6 +80,7 @@ function isHomePreviewRoute() {
 }
 
 function renderHomePreview() {
+  document.body.removeAttribute("data-shop-theme");
   if (homePreview) homePreview.hidden = false;
   if (customerSection) customerSection.hidden = true;
   if (ownerReturnLink) ownerReturnLink.hidden = true;
@@ -318,6 +319,7 @@ function render() {
 
 function renderShopChrome() {
   const shop = state.shop || { name: "Fah Nail", slug: currentShopSlug };
+  window.BookingNailTheme?.applyShopTheme?.(shop.themeKey);
   const urls = window.FahNailSupabase?.shopUrls?.(shop.slug || currentShopSlug) || {
     booking: "index.html",
     dashboard: "/fah-owner",

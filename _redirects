@@ -4,6 +4,7 @@
 /styles.css /styles.css 200
 /app-config.js /app-config.js 200
 /supabase-adapter.js /supabase-adapter.js 200
+/theme.js /theme.js 200
 /customer.js /customer.js 200
 /owner.js /owner.js 200
 /register.js /register.js 200
@@ -18,3 +19,5 @@
 /fah-owner/ /fah-owner/index.html 200
 /register /register/ 301
 /register/ /register/index.html 200
+/:shop_owner-owner /fah-owner/index.html 200
+/:shop / 200

@@ -30,7 +30,7 @@ Production branch: main
 npx wrangler pages deploy . --project-name bookingnail --branch main
 ```
 
-หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260815-10`
+หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260828-12`
 
 เอกสารอ้างอิง:
 
@@ -52,7 +52,7 @@ Production domain: https://bookingnail.pages.dev
 Public booking: /fah
 Owner dashboard: /fah-owner
 Platform preview: /
-Other shop routes: /?shop={shopSlug} and /fah-owner?shop={shopSlug}
+Other shop routes: /{shopSlug} and /{shopSlug}-owner
 New shop registration: /register
 Platform admin: /admin
 Closed legacy routes: /b/{shopSlug}, /book/{shopSlug}, /o/{shopSlug}, /dashboard/{shopSlug}
@@ -85,6 +85,7 @@ Then deploy the frontend to Cloudflare Pages as usual. After deployment, verify:
 - `/service-worker.js` returns the latest worker.
 - `/fah` and `/fah-owner` still route correctly.
 - Installing the PWA starts at `/admin/`.
+- If shop themes were updated, run `supabase/shop-themes.sql` in the Supabase SQL Editor before testing theme saving from `/admin`.
 - If a device still shows the old UI, tap the in-app update banner or run `window.FahNailPWA.clearCacheAndReload()` in the browser console.
 
 ## GitHub
@@ -107,6 +108,7 @@ git push -u origin main
 6. เปิด Authentication > Providers > Google แล้วตั้งค่า Google OAuth
 7. นำ `Project URL` และ `anon public key` มาใส่ใน `app-config.js`
 8. เพิ่มบัญชีเจ้าของร้านลง `shop_members`
+9. ถ้าต้องใช้ระบบธีมสีร้าน ให้รัน `supabase/shop-themes.sql`
 
 ตัวอย่าง `app-config.js` สำหรับเว็บจริง:
 

@@ -8,19 +8,18 @@ const routes = [
   { path: "/", includes: ["home-preview", "BookingNail"] },
   { path: "/fah", includes: ["customer-title", "จองคิวทำเล็บ"] },
   { path: "/fah-owner", includes: ["owner-auth-panel", "เข้าสู่ระบบหลังบ้าน"] },
+  { path: "/demo-salon", includes: ["customer-title", "จองคิวทำเล็บ"] },
+  { path: "/demo-salon-owner", includes: ["owner-auth-panel", "เข้าสู่ระบบหลังบ้าน"] },
   { path: "/privacy", includes: ["นโยบายความเป็นส่วนตัว"] },
   { path: "/terms", includes: ["ข้อตกลงการใช้งาน"] },
   { path: "/admin/", includes: ["admin-auth-panel", "ศูนย์ดูแลร้าน"] },
 ];
 
 const legacyRoutes = [
-  "/demo-shop",
-  "/demo-shop-owner",
   "/b/fah-nail",
   "/o/fah-nail",
   "/book/fah-nail",
   "/dashboard/fah-nail",
-  "/owner",
   "/owner.html"
 ];
 

@@ -2,7 +2,7 @@ const STORAGE_KEY = "bookingnail-local-state";
 const LEGACY_STORAGE_KEY = "fah-nail-booking-demo";
 const OWNER_TAB_KEY = "fah-nail-owner-tab-v2";
 const OWNER_UI_VERSION_KEY = "fah-nail-owner-ui-version";
-const OWNER_UI_VERSION = "2026-08-15-premium-owner";
+const OWNER_UI_VERSION = "2026-08-28-premium-owner";
 const NOTIFICATION_SOUND_ENABLED_KEY = "fah-nail-notification-sound-enabled";
 const SOUNDED_NOTIFICATION_KEY = "fah-nail-notification-sounded";
 const SYSTEM_NOTIFIED_KEY = "fah-nail-system-notified";
@@ -106,8 +106,10 @@ const ownerAccount = document.getElementById("owner-account");
 const authCopy = document.getElementById("auth-copy");
 const authStatus = document.getElementById("auth-status");
 const requestList = document.getElementById("request-list");
+const todayQueueList = document.getElementById("today-queue-list");
 const ownerConnectionGrid = document.getElementById("owner-connection-grid");
 const ownerStats = document.getElementById("owner-stats");
+const ownerHeroStatus = document.getElementById("owner-hero-status");
 const ownerTabsMenu = document.querySelector(".owner-tabs");
 const ownerTabs = Array.from(document.querySelectorAll("[data-owner-tab]"));
 const ownerTabPanels = Array.from(document.querySelectorAll("[data-owner-panel]"));
@@ -428,6 +430,7 @@ function withDemoPreviewData(currentState) {
 
 function updateRouteLinks() {
   const shop = state.shop || { name: "Fah Nail", slug: currentShopSlug };
+  window.BookingNailTheme?.applyShopTheme?.(shop.themeKey);
   const urls = window.FahNailSupabase?.shopUrls?.(currentShopSlug) || {
     booking: "index.html",
     dashboard: "/fah-owner",
@@ -468,16 +471,28 @@ function shopInitials(name = "Fah Nail") {
 
 function renderLogoMark(element, shop) {
   if (!element) return;
+  const shopSlug = shop?.slug || currentShopSlug || "";
+  const fallbackShop = element.dataset.fallbackShop || "";
+  const fallbackLogo = (!fallbackShop || fallbackShop === shopSlug) ? element.dataset.fallbackLogo || "" : "";
+  const fallbackText = shopInitials(shop?.name);
+  const logoUrl = shop?.logoUrl || fallbackLogo;
   element.classList.remove("has-logo", "app-logo-mark");
   delete element.dataset.appLogo;
-  element.textContent = shopInitials(shop?.name);
 
-  if (!shop?.logoUrl) return;
+  if (!logoUrl) {
+    element.textContent = fallbackText;
+    return;
+  }
+
   element.classList.add("has-logo");
-  element.innerHTML = `<img src="${escapeHtml(shop.logoUrl)}" alt="">`;
-  element.querySelector("img")?.addEventListener("error", () => {
+  element.innerHTML = `<img src="${escapeHtml(logoUrl)}" alt="">`;
+  element.querySelector("img")?.addEventListener("error", (event) => {
+    if (fallbackLogo && logoUrl !== fallbackLogo) {
+      event.currentTarget.src = fallbackLogo;
+      return;
+    }
     element.classList.remove("has-logo");
-    element.textContent = shopInitials(shop?.name);
+    element.textContent = fallbackText;
   });
 }
 
@@ -514,28 +529,62 @@ async function safeListMemberShops() {
 
 function renderOwnerStats() {
   if (!ownerStats) return;
-  const todayRequests = state.requests.filter((item) => item.bookingDate === today).length;
-  const todayAppointments = state.appointments.filter((item) => item.bookingDate === today && item.status === "confirmed").length;
+  const pendingRequests = activeBookingRequests().length;
+  const todayAppointments = todayQueueItems().filter((item) => item.status === "confirmed").length;
+  const dueSoon = dueSoonAppointmentCount();
   const completedToday = state.appointments.filter((item) => item.bookingDate === today && item.status === "completed").length;
-  const totalCustomers = state.customers?.length || 0;
+
+  if (ownerHeroStatus) {
+    ownerHeroStatus.textContent = `${ownerTodayLabel()} · ${todayAppointments} คิววันนี้ · ${pendingRequests} รอยืนยัน`;
+  }
 
   const stats = [
-    { label: "คำขอวันนี้", value: todayRequests },
-    { label: "คิวยืนยันวันนี้", value: todayAppointments },
-    { label: "เสร็จแล้ววันนี้", value: completedToday },
-    { label: "ลูกค้าที่บันทึก", value: totalCustomers }
+    { label: "รอยืนยัน", value: pendingRequests, hint: pendingRequests ? "ต้องตอบกลับลูกค้า" : "ไม่มีคำขอค้าง", tone: "warn" },
+    { label: "คิววันนี้", value: todayAppointments, hint: todayAppointments ? "พร้อมดูแลวันนี้" : "ยังไม่มีคิววันนี้", tone: "info" },
+    { label: "ใกล้ถึงคิว", value: dueSoon, hint: dueSoon ? "ควรเตรียมโทร/รับลูกค้า" : "ยังไม่มีคิวใกล้ถึง", tone: "aqua" },
+    { label: "เสร็จแล้ว", value: completedToday, hint: completedToday ? "บันทึกงานวันนี้แล้ว" : "รอบันทึกหลังให้บริการ", tone: "good" }
   ];
 
   ownerStats.innerHTML = "";
   stats.forEach((stat) => {
     const item = document.createElement("div");
-    item.className = "stat-chip";
+    item.className = `stat-chip owner-stat-card ${stat.tone}`;
     item.innerHTML = `
+      <span class="stat-label">${escapeHtml(stat.label)}</span>
       <strong>${stat.value}</strong>
-      <span>${stat.label}</span>
+      <small>${escapeHtml(stat.hint)}</small>
     `;
     ownerStats.append(item);
   });
+}
+
+function ownerTodayLabel() {
+  return new Intl.DateTimeFormat("th-TH", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(`${today}T00:00:00`));
+}
+
+function activeBookingRequests() {
+  return state.requests
+    .filter((item) => item.status === "pending_request" && !isPastDate(item.bookingDate || today))
+    .sort((a, b) => `${a.bookingDate || ""} ${a.timeWindow || ""}`.localeCompare(`${b.bookingDate || ""} ${b.timeWindow || ""}`));
+}
+
+function todayQueueItems() {
+  return state.appointments
+    .filter((item) => item.bookingDate === today && ["confirmed", "completed"].includes(item.status))
+    .sort((a, b) => (a.timeWindow || "").localeCompare(b.timeWindow || ""));
+}
+
+function dueSoonAppointmentCount() {
+  return state.appointments
+    .filter((item) => item.status === "confirmed")
+    .map((item) => minutesUntilAppointment(item))
+    .filter((minutes) => minutes >= 0 && minutes <= REMINDER_WINDOW_MINUTES)
+    .length;
 }
 
 function buildNotifications() {
@@ -624,7 +673,9 @@ function renderNotifications() {
 function renderNotificationSoundToggle() {
   if (!notificationSoundToggle) return;
   notificationSoundToggle.innerHTML = `
-    <span aria-hidden="true">${notificationSoundEnabled ? "♪" : "×"}</span>
+    <span class="sound-toggle-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M5 15h4l5 4V5L9 9H5v6Z"></path><path d="M17 9.5c1 .8 1.5 1.6 1.5 2.5S18 13.7 17 14.5"></path>${notificationSoundEnabled ? '<path d="M19.5 7c1.7 1.4 2.5 3 2.5 5s-.8 3.6-2.5 5"></path>' : '<path d="m19 9-4 6M15 9l4 6"></path>'}</svg>
+    </span>
     <strong>${notificationSoundEnabled ? "เสียงเปิด" : "เสียงปิด"}</strong>
   `;
   notificationSoundToggle.classList.toggle("is-on", notificationSoundEnabled);
@@ -852,111 +903,157 @@ function copyBookingMessage(booking, mode = "request") {
 }
 
 function renderOwnerLists() {
-  const items = [
-    ...state.requests.map((item) => ({ ...item, kind: "request" })),
-    ...state.appointments
-      .filter((item) => item.status === "confirmed")
-      .map((item) => ({ ...item, kind: "appointment" }))
-  ];
+  const requests = activeBookingRequests();
+  const todayItems = todayQueueItems();
 
-  requestList.innerHTML = "";
-
-  if (!items.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty-state";
-    empty.textContent = "ยังไม่มีคำขอจองหรือคิววันนี้";
-    requestList.append(empty);
+  if (requestList) {
+    requestList.innerHTML = "";
+    if (!requests.length) {
+      appendOwnerEmptyState(requestList, {
+        title: "ยังไม่มีคำขอที่ต้องตอบ",
+        copy: "ถ้ามีลูกค้าจองเข้ามา รายการจะขึ้นตรงนี้ให้ตอบกลับทันที",
+        action: "ดูตาราง",
+        tab: "calendar"
+      });
+    } else {
+      requests.forEach((item) => requestList.append(createQueueCard({ ...item, kind: "request" })));
+    }
   }
 
-  items.forEach((item) => {
-    const pastItem = isPastDate(item.bookingDate || today);
-    const card = document.createElement("article");
-    card.className = `${item.status === "confirmed" ? "queue-card confirmed" : "queue-card"}${pastItem ? " is-past" : ""}`;
-    const statusMarkup = item.kind === "appointment"
-      ? `<span class="status-pill">${statusLabel(item.status)}</span>`
-      : "";
-    const sourceText = sourceLabel(item.source);
-    card.innerHTML = `
-      <div class="queue-top">
-        <div>
-          <strong>${escapeHtml(item.customerName || "ลูกค้า")}</strong>
-          <p class="hint">${escapeHtml(item.contact || "ไม่มีช่องทางติดต่อ")}</p>
-        </div>
-        ${statusMarkup}
-      </div>
-      <div class="queue-meta">
-        <span>${thaiDate(item.bookingDate || today)}</span>
-        <span>${escapeHtml(item.timeWindow)}</span>
-        <span>${escapeHtml(serviceText(item))}</span>
-        <span>${sourceText}</span>
-      </div>
-      ${contactActionsMarkup(item.contact)}
-      ${item.note ? `<p class="hint">${escapeHtml(item.note)}</p>` : ""}
-    `;
-
-    if (pastItem) {
-      const pastNote = document.createElement("p");
-      pastNote.className = "empty-state compact";
-      pastNote.textContent = "คิวนี้เลยวันแล้ว";
-      card.append(pastNote);
-      requestList.append(card);
-      return;
+  if (todayQueueList) {
+    todayQueueList.innerHTML = "";
+    if (!todayItems.length) {
+      appendOwnerEmptyState(todayQueueList, {
+        title: "วันนี้ยังไม่มีคิว",
+        copy: "เพิ่มคิวหน้าร้านหรือรอคำขอจากหน้าจองของลูกค้าได้เลย",
+        action: "ลงคิวหน้าร้าน",
+        tab: "manual"
+      });
+    } else {
+      todayItems.forEach((item) => todayQueueList.append(createQueueCard({ ...item, kind: "appointment" })));
     }
+  }
+}
 
-    if (item.kind === "request") {
-      const actions = document.createElement("div");
-      actions.className = "queue-actions";
-      const confirm = document.createElement("button");
-      confirm.type = "button";
-      confirm.className = "primary-button";
-      confirm.textContent = "ยืนยันคิว";
-      confirm.disabled = busyWindows(item.bookingDate || today).has(item.timeWindow);
-      confirm.addEventListener("click", () => confirmRequest(item.id));
+function appendOwnerEmptyState(list, { title, copy, action, tab }) {
+  const empty = document.createElement("div");
+  empty.className = "owner-empty-state";
+  empty.innerHTML = `
+    <strong>${escapeHtml(title)}</strong>
+    <span>${escapeHtml(copy)}</span>
+  `;
 
-      const reject = document.createElement("button");
-      reject.type = "button";
-      reject.className = "secondary-button";
-      reject.textContent = "ปฏิเสธ";
-      reject.addEventListener("click", () => rejectRequest(item.id));
+  if (action && tab) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "owner-quick-action";
+    button.textContent = action;
+    button.addEventListener("click", () => activateOwnerTab(tab));
+    empty.append(button);
+  }
 
-      const message = document.createElement("button");
-      message.type = "button";
-      message.className = "secondary-button";
-      message.textContent = "ข้อความ";
-      message.addEventListener("click", () => copyBookingMessage(item, "request"));
+  list.append(empty);
+}
 
-      actions.append(confirm, message, reject);
-      card.append(actions);
-    }
+function createQueueCard(item) {
+  const pastItem = isPastDate(item.bookingDate || today);
+  const card = document.createElement("article");
+  const confirmed = item.status === "confirmed";
+  const completed = item.status === "completed";
+  card.className = `queue-card owner-queue-card ${confirmed ? "confirmed" : ""} ${completed ? "completed" : ""}${pastItem ? " is-past" : ""}`.trim();
+  const statusMarkup = `<span class="status-pill ${statusToneClass(item)}">${statusLabel(item.status)}</span>`;
+  const sourceText = sourceLabel(item.source);
+  const noteMarkup = item.note ? `<p class="queue-note">${escapeHtml(item.note)}</p>` : "";
 
-    if (item.kind === "appointment") {
-      const actions = document.createElement("div");
-      actions.className = "queue-actions";
+  card.innerHTML = `
+    <div class="queue-top">
+      <div>
+        <span class="queue-kind">${item.kind === "request" ? "คำขอใหม่" : "คิวร้าน"}</span>
+        <strong>${escapeHtml(item.customerName || "ลูกค้า")}</strong>
+        <p class="hint">${escapeHtml(item.contact || "ไม่มีช่องทางติดต่อ")}</p>
+      </div>
+      ${statusMarkup}
+    </div>
+    <div class="queue-meta">
+      <span>${thaiDate(item.bookingDate || today)}</span>
+      <span>${escapeHtml(item.timeWindow || "")}</span>
+      <span>${escapeHtml(serviceText(item))}</span>
+      <span>${sourceText}</span>
+    </div>
+    ${contactActionsMarkup(item.contact)}
+    ${noteMarkup}
+  `;
 
-      const cancel = document.createElement("button");
-      cancel.type = "button";
-      cancel.className = "secondary-button";
-      cancel.textContent = "ยกเลิกคิว";
-      cancel.addEventListener("click", () => cancelAppointment(item.id));
+  if (pastItem) {
+    const pastNote = document.createElement("p");
+    pastNote.className = "empty-state compact";
+    pastNote.textContent = "รายการนี้เลยวันแล้ว ดูย้อนหลังได้จากตารางคิว";
+    card.append(pastNote);
+    return card;
+  }
 
-      const message = document.createElement("button");
-      message.type = "button";
-      message.className = "secondary-button";
-      message.textContent = "ข้อความ";
-      message.addEventListener("click", () => copyBookingMessage(item, "confirmed"));
+  const actions = document.createElement("div");
+  actions.className = "queue-actions";
 
+  if (item.kind === "request") {
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.className = "primary-button";
+    confirm.textContent = "ยืนยันคิว";
+    confirm.disabled = busyWindows(item.bookingDate || today).has(item.timeWindow);
+    confirm.title = confirm.disabled ? "ช่วงเวลานี้มีคิวแล้ว" : "ยืนยันคำขอนี้";
+    confirm.addEventListener("click", () => confirmRequest(item.id));
+
+    const message = document.createElement("button");
+    message.type = "button";
+    message.className = "secondary-button";
+    message.textContent = "ข้อความ";
+    message.addEventListener("click", () => copyBookingMessage(item, "request"));
+
+    const reject = document.createElement("button");
+    reject.type = "button";
+    reject.className = "danger-button";
+    reject.textContent = "ปฏิเสธ";
+    reject.addEventListener("click", () => rejectRequest(item.id));
+
+    actions.append(confirm, message, reject);
+  }
+
+  if (item.kind === "appointment") {
+    const message = document.createElement("button");
+    message.type = "button";
+    message.className = "secondary-button";
+    message.textContent = "ข้อความ";
+    message.addEventListener("click", () => copyBookingMessage(item, "confirmed"));
+    actions.append(message);
+
+    if (!completed) {
       const complete = document.createElement("button");
       complete.type = "button";
       complete.className = "primary-button";
       complete.textContent = "เสร็จแล้ว";
       complete.addEventListener("click", () => completeAppointment(item.id));
 
-      actions.append(message, complete, cancel);
-      card.append(actions);
-    }
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "danger-button";
+      cancel.textContent = "ยกเลิกคิว";
+      cancel.addEventListener("click", () => cancelAppointment(item.id));
 
-    requestList.append(card);
-  });
+      actions.append(complete, cancel);
+    }
+  }
+
+  if (actions.children.length) card.append(actions);
+  return card;
+}
+
+function statusToneClass(item) {
+  if (item.kind === "request") return "warn";
+  if (item.status === "completed") return "good";
+  if (item.status === "confirmed") return "info";
+  if (["cancelled", "rejected"].includes(item.status)) return "danger";
+  return "muted";
 }
 
 function renderShopSettings() {
@@ -2052,6 +2149,9 @@ document.addEventListener("click", (event) => {
 
   const clickedNotification = notificationMenu?.contains(event.target) || notificationToggle?.contains(event.target);
   if (!clickedNotification) setNotificationMenuOpen(false);
+
+  const quickAction = event.target.closest(".owner-quick-action[data-owner-action-tab]");
+  if (quickAction) activateOwnerTab(quickAction.dataset.ownerActionTab || "queue");
 
   const copyButton = event.target.closest("[data-copy-contact]");
   if (copyButton) copyContact(copyButton.dataset.copyContact);

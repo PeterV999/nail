@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v44";
+const CACHE_VERSION = "v56";
 const STATIC_CACHE = `bookingnail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `bookingnail-pages-${CACHE_VERSION}`;
 
@@ -6,6 +6,7 @@ const STATIC_ASSETS = [
   "/styles.css",
   "/app-config.js",
   "/supabase-adapter.js",
+  "/theme.js",
   "/customer.js",
   "/owner.js",
   "/register.js",
@@ -13,6 +14,7 @@ const STATIC_ASSETS = [
   "/pwa.js",
   "/manifest.webmanifest",
   "/assets/bookingnail-icononly-pastel.png",
+  "/assets/fah-nail-logo.png",
   "/assets/sea-nail-mascot.svg",
   "/assets/queue-shell-mascot.svg",
   "/assets/app-icon-192.png",
@@ -40,15 +42,15 @@ const OFFLINE_HTML = `<!doctype html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f25b93">
+    <meta name="theme-color" content="#FFDCDC">
     <title>ออฟไลน์ | BookingNail</title>
     <style>
       :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; color: #143d4a; background: #effcff; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; color: #3f2a35; background: #fff2eb; }
       main { max-width: 420px; padding: 24px; border: 1px solid #bceaf0; border-radius: 20px; background: #fff; box-shadow: 0 20px 44px rgba(8, 127, 150, .16); }
       h1 { margin: 0 0 10px; font-size: 1.4rem; line-height: 1.25; }
       p { margin: 0; color: #637789; line-height: 1.7; }
-      button { margin-top: 18px; width: 100%; min-height: 44px; border: 0; border-radius: 14px; color: #fff; background: #f25b93; font-weight: 800; }
+      button { margin-top: 18px; width: 100%; min-height: 44px; border: 0; border-radius: 14px; color: #fff; background: #d85f7c; font-weight: 800; }
     </style>
   </head>
   <body>

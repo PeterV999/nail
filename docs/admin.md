@@ -64,4 +64,10 @@ where user_id in (
 3. Add in-app notifications for booking requests and upcoming appointments.
 4. Add booking-abuse protection.
 5. Add multi-staff scheduling.
-6. Grow into SaaS features such as shop themes and subscription packages.
+6. Grow into SaaS features such as subscription packages and deeper shop customization.
+
+## Shop Themes
+
+Platform admins can assign a fixed theme to each shop from `/admin`. The theme affects the customer booking page and the shop owner dashboard for that shop.
+
+Run `supabase/shop-themes.sql` before using theme saving in production. Shops that do not have a saved theme use `aqua_mint`.

@@ -5,8 +5,8 @@ const { extname, join, normalize } = require("node:path");
 const root = process.cwd();
 const port = Number(process.env.PORT || 4177);
 const host = process.env.HOST || "127.0.0.1";
-const staticFilePattern = /\.[a-z0-9]+$/i;
 const reservedRoutes = new Set(["admin", "assets", "privacy", "register", "terms"]);
+const staticFilePattern = /\.[a-z0-9]+$/i;
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -28,6 +28,8 @@ function routePath(pathname) {
   if (pathname === "/register" || pathname === "/register/") return "register/index.html";
   if (pathname === "/privacy" || pathname === "/privacy/") return "privacy/index.html";
   if (pathname === "/terms" || pathname === "/terms/") return "terms/index.html";
+  if (parts.length === 1 && first.endsWith("-owner") && !reservedRoutes.has(first)) return "fah-owner/index.html";
+  if (parts.length === 1 && !reservedRoutes.has(first) && !staticFilePattern.test(first)) return "index.html";
   return pathname.replace(/^\/+/, "");
 }
 

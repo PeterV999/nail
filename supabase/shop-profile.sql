@@ -1,9 +1,29 @@
 alter table public.shops
 add column if not exists tagline text,
-add column if not exists logo_path text;
+add column if not exists logo_path text,
+add column if not exists theme_key text not null default 'aqua_mint';
+
+alter table public.shops
+drop constraint if exists shops_theme_key_valid;
+
+alter table public.shops
+add constraint shops_theme_key_valid check (
+  theme_key in (
+    'aqua_mint',
+    'ocean_pastel',
+    'candy_cloud',
+    'soft_blush',
+    'warm_nail',
+    'sky_peach',
+    'lavender_mint',
+    'fresh_mint',
+    'sparkle_light',
+    'clean_blue_lavender'
+  )
+);
 
 create or replace view public.public_shops as
-select id, name, slug, status, phone, line_id, facebook_page, tagline, logo_path
+select id, name, slug, status, phone, line_id, facebook_page, tagline, logo_path, theme_key
 from public.shops
 where status = 'active';
 
@@ -60,6 +80,8 @@ using (
 
 drop function if exists public.list_accessible_shops();
 drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text);
+drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text, text);
+drop function if exists public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text);
 
 create or replace function public.list_accessible_shops()
 returns table(
@@ -72,6 +94,7 @@ returns table(
   facebook_page text,
   tagline text,
   logo_path text,
+  theme_key text,
   role text,
   pending_requests integer,
   today_appointments integer,
@@ -98,6 +121,7 @@ as $$
     shops.facebook_page,
     shops.tagline,
     shops.logo_path,
+    shops.theme_key,
     case when actor.is_admin then 'platform_admin' else shop_members.role end as role,
     coalesce(request_counts.pending_requests, 0)::integer as pending_requests,
     coalesce(appointment_counts.today_appointments, 0)::integer as today_appointments,
@@ -146,7 +170,8 @@ create or replace function public.update_platform_shop_settings(
   shop_line_id text default null,
   shop_facebook_page text default null,
   shop_status text default 'active',
-  shop_tagline text default null
+  shop_tagline text default null,
+  shop_theme_key text default 'aqua_mint'
 )
 returns table(
   id uuid,
@@ -158,6 +183,7 @@ returns table(
   facebook_page text,
   tagline text,
   logo_path text,
+  theme_key text,
   updated_at timestamptz
 )
 language plpgsql
@@ -167,6 +193,7 @@ as $$
 declare
   clean_name text := nullif(btrim(shop_name), '');
   clean_status text := lower(btrim(coalesce(shop_status, 'active')));
+  clean_theme_key text := lower(btrim(coalesce(shop_theme_key, 'aqua_mint')));
 begin
   if not public.is_platform_admin(auth.uid()) then
     raise exception 'PLATFORM_ADMIN_REQUIRED' using errcode = '42501';
@@ -180,6 +207,21 @@ begin
     raise exception 'SHOP_STATUS_INVALID' using errcode = '22023';
   end if;
 
+  if clean_theme_key not in (
+    'aqua_mint',
+    'ocean_pastel',
+    'candy_cloud',
+    'soft_blush',
+    'warm_nail',
+    'sky_peach',
+    'lavender_mint',
+    'fresh_mint',
+    'sparkle_light',
+    'clean_blue_lavender'
+  ) then
+    raise exception 'SHOP_THEME_INVALID' using errcode = '22023';
+  end if;
+
   return query
   update public.shops
   set
@@ -188,6 +230,7 @@ begin
     line_id = nullif(btrim(shop_line_id), ''),
     facebook_page = nullif(btrim(shop_facebook_page), ''),
     tagline = nullif(btrim(shop_tagline), ''),
+    theme_key = clean_theme_key,
     status = clean_status,
     updated_at = now()
   where shops.id = target_shop_id
@@ -201,9 +244,10 @@ begin
     shops.facebook_page,
     shops.tagline,
     shops.logo_path,
+    shops.theme_key,
     shops.updated_at;
 end;
 $$;
 
 grant execute on function public.list_accessible_shops() to authenticated;
-grant execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text, text) to authenticated;
+grant execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text) to authenticated;
