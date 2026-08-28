@@ -17,9 +17,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Syntax check
         run: npm run check
 
       - name: Smoke test
         run: npm run test:smoke
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Screenshot test
+        run: npm run test:screenshots
+
+      - name: Booking flow browser test
+        run: npm run test:booking-flow
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookingnail-screenshots
+          path: test-artifacts/screenshots
+          if-no-files-found: ignore
