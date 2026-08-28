@@ -605,6 +605,8 @@ $$;
 grant execute on function public.is_platform_admin(uuid) to authenticated;
 grant execute on function public.current_user_is_platform_admin() to authenticated;
 grant execute on function public.get_shop_access(text) to authenticated;
+revoke execute on function public.list_accessible_shops() from public, anon;
+revoke execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text) from public, anon;
 grant execute on function public.list_accessible_shops() to authenticated;
 grant execute on function public.update_platform_shop_settings(uuid, text, text, text, text, text, text, text) to authenticated;
 
