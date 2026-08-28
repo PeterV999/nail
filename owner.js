@@ -9,6 +9,16 @@ const SYSTEM_NOTIFIED_KEY = "fah-nail-system-notified";
 const REMINDER_WINDOW_MINUTES = 30;
 const REMINDER_REFRESH_MS = 60 * 1000;
 const today = new Date().toISOString().slice(0, 10);
+const ownerUtils = window.BookingNailOwnerUtils || {};
+const {
+  contactActionsMarkup,
+  escapeHtml,
+  phoneHref,
+  serviceText,
+  sourceLabel,
+  statusLabel,
+  thaiDate
+} = ownerUtils;
 
 const defaultTimeSlots = [
   { id: "slot-0800", startTime: "08:00", endTime: "10:00", active: true },
@@ -89,6 +99,7 @@ let currentShopSlug = window.FahNailSupabase?.routeShopSlug?.() || "fah-nail";
 let currentOwnerEmail = "";
 let currentOwnerRole = "";
 let currentMemberShops = [];
+let ownerTeamMembers = [];
 let calendarMonthStart = new Date(`${today}T00:00:00`);
 calendarMonthStart.setDate(1);
 let notificationSoundEnabled = localStorage.getItem(NOTIFICATION_SOUND_ENABLED_KEY) === "1";
@@ -143,6 +154,11 @@ const shopLogoInput = document.getElementById("shop-logo-input");
 const shopLogoUploadButton = document.getElementById("shop-logo-upload-button");
 const shopLogoRemoveButton = document.getElementById("shop-logo-remove-button");
 const shopLogoStatus = document.getElementById("shop-logo-status");
+const teamForm = document.getElementById("team-form");
+const teamEmailInput = document.getElementById("team-email");
+const teamRoleInput = document.getElementById("team-role");
+const teamSaveButton = document.getElementById("team-save");
+const ownerTeamList = document.getElementById("owner-team-list");
 const ownerTimeSlotList = document.getElementById("owner-time-slot-list");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
@@ -257,6 +273,7 @@ function render() {
   renderShopSchedule();
   renderBookingCalendar();
   renderShopSettings();
+  renderOwnerTeam();
 }
 
 function renderOwnerConnection() {
@@ -299,6 +316,7 @@ async function initOwnerAccess() {
       currentOwnerRole = authState.member.role || "owner";
       currentMemberShops = await safeListMemberShops();
       await loadRemoteOwnerState();
+      await loadOwnerTeamMembers();
       showOwnerApp("");
       return;
     }
@@ -398,6 +416,10 @@ function openDemoOwnerApp(message = "เปิดหลังบ้านโห�
   currentOwnerEmail = "";
   currentOwnerRole = "demo";
   currentMemberShops = [];
+  ownerTeamMembers = [
+    { userId: "demo-owner", email: "owner@example.com", role: "owner" },
+    { userId: "demo-staff", email: "staff@example.com", role: "staff" }
+  ];
   showOwnerApp(message);
 }
 
@@ -511,6 +533,7 @@ async function reloadAfterRemote(message) {
   setPageLoading(true, "กำลังโหลดข้อมูลล่าสุด", "กำลังดึงคิวและสถานะร้านจากฐานข้อมูล");
   try {
     await loadRemoteOwnerState();
+    await loadOwnerTeamMembers();
     render();
     if (message) showToast(message);
   } finally {
@@ -525,6 +548,69 @@ async function safeListMemberShops() {
     console.warn("List member shops failed", error);
     return [];
   }
+}
+
+async function loadOwnerTeamMembers() {
+  if (!remoteMode || !state.shop?.id) return;
+
+  try {
+    ownerTeamMembers = await window.FahNailSupabase.listShopMembers(state.shop.id);
+  } catch (error) {
+    console.warn("Load owner team failed", error);
+    ownerTeamMembers = [];
+    showToast("ยังโหลดทีมงานไม่สำเร็จ");
+  }
+}
+
+function canManageOwnerTeam() {
+  return ["owner", "platform_admin", "admin"].includes(currentOwnerRole);
+}
+
+function ownerRoleText(role) {
+  return role === "owner" ? "เจ้าของร้าน" : "ทีมงาน";
+}
+
+function renderOwnerTeam() {
+  if (!ownerTeamList) return;
+  const canManage = canManageOwnerTeam();
+  const formCard = teamForm?.closest(".side-card");
+  if (formCard) formCard.hidden = remoteMode && !canManage;
+
+  if (!remoteMode) {
+    ownerTeamList.innerHTML = `
+      <p class="empty-state compact">โหมดตัวอย่าง ทีมงานจริงจะแสดงหลังเข้าสู่ระบบร้าน</p>
+      ${ownerTeamMembers.map(ownerTeamMemberMarkup).join("")}
+    `;
+    return;
+  }
+
+  if (!canManage) {
+    ownerTeamList.innerHTML = `<p class="empty-state">บัญชีนี้ดูคิวได้ แต่จัดการทีมงานไม่ได้</p>`;
+    return;
+  }
+
+  if (!ownerTeamMembers.length) {
+    ownerTeamList.innerHTML = `<p class="empty-state">ยังไม่มีทีมงานในร้านนี้</p>`;
+    return;
+  }
+
+  ownerTeamList.innerHTML = ownerTeamMembers.map(ownerTeamMemberMarkup).join("");
+}
+
+function ownerTeamMemberMarkup(member) {
+  const userId = escapeHtml(member.userId || "");
+  const email = escapeHtml(member.email || "ไม่พบอีเมล");
+  const role = escapeHtml(ownerRoleText(member.role));
+  const canRemove = remoteMode && canManageOwnerTeam();
+  return `
+    <article class="admin-member-item owner-team-item" data-team-user-id="${userId}">
+      <div>
+        <strong>${email}</strong>
+        <span>${role}</span>
+      </div>
+      ${canRemove ? `<button class="secondary-button" type="button" data-team-action="remove">ลบ</button>` : ""}
+    </article>
+  `;
 }
 
 function renderOwnerStats() {
@@ -836,33 +922,6 @@ async function toggleNotificationSound() {
   localStorage.setItem(NOTIFICATION_SOUND_ENABLED_KEY, notificationSoundEnabled ? "1" : "0");
   renderNotificationSoundToggle();
   showToast(notificationSoundEnabled ? "เปิดเสียงแล้ว" : "ปิดเสียงแล้ว");
-}
-
-function phoneHref(contact = "") {
-  const normalized = String(contact).replace(/[^\d+]/g, "");
-  const digits = normalized.replace(/\D/g, "");
-  return digits.length >= 8 ? `tel:${normalized.startsWith("+") ? normalized : digits}` : "";
-}
-
-function contactActionsMarkup(contact = "", options = {}) {
-  const value = String(contact || "").trim();
-  if (!value) return "";
-
-  const { showCopy = true, showPhone = true } = options;
-  const callHref = phoneHref(value);
-  if (!showCopy && (!showPhone || !callHref)) return "";
-
-  return `
-    <div class="contact-actions">
-      ${showPhone && callHref ? `<a class="contact-button call" href="${escapeHtml(callHref)}">โทร</a>` : ""}
-      ${showCopy ? `<button class="contact-button" type="button" data-copy-contact="${escapeHtml(value)}">คัดลอก</button>` : ""}
-    </div>
-  `;
-}
-
-function serviceText(item) {
-  const services = Array.isArray(item?.services) ? item.services.filter(Boolean) : [];
-  return services.length ? services.join(", ") : "บริการ";
 }
 
 function isPastDate(date = today) {
@@ -1648,6 +1707,42 @@ shopForm.addEventListener("submit", async (event) => {
   }
 });
 
+teamForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!remoteMode || !state.shop?.id || !canManageOwnerTeam()) {
+    showToast("บัญชีนี้ยังจัดการทีมงานไม่ได้");
+    return;
+  }
+
+  const email = cleanOwnerEmail(teamEmailInput?.value || "").toLowerCase();
+  const role = teamRoleInput?.value || "staff";
+  if (!email) {
+    showToast("กรุณาใส่อีเมล");
+    return;
+  }
+
+  if (teamSaveButton) teamSaveButton.disabled = true;
+  try {
+    const member = await window.FahNailSupabase.upsertShopMember(state.shop.id, email, role);
+    const memberIndex = ownerTeamMembers.findIndex((item) => item.userId === member.userId);
+    if (memberIndex >= 0) {
+      ownerTeamMembers[memberIndex] = member;
+    } else {
+      ownerTeamMembers.push(member);
+    }
+    teamForm.reset();
+    if (teamRoleInput) teamRoleInput.value = "owner";
+    renderOwnerTeam();
+    showToast("บันทึกสิทธิ์แล้ว");
+  } catch (error) {
+    console.warn("Upsert owner team member failed", error);
+    const message = error?.message || "";
+    showToast(message.includes("MEMBER_USER_NOT_FOUND") ? "ไม่พบอีเมลนี้ ให้เขา login ก่อน" : "ยังบันทึกสิทธิ์ไม่สำเร็จ");
+  } finally {
+    if (teamSaveButton) teamSaveButton.disabled = false;
+  }
+});
+
 shopLogoUploadButton?.addEventListener("click", () => {
   if (!remoteMode) {
     showToast("อัปโหลดโลโก้ได้หลังจากเข้าสู่ระบบร้าน");
@@ -1859,35 +1954,6 @@ async function completeAppointment(id) {
     console.warn("Complete appointment failed", error);
     showToast("ยังบันทึกคิวเสร็จแล้วไม่สำเร็จ");
   }
-}
-
-function sourceLabel(source) {
-  return {
-    customer_request: "ลูกค้าจองเอง",
-    walk_in: "หน้าร้าน",
-    phone: "โทรจอง",
-    line: "LINE",
-    facebook: "Facebook",
-    admin: "เจ้าของร้านลงเอง"
-  }[source] || "หลังบ้าน";
-}
-
-function statusLabel(status) {
-  return {
-    pending_request: "รอยืนยัน",
-    confirmed: "ยืนยันแล้ว",
-    rejected: "ปฏิเสธแล้ว",
-    cancelled: "ยกเลิกแล้ว",
-    completed: "เสร็จแล้ว"
-  }[status] || "รอยืนยัน";
-}
-
-function thaiDate(value) {
-  return new Intl.DateTimeFormat("th-TH", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  }).format(new Date(`${value}T00:00:00`));
 }
 
 function showToast(message) {
@@ -2139,6 +2205,35 @@ notificationList?.addEventListener("click", (event) => {
   setNotificationMenuOpen(false);
 });
 
+ownerTeamList?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-team-action='remove']");
+  if (!button || !remoteMode || !state.shop?.id || !canManageOwnerTeam()) return;
+  const item = button.closest("[data-team-user-id]");
+  const userId = item?.dataset.teamUserId || "";
+  const member = ownerTeamMembers.find((entry) => entry.userId === userId);
+  if (!member) return;
+
+  const confirmed = await confirmOwnerAction({
+    title: "ลบสิทธิ์นี้หรือไม่",
+    message: `${member.email || "บัญชีนี้"} จะไม่เห็นหลังบ้านร้านนี้`,
+    actionText: "ลบสิทธิ์"
+  });
+  if (!confirmed) return;
+
+  button.disabled = true;
+  try {
+    await window.FahNailSupabase.removeShopMember(state.shop.id, userId);
+    ownerTeamMembers = ownerTeamMembers.filter((entry) => entry.userId !== userId);
+    renderOwnerTeam();
+    showToast("ลบสิทธิ์แล้ว");
+  } catch (error) {
+    console.warn("Remove owner team member failed", error);
+    showToast(error?.message?.includes("SHOP_LAST_OWNER_REQUIRED") ? "ต้องมีเจ้าของร้านอย่างน้อย 1 คน" : "ยังลบสิทธิ์ไม่สำเร็จ");
+  } finally {
+    button.disabled = false;
+  }
+});
+
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && !ownerApp.hidden) renderNotifications();
 });
@@ -2156,16 +2251,6 @@ document.addEventListener("click", (event) => {
   const copyButton = event.target.closest("[data-copy-contact]");
   if (copyButton) copyContact(copyButton.dataset.copyContact);
 });
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  }[char]));
-}
 
 setupOwnerTabs();
 initOwnerAccess();

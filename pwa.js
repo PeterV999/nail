@@ -18,7 +18,7 @@ async function clearFahNailCache() {
 
   const keys = await window.caches?.keys?.() || [];
   await Promise.all(keys
-    .filter((key) => key.startsWith("fah-nail-"))
+    .filter((key) => key.startsWith("fah-nail-") || key.startsWith("bookingnail-"))
     .map((key) => caches.delete(key)));
 }
 
@@ -37,7 +37,7 @@ if (fahNailPwaIsLocalPreview) {
 
     window.caches?.keys?.()
       .then((keys) => Promise.all(keys
-        .filter((key) => key.startsWith("fah-nail-"))
+        .filter((key) => key.startsWith("fah-nail-") || key.startsWith("bookingnail-"))
         .map((key) => caches.delete(key))))
       .catch(() => undefined);
   });

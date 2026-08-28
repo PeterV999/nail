@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260828-12">
+    <link rel="stylesheet" href="styles.css?v=20260828-13">
   </head>
   <body class="owner-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -46,6 +46,7 @@
             <button type="button" id="owner-action-manual" data-owner-action-tab="manual">ลงคิว</button>
             <button type="button" id="owner-action-settings" data-owner-action-tab="settings">แก้ไขบริการ</button>
             <button type="button" id="owner-action-shop" data-owner-action-tab="shop">ข้อมูลร้าน</button>
+            <button type="button" id="owner-action-team" data-owner-action-tab="team">ทีมงาน</button>
           </div>
           <button class="sound-toggle-button" type="button" id="notification-sound-toggle" aria-label="เปิดเสียงแจ้งเตือน" title="เปิดเสียงแจ้งเตือน" aria-pressed="false" hidden>
             <span aria-hidden="true">♪</span>
@@ -93,6 +94,7 @@
             <button class="owner-tab" type="button" id="owner-tab-manual" role="tab" aria-selected="false" aria-controls="owner-panel-manual" data-owner-tab="manual"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="8"/></svg></span><span class="owner-tab-label" data-mobile-label="ลงคิว">ลงคิว</span></button>
             <button class="owner-tab" type="button" id="owner-tab-settings" role="tab" aria-selected="false" aria-controls="owner-panel-settings" data-owner-tab="settings"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2"/><path d="M5 5l2 2M19 5l-2 2"/></svg></span><span class="owner-tab-label" data-mobile-label="เวลา">เวลา / บริการ</span></button>
             <button class="owner-tab" type="button" id="owner-tab-shop" role="tab" aria-selected="false" aria-controls="owner-panel-shop" data-owner-tab="shop"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h14l-1-5H6l-1 5Z"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/><path d="M5 10c.8 1.4 2.4 1.4 3.2 0 .8 1.4 2.4 1.4 3.2 0 .8 1.4 2.4 1.4 3.2 0 .8 1.4 2.4 1.4 3.2 0"/></svg></span><span class="owner-tab-label" data-mobile-label="ร้าน">ข้อมูลร้าน</span></button>
+            <button class="owner-tab" type="button" id="owner-tab-team" role="tab" aria-selected="false" aria-controls="owner-panel-team" data-owner-tab="team"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 20a8 8 0 0 1 16 0"/><path d="M18 8h3M19.5 6.5v3"/></svg></span><span class="owner-tab-label" data-mobile-label="ทีม">ทีมงาน</span></button>
           </nav>
 
           <section class="owner-main owner-command-center">
@@ -229,6 +231,35 @@
             </section>
           </section>
 
+            <section class="owner-tab-panel" id="owner-panel-team" role="tabpanel" aria-labelledby="owner-tab-team" data-owner-panel="team" hidden>
+            <div class="owner-panel-grid">
+            <section class="side-card owner-action-panel">
+              <h2>ทีมงาน</h2>
+              <p class="hint">เพิ่มบัญชีที่เคยเข้าสู่ระบบแล้ว เพื่อให้ช่วยดูแลหลังบ้านร้านนี้</p>
+              <div class="owner-team-list" id="owner-team-list"></div>
+            </section>
+
+            <section class="side-card owner-action-panel">
+              <h2>เพิ่มสิทธิ์</h2>
+              <form id="team-form" class="compact-form">
+                <label>
+                  อีเมล
+                  <input name="memberEmail" id="team-email" type="email" autocomplete="email" placeholder="name@gmail.com" required>
+                </label>
+                <label>
+                  สิทธิ์
+                  <select name="memberRole" id="team-role">
+                    <option value="owner">เจ้าของร้าน</option>
+                    <option value="staff">ทีมงาน</option>
+                  </select>
+                </label>
+                <button class="secondary-button" type="submit" id="team-save">บันทึกสิทธิ์</button>
+                <p class="hint">ถ้าไม่พบอีเมล ให้บัญชีนั้นเข้าสู่ระบบ Google หนึ่งครั้งก่อน</p>
+              </form>
+            </section>
+            </div>
+          </section>
+
             <section class="owner-tab-panel" id="owner-panel-settings" role="tabpanel" aria-labelledby="owner-tab-settings" data-owner-panel="settings" hidden>
             <div class="owner-panel-grid">
             <section class="side-card">
@@ -287,10 +318,11 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js?v=20260828-12"></script>
-    <script src="theme.js?v=20260828-12"></script>
-    <script src="supabase-adapter.js?v=20260828-12"></script>
-    <script src="pwa.js?v=20260828-12"></script>
-    <script src="owner.js?v=20260828-12"></script>
+    <script src="app-config.js?v=20260828-13"></script>
+    <script src="theme.js?v=20260828-13"></script>
+    <script src="supabase-adapter.js?v=20260828-13"></script>
+    <script src="pwa.js?v=20260828-13"></script>
+    <script src="owner-utils.js?v=20260828-13"></script>
+    <script src="owner.js?v=20260828-13"></script>
   </body>
 </html>

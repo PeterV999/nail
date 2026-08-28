@@ -33,6 +33,7 @@
 - [Platform Admin](docs/admin.md)
 - [Backlog](docs/backlog.md)
 - [Deployment](docs/deployment.md)
+- [Developer Workflow](docs/developer-workflow.md)
 
 ## ลำดับงานจากนี้
 
@@ -40,6 +41,7 @@
 
 - เช็ก cache/PWA หลัง deploy ถ้าหน้าเก่ายังค้างให้กดปุ่มอัปเดตที่ระบบแสดง หรือเรียก `window.FahNailPWA.clearCacheAndReload()` ใน browser console
 - Smoke test route หลักด้วย `npm run test:smoke`
+- ตรวจ mobile/iPad ด้วย `npm run test:screenshots`
 - ตรวจ backend flow จริง: ลูกค้าจองที่ `/fah` → หลังบ้านเห็นคำขอ → เจ้าของร้านยืนยัน → คิวขึ้นในตารางและช่วงเวลานั้นปิดในหน้าลูกค้า
 - ตรวจว่า public views ไม่แสดงชื่อ เบอร์ LINE หรือข้อมูลส่วนตัวลูกค้า
 - ตรวจบัญชีเจ้าของร้านใน `shop_members` และผู้ดูแลระบบกลางใน `platform_admins`
@@ -56,11 +58,9 @@
 
 ### 3. งานถัดไปก่อนขยายเป็น SaaS
 
-- เชื่อม GitHub auto-deploy กับ Cloudflare ให้สำเร็จ ตอนนี้ deploy ได้ด้วย `wrangler pages deploy`
+- เพิ่ม Playwright/visual test เข้า CI แบบเต็ม เมื่อ GitHub Actions พร้อมติดตั้ง browser
 - เพิ่ม Cloudflare Turnstile หรือ rate limit ก่อนเปิดลิงก์จองกว้าง ๆ บน social
-- เพิ่มหน้า UI สำหรับจัดการสิทธิ์เจ้าของร้านและทีมงาน แทนการแก้ SQL เอง
 - ปรับหน้า `/` ให้เป็นหน้ารวมร้านและตัวอย่างแพลตฟอร์มที่สวยขึ้น
-- ตรวจ mobile/iPad ทุกหน้าด้วย screenshot จริง
 - ทำ flow เพิ่มร้านใหม่ให้จบจริง: สมัครร้าน → ได้ลิงก์จอง/หลังบ้านจากระบบกลาง → เจ้าของเข้าหลังบ้านได้ทันที
 
 ## คำสั่งตรวจงาน
@@ -68,6 +68,14 @@
 ```bash
 npm run check
 npm run test:smoke
+npm run test:screenshots
+npm run test:booking-flow
+```
+
+คำสั่งทดสอบฐานข้อมูลจริงใช้เฉพาะผู้พัฒนาที่มี secret ในเครื่อง:
+
+```bash
+SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... npm run test:booking-flow:db
 ```
 
 ## Deploy / Rollback สั้น ๆ

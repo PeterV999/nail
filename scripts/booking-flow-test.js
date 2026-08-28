@@ -1,12 +1,5 @@
 const { spawn } = require("node:child_process");
-
-let chromium;
-try {
-  ({ chromium } = require("playwright"));
-} catch {
-  console.error("Playwright is required for this test. Install it or run with NODE_PATH pointing to a Playwright bundle.");
-  process.exit(1);
-}
+const { chromium } = require("./playwright-loader");
 
 const host = "127.0.0.1";
 const port = Number(process.env.PORT || 4191);
@@ -43,7 +36,11 @@ async function main() {
   let browser;
   try {
     await waitForServer();
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
+      headless: true,
+      args: ["--disable-features=MachPortRendezvous"]
+    });
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
 
     await page.route("**/app-config.js*", (route) => route.fulfill({

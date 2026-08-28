@@ -6,6 +6,7 @@ __MACOSX/
 branding/
 marketing/
 เมนูราคา.png
+test-artifacts/
 
 # dependencies
 /node_modules

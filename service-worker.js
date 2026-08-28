@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v56";
+const CACHE_VERSION = "v57";
 const STATIC_CACHE = `bookingnail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `bookingnail-pages-${CACHE_VERSION}`;
 
@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   "/theme.js",
   "/customer.js",
   "/owner.js",
+  "/owner-utils.js",
   "/register.js",
   "/admin.js",
   "/pwa.js",

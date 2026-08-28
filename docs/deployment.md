@@ -24,13 +24,13 @@ Production branch: main
 
 เหตุผล: เว็บระยะแรกเป็น static site ไม่มีขั้นตอน build จึงให้คำสั่งจบด้วย exit code 0 แล้วให้ Cloudflare อัปโหลดไฟล์จาก root directory
 
-ถ้า GitHub auto-deploy ยังไม่เชื่อม ให้ deploy ด้วย Wrangler:
+Cloudflare Pages ควร deploy จาก GitHub branch `main` เป็นหลัก ถ้าฉุกเฉินและ Git deploy ใช้ไม่ได้ ให้ deploy ด้วย Wrangler:
 
 ```bash
 npx wrangler pages deploy . --project-name bookingnail --branch main
 ```
 
-หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260828-12`
+หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260828-13`
 
 เอกสารอ้างอิง:
 

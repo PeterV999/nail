@@ -146,9 +146,9 @@ begin
 end;
 $$;
 
-revoke all on function public.list_shop_members_for_admin(uuid) from public;
-revoke all on function public.upsert_shop_member_by_email(uuid, text, text) from public;
-revoke all on function public.remove_shop_member_for_admin(uuid, uuid) from public;
+revoke execute on function public.list_shop_members_for_admin(uuid) from public, anon;
+revoke execute on function public.upsert_shop_member_by_email(uuid, text, text) from public, anon;
+revoke execute on function public.remove_shop_member_for_admin(uuid, uuid) from public, anon;
 grant execute on function public.list_shop_members_for_admin(uuid) to authenticated;
 grant execute on function public.upsert_shop_member_by_email(uuid, text, text) to authenticated;
 grant execute on function public.remove_shop_member_for_admin(uuid, uuid) to authenticated;
