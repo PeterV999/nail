@@ -2,10 +2,13 @@ const STORAGE_KEY = "bookingnail-local-state";
 const LEGACY_STORAGE_KEY = "fah-nail-booking-demo";
 const OWNER_TAB_KEY = "fah-nail-owner-tab-v2";
 const OWNER_UI_VERSION_KEY = "fah-nail-owner-ui-version";
-const OWNER_UI_VERSION = "2026-08-28-premium-owner";
+const OWNER_UI_VERSION = "2026-08-29-role-aware-owner-nav";
 const NOTIFICATION_SOUND_ENABLED_KEY = "fah-nail-notification-sound-enabled";
 const SOUNDED_NOTIFICATION_KEY = "fah-nail-notification-sounded";
 const SYSTEM_NOTIFIED_KEY = "fah-nail-system-notified";
+const POPUP_NOTIFIED_KEY = "fah-nail-popup-notified";
+const POPUP_AUTO_DISMISS_MS = 7000;
+const MAX_VISIBLE_POPUPS = 3;
 const REMINDER_WINDOW_MINUTES = 30;
 const REMINDER_REFRESH_MS = 60 * 1000;
 const today = new Date().toISOString().slice(0, 10);
@@ -107,6 +110,8 @@ let notificationAudioContext = null;
 let notificationReminderTimer = null;
 const soundedNotificationKeys = new Set(loadSoundedNotificationKeys());
 const systemNotifiedKeys = new Set(loadStoredKeyList(SYSTEM_NOTIFIED_KEY));
+const popupNotifiedKeys = new Set(loadStoredKeyList(POPUP_NOTIFIED_KEY));
+const activePopupTimers = new Map();
 
 const ownerAuthPanel = document.getElementById("owner-auth-panel");
 const ownerApp = document.getElementById("owner-app");
@@ -126,12 +131,14 @@ const ownerTabs = Array.from(document.querySelectorAll("[data-owner-tab]"));
 const ownerTabPanels = Array.from(document.querySelectorAll("[data-owner-panel]"));
 const ownerAddToggle = document.getElementById("owner-add-toggle");
 const ownerAddMenu = document.getElementById("owner-add-menu");
+const ownerAddMenuItems = Array.from(document.querySelectorAll("#owner-add-menu [data-owner-action-tab]"));
 const notificationToggle = document.getElementById("notification-toggle");
 const notificationBadge = document.getElementById("notification-badge");
 const notificationMenu = document.getElementById("notification-menu");
 const notificationCountText = document.getElementById("notification-count-text");
 const notificationList = document.getElementById("notification-list");
 const notificationSoundToggle = document.getElementById("notification-sound-toggle");
+const ownerNotificationPopups = document.getElementById("owner-notification-popups");
 const ownerServiceList = document.getElementById("owner-service-list");
 const manualTime = document.getElementById("manual-time");
 const manualService = document.getElementById("manual-service");
@@ -274,6 +281,7 @@ function render() {
   renderBookingCalendar();
   renderShopSettings();
   renderOwnerTeam();
+  syncOwnerAccessUi();
 }
 
 function renderOwnerConnection() {
@@ -562,8 +570,89 @@ async function loadOwnerTeamMembers() {
   }
 }
 
-function canManageOwnerTeam() {
+function isPrivilegedOwnerRole() {
   return ["owner", "platform_admin", "admin"].includes(currentOwnerRole);
+}
+
+function canManageOwnerTeam() {
+  return !remoteMode || isPrivilegedOwnerRole();
+}
+
+function canManageShopSettings() {
+  return !remoteMode || isPrivilegedOwnerRole();
+}
+
+function canManageServiceSettings() {
+  return !remoteMode || isPrivilegedOwnerRole();
+}
+
+function canAccessOwnerTab(tabName) {
+  if (["queue", "calendar", "manual"].includes(tabName)) return true;
+  if (tabName === "team") return canManageOwnerTeam();
+  if (tabName === "shop") return canManageShopSettings();
+  if (tabName === "settings") return canManageServiceSettings();
+  return false;
+}
+
+function ownerRestrictedMessage(tabName = "") {
+  if (tabName === "team") return "บัญชีทีมงานจัดการทีมไม่ได้";
+  if (tabName === "shop") return "บัญชีทีมงานแก้ข้อมูลร้านไม่ได้";
+  if (tabName === "settings") return "บัญชีทีมงานแก้เวลาและบริการไม่ได้";
+  return "บัญชีทีมงานจัดการเมนูนี้ไม่ได้";
+}
+
+function isOwnerMobileMoreTab(tab) {
+  return Boolean(tab?.dataset?.ownerTab === "settings" && canManageServiceSettings() && isMobileOwnerTabs());
+}
+
+function setControlsDisabled(root, disabled) {
+  root?.querySelectorAll("input, select, textarea, button").forEach((control) => {
+    control.disabled = Boolean(disabled);
+  });
+}
+
+function syncOwnerAccessUi() {
+  const limitedRole = remoteMode && !isPrivilegedOwnerRole();
+  document.body.classList.toggle("owner-role-limited", limitedRole);
+  document.body.classList.toggle("owner-role-admin", !limitedRole);
+
+  ownerTabs.forEach((tab) => {
+    const tabName = tab.dataset.ownerTab || "";
+    const canAccess = canAccessOwnerTab(tabName);
+    tab.hidden = !canAccess;
+    tab.disabled = !canAccess;
+    tab.setAttribute("aria-hidden", String(!canAccess));
+    if (tabName === "settings") {
+      tab.classList.toggle("owner-more-tab", canAccess);
+      tab.setAttribute("aria-haspopup", "menu");
+      tab.setAttribute("aria-expanded", String(!ownerAddMenu?.hidden && ownerAddMenu?.dataset.menuMode === "more"));
+    }
+  });
+
+  document.querySelectorAll("[data-owner-action-tab]").forEach((item) => {
+    const tabName = item.dataset.ownerActionTab || "";
+    const canAccess = canAccessOwnerTab(tabName);
+    item.hidden = !canAccess;
+    if ("disabled" in item) item.disabled = !canAccess;
+    item.setAttribute("aria-hidden", String(!canAccess));
+  });
+
+  const hasVisibleAction = ownerAddMenuItems.some((item) => !item.hidden);
+  if (ownerAddToggle) ownerAddToggle.hidden = !hasVisibleAction;
+
+  setControlsDisabled(teamForm, !canManageOwnerTeam());
+  setControlsDisabled(shopForm, !canManageShopSettings());
+  setControlsDisabled(serviceForm, !canManageServiceSettings());
+  setControlsDisabled(slotForm, !canManageServiceSettings());
+  if (closedDayToggle) closedDayToggle.disabled = !canManageServiceSettings();
+  if (shopLogoUploadButton) shopLogoUploadButton.disabled = !canManageShopSettings();
+  if (shopLogoRemoveButton) shopLogoRemoveButton.disabled = !canManageShopSettings() || !remoteMode || !state.shop?.logoPath;
+
+  const activeTab = ownerTabs.find((tab) => tab.classList.contains("is-active"))?.dataset.ownerTab || "queue";
+  if (!canAccessOwnerTab(activeTab)) {
+    localStorage.removeItem(OWNER_TAB_KEY);
+    activateOwnerTab("queue", { persist: false, silent: true });
+  }
 }
 
 function ownerRoleText(role) {
@@ -625,16 +714,16 @@ function renderOwnerStats() {
   }
 
   const stats = [
-    { label: "รอยืนยัน", value: pendingRequests, hint: pendingRequests ? "ต้องตอบกลับลูกค้า" : "ไม่มีคำขอค้าง", tone: "warn" },
-    { label: "คิววันนี้", value: todayAppointments, hint: todayAppointments ? "พร้อมดูแลวันนี้" : "ยังไม่มีคิววันนี้", tone: "info" },
-    { label: "ใกล้ถึงคิว", value: dueSoon, hint: dueSoon ? "ควรเตรียมโทร/รับลูกค้า" : "ยังไม่มีคิวใกล้ถึง", tone: "aqua" },
-    { label: "เสร็จแล้ว", value: completedToday, hint: completedToday ? "บันทึกงานวันนี้แล้ว" : "รอบันทึกหลังให้บริการ", tone: "good" }
+    { label: "รอยืนยัน", value: pendingRequests, hint: pendingRequests ? "รอตอบ" : "ว่าง", tone: "warn" },
+    { label: "คิววันนี้", value: todayAppointments, hint: todayAppointments ? "วันนี้" : "ไม่มีคิว", tone: "info" },
+    { label: "ใกล้ถึง", value: dueSoon, hint: dueSoon ? "เตรียมรับ" : "ปกติ", tone: "aqua" },
+    { label: "เสร็จแล้ว", value: completedToday, hint: completedToday ? "บันทึกแล้ว" : "ยังไม่มี", tone: "good" }
   ];
 
   ownerStats.innerHTML = "";
   stats.forEach((stat) => {
     const item = document.createElement("div");
-    item.className = `stat-chip owner-stat-card ${stat.tone}`;
+    item.className = `stat-chip owner-stat-card ${stat.tone}${stat.value ? " has-value" : " is-empty"}`;
     item.innerHTML = `
       <span class="stat-label">${escapeHtml(stat.label)}</span>
       <strong>${stat.value}</strong>
@@ -677,8 +766,11 @@ function buildNotifications() {
   const pendingRequests = state.requests
     .filter((item) => item.status === "pending_request")
     .map((item) => ({
+      key: `request-${item.id}-${item.bookingDate || today}-${item.timeWindow}`,
+      popup: true,
+      popupActionText: "ดูคำขอ",
       tone: "warn",
-      title: "คำขอใหม่",
+      title: "คำขอจองใหม่",
       detail: `${item.customerName} · ${thaiDate(item.bookingDate || today)} · ${item.timeWindow}`,
       tab: "queue"
     }));
@@ -692,7 +784,9 @@ function buildNotifications() {
     .map(({ item, minutes }) => ({
       key: `due-${item.id}-${item.bookingDate}-${item.timeWindow}`,
       sound: true,
-      tone: "warn",
+      popup: true,
+      popupActionText: "ดูตาราง",
+      tone: "due",
       title: "ใกล้ถึงคิว",
       detail: `${item.timeWindow} · ${item.customerName} · อีก ${Math.max(1, Math.round(minutes))} นาที`,
       tab: "calendar"
@@ -754,6 +848,92 @@ function renderNotifications() {
   });
   playNotificationSoundFor(notifications);
   showSystemNotificationFor(notifications);
+  showInAppNotificationPopups(notifications);
+}
+
+function showInAppNotificationPopups(notifications) {
+  if (!ownerNotificationPopups || ownerApp.hidden) return;
+
+  const popupItems = notifications
+    .filter((item) => item.popup && item.key && !popupNotifiedKeys.has(item.key))
+    .slice(0, MAX_VISIBLE_POPUPS);
+
+  popupItems.forEach((item) => {
+    popupNotifiedKeys.add(item.key);
+    rememberPopupNotifications();
+    appendOwnerNotificationPopup(item);
+  });
+}
+
+function appendOwnerNotificationPopup(item) {
+  if (!ownerNotificationPopups) return;
+
+  const visiblePopups = Array.from(ownerNotificationPopups.querySelectorAll(".owner-notification-popup"));
+  while (visiblePopups.length >= MAX_VISIBLE_POPUPS) {
+    const oldPopup = visiblePopups.shift();
+    if (oldPopup) dismissOwnerNotificationPopup(oldPopup);
+  }
+
+  const popup = document.createElement("article");
+  popup.className = `owner-notification-popup ${item.tone || "info"}`;
+  popup.dataset.popupKey = item.key;
+  popup.dataset.notificationTab = item.tab || "queue";
+  popup.tabIndex = -1;
+  popup.innerHTML = `
+    <div class="owner-notification-popup-mark" aria-hidden="true">${ownerNotificationPopupIcon(item.tone)}</div>
+    <div class="owner-notification-popup-copy">
+      <strong>${escapeHtml(item.title)}</strong>
+      <span>${escapeHtml(item.detail)}</span>
+    </div>
+    <div class="owner-notification-popup-actions">
+      <button class="owner-popup-action" type="button" data-popup-action="open">
+        <span class="owner-popup-action-full">${escapeHtml(item.popupActionText || "ดู")}</span>
+        <span class="owner-popup-action-short">ดู</span>
+      </button>
+      <button class="owner-popup-dismiss" type="button" data-popup-action="dismiss" aria-label="ปิดแจ้งเตือน">ปิด</button>
+    </div>
+  `;
+
+  ownerNotificationPopups.append(popup);
+  requestAnimationFrame(() => popup.classList.add("show"));
+  startOwnerPopupTimer(popup);
+}
+
+function ownerNotificationPopupIcon(tone = "") {
+  if (tone === "due") {
+    return '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"></circle><path d="M12 9v4l3 2"></path><path d="M7 4 4.5 6.5M17 4l2.5 2.5"></path></svg>';
+  }
+
+  return '<svg viewBox="0 0 24 24"><path d="M12 3v5M12 16v5M4 12h5M15 12h5"></path><path d="m7 7 2.5 2.5M14.5 14.5 17 17M17 7l-2.5 2.5M9.5 14.5 7 17"></path></svg>';
+}
+
+function startOwnerPopupTimer(popup) {
+  const key = popup?.dataset.popupKey;
+  if (!key) return;
+  window.clearTimeout(activePopupTimers.get(key));
+  activePopupTimers.set(key, window.setTimeout(() => dismissOwnerNotificationPopup(popup), POPUP_AUTO_DISMISS_MS));
+}
+
+function pauseOwnerPopupTimer(popup) {
+  const key = popup?.dataset.popupKey;
+  if (!key) return;
+  window.clearTimeout(activePopupTimers.get(key));
+  activePopupTimers.delete(key);
+}
+
+function dismissOwnerNotificationPopup(popup) {
+  if (!popup) return;
+  const key = popup.dataset.popupKey;
+  if (key) {
+    window.clearTimeout(activePopupTimers.get(key));
+    activePopupTimers.delete(key);
+  }
+  popup.classList.remove("show");
+  window.setTimeout(() => popup.remove(), 180);
+}
+
+function rememberPopupNotifications() {
+  localStorage.setItem(POPUP_NOTIFIED_KEY, JSON.stringify([...popupNotifiedKeys].slice(-100)));
 }
 
 function renderNotificationSoundToggle() {
@@ -1166,6 +1346,10 @@ function renderOwnerServices() {
 }
 
 async function toggleService(service) {
+  if (!canManageServiceSettings()) {
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const nextActive = !service.active;
   const confirmed = await confirmOwnerAction({
     title: nextActive ? "เปิดบริการนี้หรือไม่" : "ปิดบริการนี้หรือไม่",
@@ -1194,6 +1378,10 @@ async function toggleService(service) {
 }
 
 async function removeService(serviceId) {
+  if (!canManageServiceSettings()) {
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const confirmed = await confirmOwnerAction({
     title: "ลบบริการนี้หรือไม่",
     message: "บริการนี้จะหายจากตัวเลือกหน้าจองของลูกค้า",
@@ -1285,6 +1473,10 @@ function renderTimeManager() {
 }
 
 async function toggleTimeSlot(slot) {
+  if (!canManageServiceSettings()) {
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const nextActive = !slot.active;
   const confirmed = await confirmOwnerAction({
     title: nextActive ? "เปิดช่วงเวลานี้หรือไม่" : "ปิดช่วงเวลานี้หรือไม่",
@@ -1313,6 +1505,10 @@ async function toggleTimeSlot(slot) {
 }
 
 async function removeTimeSlot(slotId) {
+  if (!canManageServiceSettings()) {
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const confirmed = await confirmOwnerAction({
     title: "ลบช่วงเวลานี้หรือไม่",
     message: "ช่วงเวลานี้จะหายจากตัวเลือกที่ร้านใช้จัดคิว",
@@ -1648,6 +1844,10 @@ manualForm.addEventListener("submit", async (event) => {
 
 serviceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!canManageServiceSettings()) {
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const formData = new FormData(serviceForm);
   const serviceName = formData.get("serviceName").trim();
 
@@ -1675,6 +1875,10 @@ serviceForm.addEventListener("submit", async (event) => {
 
 shopForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!canManageShopSettings()) {
+    showToast(ownerRestrictedMessage("shop"));
+    return;
+  }
   const formData = new FormData(shopForm);
   const changes = {
     name: formData.get("shopName").trim(),
@@ -1744,6 +1948,10 @@ teamForm?.addEventListener("submit", async (event) => {
 });
 
 shopLogoUploadButton?.addEventListener("click", () => {
+  if (!canManageShopSettings()) {
+    showToast(ownerRestrictedMessage("shop"));
+    return;
+  }
   if (!remoteMode) {
     showToast("อัปโหลดโลโก้ได้หลังจากเข้าสู่ระบบร้าน");
     return;
@@ -1752,6 +1960,11 @@ shopLogoUploadButton?.addEventListener("click", () => {
 });
 
 shopLogoInput?.addEventListener("change", async () => {
+  if (!canManageShopSettings()) {
+    showToast(ownerRestrictedMessage("shop"));
+    if (shopLogoInput) shopLogoInput.value = "";
+    return;
+  }
   const file = shopLogoInput.files?.[0];
   shopLogoInput.value = "";
   if (!file) return;
@@ -1784,6 +1997,10 @@ shopLogoInput?.addEventListener("change", async () => {
 });
 
 shopLogoRemoveButton?.addEventListener("click", async () => {
+  if (!canManageShopSettings()) {
+    showToast(ownerRestrictedMessage("shop"));
+    return;
+  }
   if (!remoteMode || !state.shop?.logoPath) return;
 
   if (shopLogoUploadButton) shopLogoUploadButton.disabled = true;
@@ -1808,6 +2025,10 @@ shopLogoRemoveButton?.addEventListener("click", async () => {
 
 slotForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!canManageServiceSettings()) {
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const formData = new FormData(slotForm);
   const startTime = formData.get("startTime");
   const endTime = formData.get("endTime");
@@ -1874,6 +2095,11 @@ manualDate.addEventListener("change", renderManualOptions);
 scheduleDate.addEventListener("change", renderTimeManager);
 
 closedDayToggle.addEventListener("change", async () => {
+  if (!canManageServiceSettings()) {
+    closedDayToggle.checked = isDayClosed(selectedScheduleDate());
+    showToast(ownerRestrictedMessage("settings"));
+    return;
+  }
   const date = selectedScheduleDate();
 
   try {
@@ -2067,15 +2293,19 @@ ownerDialog?.addEventListener("close", () => {
   ownerDialogResult = false;
 });
 
-function activateOwnerTab(tabName, { persist = true } = {}) {
+function activateOwnerTab(tabName, { persist = true, silent = false } = {}) {
   if (!ownerTabs.length || !ownerTabPanels.length) return;
 
-  const nextTab = ownerTabPanels.some((panel) => panel.dataset.ownerPanel === tabName) ? tabName : "queue";
+  const requestedTab = ownerTabPanels.some((panel) => panel.dataset.ownerPanel === tabName) ? tabName : "queue";
+  const nextTab = canAccessOwnerTab(requestedTab) ? requestedTab : "queue";
+  if (requestedTab !== nextTab && !silent) showToast(ownerRestrictedMessage(requestedTab));
+
   ownerTabs.forEach((tab) => {
     const isActive = tab.dataset.ownerTab === nextTab;
+    const canAccess = canAccessOwnerTab(tab.dataset.ownerTab || "");
     tab.classList.toggle("is-active", isActive);
     tab.setAttribute("aria-selected", String(isActive));
-    tab.tabIndex = isActive || !ownerTabs.some((item) => item.dataset.ownerTab === nextTab) ? 0 : -1;
+    tab.tabIndex = isActive || !ownerTabs.some((item) => item.dataset.ownerTab === nextTab && canAccessOwnerTab(item.dataset.ownerTab || "")) ? 0 : -1;
   });
 
   ownerTabPanels.forEach((panel) => {
@@ -2084,6 +2314,7 @@ function activateOwnerTab(tabName, { persist = true } = {}) {
 
   updateOwnerTabOptionPositions();
   if (persist) localStorage.setItem(OWNER_TAB_KEY, nextTab);
+  syncOwnerAccessUi();
 }
 
 function isMobileOwnerTabs() {
@@ -2122,23 +2353,39 @@ function setupOwnerTabs() {
   setOwnerTabsExpanded(false);
 
   ownerTabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => {
+    tab.addEventListener("click", (event) => {
+      if (isOwnerMobileMoreTab(tab)) {
+        event.preventDefault();
+        event.stopPropagation();
+        setOwnerAddMenuOpen(ownerAddMenu?.hidden ?? true, "more");
+        setNotificationMenuOpen(false);
+        return;
+      }
       activateOwnerTab(tab.dataset.ownerTab);
       setOwnerTabsExpanded(false);
     });
     tab.addEventListener("keydown", (event) => {
-      const lastIndex = ownerTabs.length - 1;
-      let nextIndex = index;
+      const availableTabs = ownerTabs.filter((item) => !item.hidden && canAccessOwnerTab(item.dataset.ownerTab || ""));
+      const currentIndex = availableTabs.indexOf(tab);
+      const lastIndex = availableTabs.length - 1;
+      let nextIndex = currentIndex;
 
-      if (event.key === "ArrowRight") nextIndex = index === lastIndex ? 0 : index + 1;
-      if (event.key === "ArrowLeft") nextIndex = index === 0 ? lastIndex : index - 1;
+      if (currentIndex < 0) return;
+      if (event.key === "ArrowRight") nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
+      if (event.key === "ArrowLeft") nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
       if (event.key === "Home") nextIndex = 0;
       if (event.key === "End") nextIndex = lastIndex;
-      if (nextIndex === index && !["Home", "End"].includes(event.key)) return;
+      if (nextIndex === currentIndex && !["Home", "End"].includes(event.key)) return;
 
       event.preventDefault();
-      ownerTabs[nextIndex].focus();
-      activateOwnerTab(ownerTabs[nextIndex].dataset.ownerTab);
+      const nextTab = availableTabs[nextIndex];
+      nextTab.focus();
+      if (isOwnerMobileMoreTab(nextTab)) {
+        setOwnerAddMenuOpen(true, "more");
+        setNotificationMenuOpen(false);
+        return;
+      }
+      activateOwnerTab(nextTab.dataset.ownerTab);
       setOwnerTabsExpanded(false);
     });
   });
@@ -2161,24 +2408,34 @@ function initialOwnerTab() {
   }
 
   const savedTab = localStorage.getItem(OWNER_TAB_KEY);
-  return ownerTabPanels.some((panel) => panel.dataset.ownerPanel === savedTab) ? savedTab : "queue";
+  return ownerTabPanels.some((panel) => panel.dataset.ownerPanel === savedTab) && canAccessOwnerTab(savedTab) ? savedTab : "queue";
 }
 
-function setOwnerAddMenuOpen(open) {
+function setOwnerAddMenuOpen(open, mode = "quick") {
   if (!ownerAddMenu || !ownerAddToggle) return;
+  ownerAddMenu.dataset.menuMode = mode;
   ownerAddMenu.hidden = !open;
   ownerAddToggle.setAttribute("aria-expanded", String(open));
+  ownerTabs.forEach((tab) => {
+    if (tab.dataset.ownerTab === "settings") tab.setAttribute("aria-expanded", String(open && mode === "more"));
+  });
 }
 
 ownerAddToggle?.addEventListener("click", () => {
-  setOwnerAddMenuOpen(ownerAddMenu?.hidden ?? true);
+  setOwnerAddMenuOpen(ownerAddMenu?.hidden ?? true, "quick");
   setNotificationMenuOpen(false);
 });
 
 ownerAddMenu?.addEventListener("click", (event) => {
   const item = event.target.closest("[data-owner-action-tab]");
   if (!item) return;
-  activateOwnerTab(item.dataset.ownerActionTab || "queue");
+  const targetTab = item.dataset.ownerActionTab || "queue";
+  if (item.hidden || item.disabled || !canAccessOwnerTab(targetTab)) {
+    showToast(ownerRestrictedMessage(targetTab));
+    setOwnerAddMenuOpen(false);
+    return;
+  }
+  activateOwnerTab(targetTab);
   setOwnerAddMenuOpen(false);
 });
 
@@ -2187,6 +2444,40 @@ function setNotificationMenuOpen(open) {
   notificationMenu.hidden = !open;
   notificationToggle.setAttribute("aria-expanded", String(open));
 }
+
+ownerNotificationPopups?.addEventListener("click", (event) => {
+  const popup = event.target.closest(".owner-notification-popup");
+  const action = event.target.closest("[data-popup-action]");
+  if (!popup || !action) return;
+
+  if (action.dataset.popupAction === "open") {
+    activateOwnerTab(popup.dataset.notificationTab || "queue");
+    dismissOwnerNotificationPopup(popup);
+    return;
+  }
+
+  dismissOwnerNotificationPopup(popup);
+});
+
+ownerNotificationPopups?.addEventListener("pointerenter", (event) => {
+  const popup = event.target.closest(".owner-notification-popup");
+  if (popup) pauseOwnerPopupTimer(popup);
+}, true);
+
+ownerNotificationPopups?.addEventListener("pointerleave", (event) => {
+  const popup = event.target.closest(".owner-notification-popup");
+  if (popup) startOwnerPopupTimer(popup);
+}, true);
+
+ownerNotificationPopups?.addEventListener("focusin", (event) => {
+  const popup = event.target.closest(".owner-notification-popup");
+  if (popup) pauseOwnerPopupTimer(popup);
+});
+
+ownerNotificationPopups?.addEventListener("focusout", (event) => {
+  const popup = event.target.closest(".owner-notification-popup");
+  if (popup && !popup.contains(event.relatedTarget)) startOwnerPopupTimer(popup);
+});
 
 notificationToggle?.addEventListener("click", () => {
   setNotificationMenuOpen(notificationMenu?.hidden ?? true);

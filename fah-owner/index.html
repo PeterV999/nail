@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260828-13">
+    <link rel="stylesheet" href="styles.css?v=20260829-04">
   </head>
   <body class="owner-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -92,7 +92,7 @@
             <button class="owner-tab is-active" type="button" id="owner-tab-queue" role="tab" aria-selected="true" aria-controls="owner-panel-queue" data-owner-tab="queue"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11.5 12 5l7 6.5"/><path d="M7 10.5V19h10v-8.5"/><path d="M10 19v-5h4v5"/></svg></span><span class="owner-tab-label" data-mobile-label="ภาพรวม">ภาพรวม</span></button>
             <button class="owner-tab" type="button" id="owner-tab-calendar" role="tab" aria-selected="false" aria-controls="owner-panel-calendar" data-owner-tab="calendar"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"/></svg></span><span class="owner-tab-label" data-mobile-label="ตาราง">ตารางคิว</span></button>
             <button class="owner-tab" type="button" id="owner-tab-manual" role="tab" aria-selected="false" aria-controls="owner-panel-manual" data-owner-tab="manual"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/><circle cx="12" cy="12" r="8"/></svg></span><span class="owner-tab-label" data-mobile-label="ลงคิว">ลงคิว</span></button>
-            <button class="owner-tab" type="button" id="owner-tab-settings" role="tab" aria-selected="false" aria-controls="owner-panel-settings" data-owner-tab="settings"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2"/><path d="M5 5l2 2M19 5l-2 2"/></svg></span><span class="owner-tab-label" data-mobile-label="เวลา">เวลา / บริการ</span></button>
+            <button class="owner-tab" type="button" id="owner-tab-settings" role="tab" aria-selected="false" aria-controls="owner-panel-settings" data-owner-tab="settings"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2"/><path d="M5 5l2 2M19 5l-2 2"/></svg></span><span class="owner-tab-label" data-mobile-label="เพิ่มเติม">เวลา / บริการ</span></button>
             <button class="owner-tab" type="button" id="owner-tab-shop" role="tab" aria-selected="false" aria-controls="owner-panel-shop" data-owner-tab="shop"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10h14l-1-5H6l-1 5Z"/><path d="M6 10v9h12v-9"/><path d="M9 19v-5h6v5"/><path d="M5 10c.8 1.4 2.4 1.4 3.2 0 .8 1.4 2.4 1.4 3.2 0 .8 1.4 2.4 1.4 3.2 0 .8 1.4 2.4 1.4 3.2 0"/></svg></span><span class="owner-tab-label" data-mobile-label="ร้าน">ข้อมูลร้าน</span></button>
             <button class="owner-tab" type="button" id="owner-tab-team" role="tab" aria-selected="false" aria-controls="owner-panel-team" data-owner-tab="team"><span class="owner-tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 20a8 8 0 0 1 16 0"/><path d="M18 8h3M19.5 6.5v3"/></svg></span><span class="owner-tab-label" data-mobile-label="ทีม">ทีมงาน</span></button>
           </nav>
@@ -316,13 +316,14 @@
       </div>
     </dialog>
 
+    <div class="owner-notification-popups" id="owner-notification-popups" aria-live="polite" aria-atomic="false"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js?v=20260828-13"></script>
-    <script src="theme.js?v=20260828-13"></script>
-    <script src="supabase-adapter.js?v=20260828-13"></script>
-    <script src="pwa.js?v=20260828-13"></script>
-    <script src="owner-utils.js?v=20260828-13"></script>
-    <script src="owner.js?v=20260828-13"></script>
+    <script src="app-config.js?v=20260829-04"></script>
+    <script src="theme.js?v=20260829-04"></script>
+    <script src="supabase-adapter.js?v=20260829-04"></script>
+    <script src="pwa.js?v=20260829-04"></script>
+    <script src="owner-utils.js?v=20260829-04"></script>
+    <script src="owner.js?v=20260829-04"></script>
   </body>
 </html>

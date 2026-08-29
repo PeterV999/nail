@@ -1282,6 +1282,10 @@ textarea {
   background: linear-gradient(135deg, #fff, #fff4d9);
 }
 
+.notification-item.due {
+  background: linear-gradient(135deg, #fff, #ffe8cd);
+}
+
 .notification-item.good {
   background: linear-gradient(135deg, #fff, #ddfbf3);
 }
@@ -6591,4 +6595,495 @@ body[data-shop-theme].owner-page .contact-button.call {
   color: #fff;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   box-shadow: 0 12px 24px color-mix(in srgb, var(--primary-dark) 20%, transparent);
+}
+
+
+/* Owner role-aware mobile navigation: keep daily tools visible and move admin settings into More. */
+body.owner-page .owner-tab[hidden],
+body.owner-page .owner-action-menu button[hidden],
+body.owner-page .owner-quick-action[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 620px) {
+  body.owner-page .owner-nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+    padding: 6px;
+    border-radius: 22px;
+  }
+
+  body.owner-page.owner-role-limited .owner-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.owner-page .owner-nav .owner-tab[data-owner-tab="shop"],
+  body.owner-page .owner-nav .owner-tab[data-owner-tab="team"] {
+    display: none !important;
+  }
+
+  body.owner-page .owner-nav .owner-tab {
+    min-width: 0;
+    min-height: 54px;
+    gap: 3px;
+    padding: 5px 2px 4px;
+    border-radius: 17px;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+    border-radius: 12px;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 2.35;
+  }
+
+  body.owner-page .owner-nav .owner-tab .owner-tab-label::after {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: .64rem;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.owner-page .owner-nav .owner-more-tab.is-active .owner-tab-icon,
+  body.owner-page .owner-nav .owner-more-tab[aria-expanded="true"] .owner-tab-icon {
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  }
+
+  body.owner-page .owner-action-menu {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    width: min(242px, calc(100vw - 20px));
+    max-height: min(330px, calc(100svh - 140px));
+    overflow: auto;
+    border-color: rgba(239, 201, 196, .98);
+    border-radius: 20px;
+    background: rgba(255, 250, 247, .98);
+    box-shadow: 0 20px 44px rgba(82, 44, 58, .22);
+  }
+
+  body.owner-page .owner-action-menu[data-menu-mode="more"] [data-owner-action-tab="manual"] {
+    display: none !important;
+  }
+
+  body.owner-page .owner-action-menu button {
+    min-height: 40px;
+    border-color: rgba(239, 201, 196, .96);
+    border-radius: 14px;
+    color: var(--primary-dark);
+    background: linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(255, 232, 205, .56));
+    font-size: .82rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 370px) {
+  body.owner-page .owner-nav {
+    inset-inline: 6px;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 20px;
+  }
+
+  body.owner-page .owner-nav .owner-tab {
+    min-height: 50px;
+    border-radius: 15px;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  body.owner-page .owner-nav .owner-tab-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  body.owner-page .owner-nav .owner-tab .owner-tab-label::after {
+    font-size: .58rem;
+    letter-spacing: -.02em;
+  }
+}
+
+
+/* Owner compact KPI strip: faster scanning for daily queue work. */
+body.owner-page .owner-stats {
+  gap: 10px;
+}
+
+body.owner-page .stat-chip.owner-stat-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label value"
+    "hint value";
+  align-items: center;
+  min-height: 74px;
+  gap: 3px 12px;
+  padding: 14px 16px;
+  overflow: hidden;
+  border: 1px solid rgba(239, 201, 196, .74);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 96% 12%, rgba(255, 220, 220, .6), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(255, 242, 235, .74));
+  box-shadow: 0 14px 28px rgba(115, 65, 82, .07);
+}
+
+body.owner-page .stat-chip.owner-stat-card::before {
+  inset: 14px auto 14px 0;
+  width: 4px;
+  border-radius: 999px;
+  opacity: .88;
+}
+
+body.owner-page .stat-chip.owner-stat-card.warn::before { background: #d85f7c; }
+body.owner-page .stat-chip.owner-stat-card.info::before { background: #ef9d88; }
+body.owner-page .stat-chip.owner-stat-card.aqua::before { background: #88aeb6; }
+body.owner-page .stat-chip.owner-stat-card.good::before { background: #89a979; }
+
+body.owner-page .stat-chip.owner-stat-card .stat-label {
+  grid-area: label;
+  color: #7b5f69;
+  font-size: .78rem;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+body.owner-page .stat-chip.owner-stat-card strong {
+  grid-area: value;
+  color: #3a2437;
+  font-size: clamp(2rem, 4.8vw, 2.75rem);
+  font-weight: 900;
+  line-height: .88;
+  letter-spacing: -.055em;
+  text-align: right;
+}
+
+body.owner-page .stat-chip.owner-stat-card small {
+  grid-area: hint;
+  justify-self: start;
+  max-width: 100%;
+  padding: 4px 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  color: #8b6d77;
+  background: rgba(255, 255, 255, .76);
+  font-size: .68rem;
+  font-weight: 900;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.owner-page .stat-chip.owner-stat-card.has-value.warn small {
+  color: #9f4058;
+  background: rgba(255, 220, 220, .92);
+}
+
+body.owner-page .stat-chip.owner-stat-card.is-empty strong {
+  color: #b6a8ae;
+}
+
+@media (max-width: 820px) {
+  body.owner-page .stat-chip.owner-stat-card {
+    min-height: 68px;
+    padding: 12px 14px;
+    border-radius: 19px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card strong {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 620px) {
+  body.owner-page .owner-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card {
+    min-height: 54px;
+    gap: 2px 8px;
+    padding: 9px 10px 9px 12px;
+    border-radius: 16px;
+    box-shadow: 0 9px 18px rgba(115, 65, 82, .06);
+  }
+
+  body.owner-page .stat-chip.owner-stat-card::before {
+    inset-block: 10px;
+    width: 3px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card .stat-label {
+    font-size: .66rem;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card strong {
+    font-size: 1.72rem;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card small {
+    display: inline-flex;
+    max-width: 82px;
+    padding: 3px 7px;
+    font-size: .58rem;
+  }
+}
+
+@media (max-width: 370px) {
+  body.owner-page .stat-chip.owner-stat-card {
+    min-height: 50px;
+    padding: 8px 9px 8px 11px;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card .stat-label {
+    font-size: .61rem;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card strong {
+    font-size: 1.52rem;
+  }
+
+  body.owner-page .stat-chip.owner-stat-card small {
+    max-width: 70px;
+    padding-inline: 6px;
+    font-size: .53rem;
+  }
+}
+
+
+/* Owner in-app notification popups: non-blocking alerts for new requests and due-soon queue. */
+.owner-notification-popups {
+  position: fixed;
+  z-index: 88;
+  top: calc(82px + env(safe-area-inset-top, 0px));
+  right: max(18px, calc((100vw - 1220px) / 2 + 18px));
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.owner-notification-popup {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-areas:
+    "mark copy"
+    "mark actions";
+  gap: 8px 11px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(239, 201, 196, .96);
+  border-radius: 22px;
+  color: #3a2437;
+  background:
+    radial-gradient(circle at 96% 8%, rgba(255, 220, 220, .9), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(255, 242, 235, .95));
+  box-shadow: 0 20px 46px rgba(82, 44, 58, .2);
+  opacity: 0;
+  pointer-events: auto;
+  transform: translateY(-10px) scale(.98);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.owner-notification-popup.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.owner-notification-popup.due {
+  border-color: rgba(255, 214, 186, .98);
+  background:
+    radial-gradient(circle at 96% 8%, rgba(255, 214, 186, .9), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(255, 232, 205, .94));
+}
+
+.owner-notification-popup-mark {
+  grid-area: mark;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 12px 22px rgba(159, 64, 88, .18);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.owner-notification-popup-mark svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.owner-notification-popup.due .owner-notification-popup-mark {
+  background: linear-gradient(135deg, #ef9d88, #b34a64);
+}
+
+.owner-notification-popup-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.owner-notification-popup-copy strong,
+.owner-notification-popup-copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-notification-popup-copy strong {
+  color: #3a2437;
+  font-size: .92rem;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.owner-notification-popup-copy span {
+  margin-top: 2px;
+  color: #77636e;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.owner-notification-popup-actions {
+  grid-area: actions;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.owner-notification-popup-actions button {
+  min-height: 34px;
+  border: 1px solid rgba(239, 201, 196, .95);
+  border-radius: 999px;
+  font: inherit;
+  font-size: .74rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.owner-popup-action {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 10px 20px rgba(159, 64, 88, .14);
+}
+
+.owner-popup-dismiss {
+  min-width: 58px;
+  padding-inline: 12px;
+  color: #8b4a5e;
+  background: rgba(255, 255, 255, .82);
+}
+
+.owner-popup-action-short {
+  display: none;
+}
+
+@media (max-width: 620px) {
+  .owner-notification-popups {
+    top: calc(76px + env(safe-area-inset-top, 0px));
+    right: auto;
+    left: 50%;
+    width: min(430px, calc(100vw - 24px));
+    transform: translateX(-50%);
+  }
+
+  .owner-notification-popup {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 7px 9px;
+    padding: 10px;
+    border-radius: 19px;
+    box-shadow: 0 16px 34px rgba(82, 44, 58, .17);
+  }
+
+  .owner-notification-popup-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 14px;
+    font-size: .96rem;
+  }
+
+  .owner-notification-popup-copy strong {
+    font-size: .84rem;
+  }
+
+  .owner-notification-popup-copy span {
+    font-size: .7rem;
+  }
+
+  .owner-notification-popup-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .owner-notification-popup-actions button {
+    min-height: 32px;
+    padding-inline: 8px;
+    font-size: .68rem;
+  }
+
+  .owner-popup-dismiss {
+    min-width: 0;
+  }
+
+  .owner-popup-action-full {
+    display: none;
+  }
+
+  .owner-popup-action-short {
+    display: inline;
+  }
+}
+
+@media (max-width: 370px) {
+  .owner-notification-popups {
+    top: calc(70px + env(safe-area-inset-top, 0px));
+    width: calc(100vw - 18px);
+  }
+
+  .owner-notification-popup {
+    grid-template-columns: 32px minmax(0, 1fr);
+    padding: 9px;
+    border-radius: 17px;
+  }
+
+  .owner-notification-popup-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    font-size: .88rem;
+  }
+
+  .owner-notification-popup-copy strong {
+    font-size: .78rem;
+  }
+
+  .owner-notification-popup-copy span,
+  .owner-notification-popup-actions button {
+    font-size: .63rem;
+  }
 }

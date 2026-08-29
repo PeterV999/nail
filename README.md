@@ -52,16 +52,20 @@
 - เพิ่ม PWA update banner และ helper สำหรับ clear cache
 - เพิ่ม Terms of Service ที่ `/terms`
 - เพิ่ม smoke test route หลักใน `scripts/smoke-test.js`
-- เพิ่ม GitHub Actions ใน `.github/workflows/check.yml`
+- เพิ่ม GitHub Actions ใน `.github/workflows/check.yml` พร้อม `npm ci`, syntax check, smoke test, Playwright screenshot test, booking flow test และ owner role test
+- เพิ่ม Cloudflare Turnstile สำหรับหน้าจองลูกค้าก่อนส่งคำขอจอง
+- เพิ่ม UI จัดการธีมร้านจาก `/admin`
+- เพิ่ม UI จัดการสิทธิ์เจ้าของร้าน/ทีมงานจากหลังบ้านร้านและ `/admin`
 - ปิดปุ่มดำเนินการบนคิวหรือคำขอที่เลยวันแล้ว
-- เพิ่มเสียงแจ้งเตือนในหลังบ้านเมื่อมีคิว confirmed ที่กำลังจะถึงภายใน 30 นาที และหน้าแอปยังเปิดอยู่
+- เพิ่มแจ้งเตือนในแอพ, popup หลังบ้าน, ปุ่มเปิด/ปิดเสียง และเสียงแจ้งเตือนเมื่อมีคิว confirmed ที่กำลังจะถึงภายใน 30 นาที ขณะหน้าแอปเปิดอยู่
 
 ### 3. งานถัดไปก่อนขยายเป็น SaaS
 
-- เพิ่ม Playwright/visual test เข้า CI แบบเต็ม เมื่อ GitHub Actions พร้อมติดตั้ง browser
-- เพิ่ม Cloudflare Turnstile หรือ rate limit ก่อนเปิดลิงก์จองกว้าง ๆ บน social
-- ปรับหน้า `/` ให้เป็นหน้ารวมร้านและตัวอย่างแพลตฟอร์มที่สวยขึ้น
-- ทำ flow เพิ่มร้านใหม่ให้จบจริง: สมัครร้าน → ได้ลิงก์จอง/หลังบ้านจากระบบกลาง → เจ้าของเข้าหลังบ้านได้ทันที
+- เพิ่ม Web Push/PWA notification เพื่อแจ้งเตือนแม้เจ้าของร้านไม่ได้เปิดหน้าเว็บอยู่
+- เพิ่ม test สิทธิ์ให้ลึกขึ้น เช่น staff ลงคิวได้แต่แก้บริการ/ทีมงานไม่ได้ และเจ้าของร้านเห็นเฉพาะร้านของตัวเอง
+- แยก `owner.js`, `customer.js`, และ `supabase-adapter.js` ต่อเป็นโมดูลย่อยเพื่อให้ดูแลง่ายขึ้น
+- ตรวจ flow เพิ่มร้านใหม่บน production แบบ end-to-end: สมัครร้าน → ได้ลิงก์จอง/หลังบ้านจากระบบกลาง → เจ้าของเข้าหลังบ้านได้ทันที
+- อัปเดตคู่มือ deploy/rollback ทุกครั้งที่เปลี่ยน route, cache, หรือ Supabase SQL
 
 ## คำสั่งตรวจงาน
 
@@ -70,6 +74,7 @@ npm run check
 npm run test:smoke
 npm run test:screenshots
 npm run test:booking-flow
+npm run test:owner-role
 ```
 
 คำสั่งทดสอบฐานข้อมูลจริงใช้เฉพาะผู้พัฒนาที่มี secret ในเครื่อง:

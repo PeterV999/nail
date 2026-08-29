@@ -37,6 +37,9 @@ jobs:
       - name: Booking flow browser test
         run: npm run test:booking-flow
 
+      - name: Owner role browser test
+        run: npm run test:owner-role
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4

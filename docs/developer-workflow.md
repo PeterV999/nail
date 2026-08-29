@@ -17,8 +17,8 @@ https://github.com/PeterV999/nail
 3. แก้เฉพาะไฟล์ที่เกี่ยวข้องกับงาน
 4. รัน `npm run check`
 5. รัน `npm run test:smoke`
-6. ทดสอบหน้าเว็บหลักใน local server ด้วย `npm run dev`
-7. ถ่าย screenshot มือถือ/iPad ถ้างานกระทบ UX/UI ด้วย `npm run test:screenshots`
+6. รัน browser test ที่เกี่ยวข้อง เช่น `npm run test:screenshots`, `npm run test:booking-flow`, หรือ `npm run test:owner-role`
+7. ทดสอบหน้าเว็บหลักใน local server ด้วย `npm run dev`
 8. commit พร้อมข้อความสั้นและชัดเจน
 9. push branch และเปิด Pull Request
 10. merge เข้า `main` หลังตรวจผ่านเท่านั้น
@@ -40,6 +40,7 @@ https://github.com/PeterV999/nail
 - [ ] `npm run test:smoke` ผ่าน
 - [ ] `npm run test:screenshots` ผ่าน หรือแนบเหตุผลถ้า environment เปิด browser ไม่ได้
 - [ ] `npm run test:booking-flow` ผ่านเมื่อมีการแก้หน้าจอง
+- [ ] `npm run test:owner-role` ผ่านเมื่อมีการแก้หลังบ้านหรือสิทธิ์ทีมงาน
 - [ ] หน้าลูกค้า `/fah` เปิดได้
 - [ ] หลังบ้านร้าน `/fah-owner` เปิดได้
 - [ ] หลังบ้านกลาง `/admin` เปิดได้
@@ -52,5 +53,6 @@ https://github.com/PeterV999/nail
 
 - `npm run test:screenshots` สร้างภาพ mobile/iPad ไว้ที่ `test-artifacts/screenshots/`
 - `npm run test:booking-flow` ตรวจ UX หน้าจองบน browser local
+- `npm run test:owner-role` จำลองบัญชีทีมงานและตรวจว่าเมนูจัดการร้าน/ทีมงานถูกซ่อนจาก staff
 - `npm run test:booking-flow:db` ตรวจ flow ฐานข้อมูลจริง ต้องตั้ง `SUPABASE_ANON_KEY` และ `SUPABASE_SERVICE_ROLE_KEY` ในเครื่องก่อนรัน ห้าม commit key เหล่านี้เข้า Git
 - ถ้า Playwright ยังไม่มีในเครื่อง ให้ติดตั้งด้วย `npm install --save-dev playwright` และ `npx playwright install chromium`
