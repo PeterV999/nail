@@ -53,6 +53,11 @@ https://github.com/PeterV999/nail
 
 - `npm run test:screenshots` สร้างภาพ mobile/iPad ไว้ที่ `test-artifacts/screenshots/`
 - `npm run test:booking-flow` ตรวจ UX หน้าจองบน browser local
-- `npm run test:owner-role` จำลองบัญชีทีมงานและตรวจว่าเมนูจัดการร้าน/ทีมงานถูกซ่อนจาก staff
+- `npm run test:owner-role` จำลองบัญชีทีมงาน ตรวจว่าเมนูจัดการร้าน/ทีมงานถูกซ่อนจาก staff และ control แก้ร้าน/บริการ/ทีมงานถูกล็อก
 - `npm run test:booking-flow:db` ตรวจ flow ฐานข้อมูลจริง ต้องตั้ง `SUPABASE_ANON_KEY` และ `SUPABASE_SERVICE_ROLE_KEY` ในเครื่องก่อนรัน ห้าม commit key เหล่านี้เข้า Git
 - ถ้า Playwright ยังไม่มีในเครื่อง ให้ติดตั้งด้วย `npm install --save-dev playwright` และ `npx playwright install chromium`
+
+## คู่มือส่งต่อ
+
+- ใช้ `docs/new-shop-flow.md` เป็น checklist เพิ่มร้านใหม่
+- ใช้ `docs/app-readiness.md` เป็น roadmap ก่อนยกระดับเป็น PWA/app store

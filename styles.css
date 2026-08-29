@@ -3937,7 +3937,8 @@ body.customer-page #customer .time-options .choice.active .slot-availability {
 }
 
 body.customer-page #customer .time-options .choice.full .slot-availability,
-body.customer-page #customer .time-options .choice.closed .slot-availability {
+body.customer-page #customer .time-options .choice.closed .slot-availability,
+body.customer-page #customer .time-options .choice.expired .slot-availability {
   color: #8f8d96;
 }
 
@@ -4122,6 +4123,18 @@ body.customer-page #customer .contact-fields input,
 body.customer-page #customer .contact-fields textarea {
   min-height: 58px;
   border-radius: 16px;
+}
+
+body.customer-page #customer .field-error {
+  margin: -8px 0 0;
+  color: #e33f62;
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+body.customer-page #customer input[aria-invalid="true"] {
+  border-color: rgba(227, 63, 98, .72);
+  box-shadow: 0 0 0 4px rgba(227, 63, 98, .1);
 }
 
 body.customer-page #customer .turnstile-field {

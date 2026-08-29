@@ -125,7 +125,28 @@ async function main() {
     const bodyLimited = await page.locator("body.owner-role-limited").count();
     if (!bodyLimited) throw new Error("Staff session should use limited owner UI");
 
-    console.log("Owner role test passed: staff sees daily queue tools only");
+    const manualControlsEnabled = await page.evaluate(() => (
+      Array.from(document.querySelectorAll("#manual-form input, #manual-form select, #manual-form textarea, #manual-form button"))
+        .every((control) => !control.disabled)
+    ));
+    if (!manualControlsEnabled) throw new Error("Staff should be able to use manual queue form");
+
+    const restrictedControlsDisabled = await page.evaluate(() => (
+      [
+        ...document.querySelectorAll("#team-form input, #team-form select, #team-form textarea, #team-form button"),
+        ...document.querySelectorAll("#shop-form input, #shop-form select, #shop-form textarea, #shop-form button"),
+        ...document.querySelectorAll("#service-form input, #service-form select, #service-form textarea, #service-form button"),
+        ...document.querySelectorAll("#slot-form input, #slot-form select, #slot-form textarea, #slot-form button")
+      ].every((control) => control.disabled)
+    ));
+    if (!restrictedControlsDisabled) throw new Error("Staff should not be able to edit team, shop, services, or time slots");
+
+    await page.evaluate(() => window.location.hash = "#team");
+    await page.waitForTimeout(200);
+    const teamPanelVisible = await page.locator('#owner-panel-team:not([hidden])').count();
+    if (teamPanelVisible) throw new Error("Staff should not be able to open team panel with a direct hash");
+
+    console.log("Owner role test passed: staff sees daily queue tools only and restricted controls stay locked");
   } finally {
     if (browser) await browser.close();
     server.kill();

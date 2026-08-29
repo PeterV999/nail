@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v60";
+const CACHE_VERSION = "v61";
 const STATIC_CACHE = `bookingnail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `bookingnail-pages-${CACHE_VERSION}`;
 
@@ -99,6 +99,29 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(cacheFirstAsset(request));
 });
 
+self.addEventListener("push", (event) => {
+  const payload = readPushPayload(event);
+  event.waitUntil(self.registration.showNotification(payload.title, {
+    body: payload.body,
+    icon: payload.icon || "/assets/app-icon-192.png",
+    badge: "/assets/app-icon-192.png",
+    data: { url: payload.url || "/fah-owner" },
+    tag: payload.tag || "bookingnail-reminder",
+    renotify: true
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = new URL(event.notification.data?.url || "/fah-owner", self.location.origin).href;
+  event.waitUntil((async () => {
+    const clientList = await clients.matchAll({ type: "window", includeUncontrolled: true });
+    const existingClient = clientList.find((client) => client.url === targetUrl);
+    if (existingClient) return existingClient.focus();
+    return clients.openWindow(targetUrl);
+  })());
+});
+
 async function networkFirstPage(request) {
   const cache = await caches.open(PAGE_CACHE);
   try {
@@ -136,4 +159,20 @@ async function cacheRequests(cache, urls) {
       // Some pretty URLs are provided by Cloudflare redirects and may not exist in local static dev.
     }
   }));
+}
+
+function readPushPayload(event) {
+  const fallback = {
+    title: "BookingNail",
+    body: "มีรายการใหม่ในหลังบ้าน",
+    url: "/fah-owner"
+  };
+
+  if (!event.data) return fallback;
+
+  try {
+    return { ...fallback, ...event.data.json() };
+  } catch {
+    return { ...fallback, body: event.data.text() || fallback.body };
+  }
 }

@@ -26,6 +26,11 @@ window.FahNailPWA = {
   clearCacheAndReload: async () => {
     await clearFahNailCache().catch(() => undefined);
     window.location.reload();
+  },
+  requestNotificationPermission: async () => {
+    if (!("Notification" in window)) return "unsupported";
+    if (Notification.permission !== "default") return Notification.permission;
+    return Notification.requestPermission();
   }
 };
 

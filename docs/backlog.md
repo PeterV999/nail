@@ -37,16 +37,24 @@
 - Playwright E2E สำหรับลูกค้าจอง
 - Playwright E2E สำหรับเจ้าของร้านยืนยันคิว
 - Playwright screenshot test สำหรับ mobile/iPad
-- Playwright owner role test สำหรับจำกัดเมนูทีมงาน
+- Playwright owner role test สำหรับจำกัดเมนูทีมงาน และล็อก control สำคัญของ staff
 - GitHub Actions CI สำหรับรันชุดตรวจอัตโนมัติ
 - ตรวจว่าข้อมูลลูกค้าไม่แสดงในหน้าสาธารณะ
+
+## Done: Customer Booking Guardrails
+
+- ปิดช่วงเวลาวันนี้ที่เลยเวลาจริงแล้ว
+- แสดงสถานะ "เลยเวลา" ในหน้าลูกค้า
+- บังคับเบอร์โทรลูกค้า 10 หลัก
+- แสดงข้อความสีแดงเมื่อเบอร์ไม่ครบ
+- เพิ่ม service worker push listener เป็นฐานสำหรับ Web Push ระยะถัดไป
 
 ## Next Priority
 
 - ตรวจ flow เพิ่มร้านใหม่บน production แบบ end-to-end
-- เพิ่ม test กรณีสิทธิ์ให้ลึกขึ้น เช่น staff ลงคิวได้แต่แก้บริการ/ทีมงานไม่ได้
+- เพิ่ม test กรณีสิทธิ์ให้ลึกขึ้นว่าเจ้าของร้านเห็นเฉพาะร้านของตัวเอง
 - แยกไฟล์ `owner.js`, `customer.js`, และ `supabase-adapter.js` ต่อเป็นโมดูลย่อย
-- เพิ่ม Web Push/PWA notification สำหรับแจ้งเตือนแม้ไม่ได้เปิดหน้าเว็บ
+- ต่อ Web Push/PWA notification เข้ากับ backend subscription สำหรับแจ้งเตือนแม้ไม่ได้เปิดหน้าเว็บ
 - ตรวจ cache/PWA บนเครื่องลูกค้าจริงหลัง deploy ใหญ่ทุกครั้ง
 
 ## Later

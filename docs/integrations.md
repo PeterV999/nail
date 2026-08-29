@@ -33,7 +33,7 @@ MVP ของแจ้งเตือนในแอพจะคำนวณจ�
 - คิววันนี้จาก `appointments`
 - คิวที่ใกล้ถึงเวลา
 
-ยังไม่ทำ push notification จริงบนมือถือในช่วงแรก
+ตอนนี้ service worker รองรับการรับ push payload และเปิดกลับไปที่หลังบ้านแล้ว แต่ยังไม่ได้ต่อ backend สำหรับเก็บ push subscription หรือส่ง Web Push จริง
 
 ## Removed Legacy
 

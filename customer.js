@@ -54,6 +54,8 @@ const privacyError = document.getElementById("privacy-error");
 const turnstileField = document.getElementById("turnstile-field");
 const turnstileWidget = document.getElementById("turnstile-widget");
 const turnstileError = document.getElementById("turnstile-error");
+const contactPhone = document.getElementById("contact-phone");
+const contactPhoneError = document.getElementById("contact-phone-error");
 const statusDateTitle = document.getElementById("status-date-title");
 const pageLoader = document.getElementById("page-loader");
 const pageLoaderTitle = document.getElementById("page-loader-title");
@@ -302,6 +304,16 @@ function isSlotOpen(date, slot) {
   return slot.active && !isDayClosed(date);
 }
 
+function isSlotExpired(date, slot) {
+  if (date < today) return true;
+  if (date !== today) return false;
+  return timeToMinutes(slot.startTime) <= currentTimeMinutes();
+}
+
+function isSlotBookable(date, slot) {
+  return isSlotOpen(date, slot) && !isSlotExpired(date, slot);
+}
+
 function busyWindows(date = selectedBookingDate()) {
   return new Set(state.appointments
     .filter((appointment) => appointment.status === "confirmed" && appointment.bookingDate === date)
@@ -540,14 +552,15 @@ function renderTimeWindows() {
     const timeWindow = timeSlotLabel(slot);
     const isBusy = busy.has(timeWindow);
     const isClosed = !isSlotOpen(date, slot);
-    if (!firstAvailableTime && !isBusy && !isClosed) firstAvailableTime = timeWindow;
+    const isExpired = isSlotExpired(date, slot);
+    if (!firstAvailableTime && !isBusy && !isClosed && !isExpired) firstAvailableTime = timeWindow;
     const button = document.createElement("button");
     button.type = "button";
-    button.className = ["choice", selectedTime === timeWindow ? "active" : "", isBusy ? "full" : "", isClosed ? "closed" : ""].filter(Boolean).join(" ");
-    button.disabled = isBusy || isClosed;
+    button.className = ["choice", selectedTime === timeWindow ? "active" : "", isBusy ? "full" : "", isClosed ? "closed" : "", isExpired ? "expired" : ""].filter(Boolean).join(" ");
+    button.disabled = isBusy || isClosed || isExpired;
     button.innerHTML = `
       <span class="slot-time">${slot.startTime}</span>
-      <small class="slot-availability">${slotStatusText(date, slot, isBusy)}</small>
+      <small class="slot-availability">${slotStatusText(date, slot, isBusy, isExpired)}</small>
     `;
     button.addEventListener("click", () => {
       selectedTime = timeWindow;
@@ -557,7 +570,7 @@ function renderTimeWindows() {
   });
 
   const selectedSlot = timeSlots().find((slot) => timeSlotLabel(slot) === selectedTime);
-  if (busy.has(selectedTime) || !selectedSlot || !isSlotOpen(date, selectedSlot)) {
+  if (busy.has(selectedTime) || !selectedSlot || !isSlotBookable(date, selectedSlot)) {
     selectedTime = firstAvailableTime;
     if (selectedTime) renderTimeWindows();
     return;
@@ -576,9 +589,10 @@ function renderMiniCalendar() {
     const timeWindow = timeSlotLabel(slot);
     const isClosed = !isSlotOpen(date, slot);
     const isBusy = busy.has(timeWindow);
+    const isExpired = isSlotExpired(date, slot);
     const row = document.createElement("div");
-    row.className = isBusy || isClosed ? "mini-slot busy" : "mini-slot";
-    row.innerHTML = `<span>${timeWindow}</span><span class="status-pill">${miniSlotStatusText(date, slot, isBusy)}</span>`;
+    row.className = isBusy || isClosed || isExpired ? "mini-slot busy" : "mini-slot";
+    row.innerHTML = `<span>${timeWindow}</span><span class="status-pill">${miniSlotStatusText(date, slot, isBusy, isExpired)}</span>`;
     miniCalendar.append(row);
   });
 }
@@ -629,11 +643,26 @@ function validateBookingDetails() {
   return true;
 }
 
+function validateContactPhone(showError = true) {
+  if (!contactPhone) return true;
+  const phone = digitsOnly(contactPhone.value).slice(0, 10);
+  const isValid = phone.length === 10;
+  contactPhone.value = phone;
+  contactPhone.setAttribute("aria-invalid", String(!isValid));
+  if (contactPhoneError) contactPhoneError.hidden = !showError || isValid;
+  return isValid;
+}
+
 bookingForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(bookingForm);
 
   if (!validateBookingDetails()) return;
+
+  if (!validateContactPhone(true)) {
+    contactPhone?.focus();
+    return;
+  }
 
   if (!privacyConsent?.checked) {
     if (privacyError) privacyError.hidden = false;
@@ -656,7 +685,7 @@ bookingForm.addEventListener("submit", async (event) => {
   const request = {
     id: `REQ-${Date.now()}`,
     customerName: formData.get("customerName").trim(),
-    contact: formData.get("contact").trim(),
+    contact: digitsOnly(formData.get("contact")),
     services: Array.from(selectedServices),
     bookingDate: formData.get("bookingDate"),
     timeWindow: selectedTime,
@@ -669,6 +698,8 @@ bookingForm.addEventListener("submit", async (event) => {
 
   bookingForm.reset();
   bookingDate.value = today;
+  if (contactPhoneError) contactPhoneError.hidden = true;
+  contactPhone?.removeAttribute("aria-invalid");
   if (privacyError) privacyError.hidden = true;
   selectedServices.clear();
   selectedTime = "";
@@ -748,14 +779,20 @@ calendarSheet?.addEventListener("click", (event) => {
 privacyConsent?.addEventListener("change", () => {
   if (privacyConsent.checked && privacyError) privacyError.hidden = true;
 });
+contactPhone?.addEventListener("input", () => {
+  contactPhone.value = digitsOnly(contactPhone.value).slice(0, 10);
+  if (contactPhone.value.length === 10) validateContactPhone(false);
+});
+contactPhone?.addEventListener("blur", () => validateContactPhone(Boolean(contactPhone.value)));
 bookingDialogClose?.addEventListener("click", closeBookingSuccessDialog);
 bookingSuccessDialog?.addEventListener("click", (event) => {
   if (event.target === bookingSuccessDialog) closeBookingSuccessDialog();
 });
 
-function slotStatusText(date, slot, isBusy = false) {
+function slotStatusText(date, slot, isBusy = false, isExpired = isSlotExpired(date, slot)) {
   if (isDayClosed(date)) return "ปิด";
   if (!slot.active) return "ปิด";
+  if (isExpired) return "เลยเวลา";
   if (isBusy) return "เต็ม";
   return "ว่าง";
 }
@@ -770,7 +807,7 @@ function dateAvailability(date) {
   }
 
   const busy = busyWindows(date);
-  const availableCount = timeSlots().filter((slot) => isSlotOpen(date, slot) && !busy.has(timeSlotLabel(slot))).length;
+  const availableCount = timeSlots().filter((slot) => isSlotBookable(date, slot) && !busy.has(timeSlotLabel(slot))).length;
 
   if (!availableCount) {
     return { status: "full", label: "เต็ม", shortLabel: "เต็ม", disabled: true, availableCount: 0 };
@@ -785,9 +822,10 @@ function dateAvailability(date) {
   };
 }
 
-function miniSlotStatusText(date, slot, isBusy = false) {
+function miniSlotStatusText(date, slot, isBusy = false, isExpired = isSlotExpired(date, slot)) {
   if (isDayClosed(date)) return "หยุดร้าน";
   if (!slot.active) return "ปิด";
+  if (isExpired) return "เลยเวลา";
   if (isBusy) return "ไม่ว่าง";
   return "ว่าง";
 }
@@ -822,9 +860,22 @@ function localDateString(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+function timeToMinutes(value = "00:00") {
+  const [hour = 0, minute = 0] = String(value).split(":").map(Number);
+  return (hour * 60) + minute;
+}
+
+function currentTimeMinutes(date = new Date()) {
+  return (date.getHours() * 60) + date.getMinutes();
+}
+
 function parseLocalDate(value) {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, month - 1, day);
+}
+
+function digitsOnly(value = "") {
+  return String(value).replace(/\D/g, "");
 }
 
 function showToast(message) {

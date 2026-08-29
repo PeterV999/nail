@@ -42,6 +42,21 @@ async function main() {
       args: ["--disable-features=MachPortRendezvous"]
     });
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    await page.addInitScript(() => {
+      const RealDate = Date;
+      const fixedNow = new RealDate(2026, 7, 29, 15, 30, 0);
+      class MockDate extends RealDate {
+        constructor(...args) {
+          super(...(args.length ? args : [fixedNow.getTime()]));
+        }
+        static now() {
+          return fixedNow.getTime();
+        }
+      }
+      MockDate.parse = RealDate.parse;
+      MockDate.UTC = RealDate.UTC;
+      window.Date = MockDate;
+    });
 
     await page.route("**/app-config.js*", (route) => route.fulfill({
       contentType: "application/javascript",
@@ -49,6 +64,11 @@ async function main() {
     }));
 
     await page.goto(`${baseUrl}/fah`, { waitUntil: "networkidle" });
+
+    const expiredSlots = await page.locator(".time-options .choice.expired").count();
+    if (expiredSlots < 4) throw new Error(`Expected at least 4 expired slots, got ${expiredSlots}`);
+    const expiredText = await page.locator(".time-options .choice.expired").first().textContent();
+    if (!expiredText?.includes("เลยเวลา")) throw new Error(`Expected expired slot label, got: ${expiredText}`);
 
     await page.locator(".service-choice").nth(1).click();
     await page.locator(".service-choice").nth(2).click();
@@ -77,6 +97,13 @@ async function main() {
 
     await page.locator("#booking-next-button").click();
     await page.locator('input[name="customerName"]').fill("test01");
+    await page.locator('input[name="contact"]').fill("09122");
+    await page.locator("#booking-submit-button").click();
+    const phoneError = await page.locator("#contact-phone-error").textContent();
+    if (!phoneError?.includes("10")) throw new Error(`Expected 10 digit phone error, got: ${phoneError}`);
+    const phoneErrorVisible = await page.locator("#contact-phone-error").isVisible();
+    if (!phoneErrorVisible) throw new Error("Expected phone error to be visible for incomplete phone");
+
     await page.locator('input[name="contact"]').fill("0912223333");
     await page.locator('textarea[name="note"]').fill("automated flow");
     await page.locator("#privacy-consent").check();
