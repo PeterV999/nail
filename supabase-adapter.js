@@ -291,6 +291,34 @@
     return true;
   }
 
+  async function logActivity({ eventName, surface, metadata = {}, slug = routeShopSlug() } = {}) {
+    const db = client();
+    if (!db || !eventName || !surface) return false;
+
+    try {
+      const [shop, { data: userData }] = await Promise.all([
+        getShop(slug).catch(() => null),
+        db.auth.getUser().catch(() => ({ data: { user: null } }))
+      ]);
+      const user = userData?.user || null;
+      const payload = {
+        shop_id: shop?.id || null,
+        actor_user_id: user?.id || null,
+        actor_role: user ? "authenticated" : "anonymous",
+        surface,
+        event_name: eventName,
+        route_path: window.location.pathname,
+        metadata
+      };
+      const { error } = await db.from("app_activity_logs").insert(payload);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.warn("Activity log skipped", error);
+      return false;
+    }
+  }
+
   async function listMemberShops() {
     const db = client();
     if (!db) return [];
@@ -997,6 +1025,7 @@
     listPublicShops,
     loadPublicState,
     createBookingRequest,
+    logActivity,
     listMemberShops,
     ownerSession,
     signInWithGoogle,

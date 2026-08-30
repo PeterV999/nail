@@ -40,6 +40,9 @@ jobs:
       - name: Owner role browser test
         run: npm run test:owner-role
 
+      - name: Multi-shop access browser test
+        run: npm run test:multi-shop-access
+
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4

@@ -18,11 +18,12 @@ https://github.com/PeterV999/nail
 4. รัน `npm run check`
 5. รัน `npm run test:smoke`
 6. รัน browser test ที่เกี่ยวข้อง เช่น `npm run test:screenshots`, `npm run test:booking-flow`, หรือ `npm run test:owner-role`
-7. ทดสอบหน้าเว็บหลักใน local server ด้วย `npm run dev`
-8. commit พร้อมข้อความสั้นและชัดเจน
-9. push branch และเปิด Pull Request
-10. merge เข้า `main` หลังตรวจผ่านเท่านั้น
-11. ให้ Cloudflare Pages deploy จาก GitHub ไม่ deploy จากเครื่องส่วนตัวถ้าไม่จำเป็น
+7. ถ้าแก้ route, สิทธิ์, หรือระบบหลายร้าน ให้รัน `npm run test:multi-shop-access`
+8. ทดสอบหน้าเว็บหลักใน local server ด้วย `npm run dev`
+9. commit พร้อมข้อความสั้นและชัดเจน
+10. push branch และเปิด Pull Request
+11. merge เข้า `main` หลังตรวจผ่านเท่านั้น
+12. ให้ Cloudflare Pages deploy จาก GitHub ไม่ deploy จากเครื่องส่วนตัวถ้าไม่จำเป็น
 
 ## กติกาแก้ด้วยมือ
 
@@ -41,6 +42,7 @@ https://github.com/PeterV999/nail
 - [ ] `npm run test:screenshots` ผ่าน หรือแนบเหตุผลถ้า environment เปิด browser ไม่ได้
 - [ ] `npm run test:booking-flow` ผ่านเมื่อมีการแก้หน้าจอง
 - [ ] `npm run test:owner-role` ผ่านเมื่อมีการแก้หลังบ้านหรือสิทธิ์ทีมงาน
+- [ ] `npm run test:multi-shop-access` ผ่านเมื่อมีการแก้ระบบหลายร้านหรือ route
 - [ ] หน้าลูกค้า `/fah` เปิดได้
 - [ ] หลังบ้านร้าน `/fah-owner` เปิดได้
 - [ ] หลังบ้านกลาง `/admin` เปิดได้
@@ -53,7 +55,8 @@ https://github.com/PeterV999/nail
 
 - `npm run test:screenshots` สร้างภาพ mobile/iPad ไว้ที่ `test-artifacts/screenshots/`
 - `npm run test:booking-flow` ตรวจ UX หน้าจองบน browser local
-- `npm run test:owner-role` จำลองบัญชีทีมงาน ตรวจว่าเมนูจัดการร้าน/ทีมงานถูกซ่อนจาก staff และ control แก้ร้าน/บริการ/ทีมงานถูกล็อก
+- `npm run test:owner-role` จำลองบัญชีทีมงาน ตรวจว่าเมนูที่ไม่มีสิทธิ์อยู่ในสถานะล็อก กดแล้วมี popup และ control แก้ร้าน/บริการ/ทีมงานถูกล็อก
+- `npm run test:multi-shop-access` จำลองร้าน A/B ตรวจว่าหน้าลูกค้าและหลังบ้านไม่เห็นข้อมูลข้ามร้าน และบัญชีไม่มีสิทธิ์ไม่เห็นข้อมูลหลังบ้าน
 - `npm run test:booking-flow:db` ตรวจ flow ฐานข้อมูลจริง ต้องตั้ง `SUPABASE_ANON_KEY` และ `SUPABASE_SERVICE_ROLE_KEY` ในเครื่องก่อนรัน ห้าม commit key เหล่านี้เข้า Git
 - ถ้า Playwright ยังไม่มีในเครื่อง ให้ติดตั้งด้วย `npm install --save-dev playwright` และ `npx playwright install chromium`
 

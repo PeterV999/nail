@@ -6611,16 +6611,48 @@ body[data-shop-theme].owner-page .contact-button.call {
 }
 
 
-/* Owner role-aware mobile navigation: keep daily tools visible and move admin settings into More. */
+/* Owner role-aware navigation: keep daily tools visible and make restricted tools explain themselves. */
 body.owner-page .owner-tab[hidden],
 body.owner-page .owner-action-menu button[hidden],
 body.owner-page .owner-quick-action[hidden] {
   display: none !important;
 }
 
+body.owner-page .owner-action-menu.is-open {
+  display: grid !important;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.owner-page .owner-action-menu .is-screen-hidden {
+  display: none !important;
+}
+
+body.owner-page .owner-tab.is-locked,
+body.owner-page .owner-action-menu button.is-locked,
+body.owner-page .owner-quick-action.is-locked {
+  cursor: pointer;
+  color: #8b7780;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .82), rgba(245, 239, 243, .78));
+  box-shadow: inset 0 0 0 1px rgba(139, 119, 128, .18);
+}
+
+body.owner-page .owner-tab.is-locked .owner-tab-icon {
+  color: #8b7780;
+  background: rgba(245, 239, 243, .86);
+}
+
+body.owner-page .owner-tab.is-locked:hover,
+body.owner-page .owner-action-menu button.is-locked:hover,
+body.owner-page .owner-quick-action.is-locked:hover {
+  color: #9f4058;
+  background: linear-gradient(135deg, rgba(255, 240, 246, .9), rgba(255, 255, 255, .86));
+}
+
 @media (max-width: 620px) {
   body.owner-page .owner-nav {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
     padding: 6px;
     border-radius: 22px;
@@ -6630,6 +6662,7 @@ body.owner-page .owner-quick-action[hidden] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  body.owner-page .owner-nav .owner-tab[data-owner-tab="settings"],
   body.owner-page .owner-nav .owner-tab[data-owner-tab="shop"],
   body.owner-page .owner-nav .owner-tab[data-owner-tab="team"] {
     display: none !important;
@@ -6664,20 +6697,14 @@ body.owner-page .owner-quick-action[hidden] {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
-  body.owner-page .owner-nav .owner-more-tab.is-active .owner-tab-icon,
-  body.owner-page .owner-nav .owner-more-tab[aria-expanded="true"] .owner-tab-icon {
-    color: #fff;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  }
-
   body.owner-page .owner-action-menu {
     position: fixed;
-    top: auto;
+    z-index: 1400;
+    top: calc(62px + env(safe-area-inset-top, 0px));
     right: 10px;
-    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
     width: min(242px, calc(100vw - 20px));
-    max-height: min(330px, calc(100svh - 140px));
+    max-height: min(330px, calc(100svh - 92px));
     overflow: auto;
     border-color: rgba(239, 201, 196, .98);
     border-radius: 20px;
@@ -6685,8 +6712,8 @@ body.owner-page .owner-quick-action[hidden] {
     box-shadow: 0 20px 44px rgba(82, 44, 58, .22);
   }
 
-  body.owner-page .owner-action-menu[data-menu-mode="more"] [data-owner-action-tab="manual"] {
-    display: none !important;
+  body.owner-page .owner-action-menu.is-open {
+    display: grid !important;
   }
 
   body.owner-page .owner-action-menu button {
@@ -7098,5 +7125,207 @@ body.owner-page .stat-chip.owner-stat-card.is-empty strong {
   .owner-notification-popup-copy span,
   .owner-notification-popup-actions button {
     font-size: .63rem;
+  }
+}
+
+body.customer-page #customer .service-search-field {
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+
+body.customer-page #customer .service-search-field span,
+body.customer-page #customer .contact-phone-hint {
+  color: #6f7e99;
+  font-size: .84rem;
+  font-weight: 800;
+}
+
+body.customer-page #customer .service-search-field input {
+  min-height: 48px;
+  border-color: rgba(141, 207, 255, .48);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .98), rgba(239, 248, 255, .82)),
+    #fff;
+}
+
+body.customer-page #customer .contact-phone-hint {
+  margin: -6px 0 0;
+}
+
+body.customer-page #customer .time-options .empty-state,
+body.customer-page #customer .service-choice-list .empty-state {
+  grid-column: 1 / -1;
+  padding: 14px;
+  border: 1px dashed rgba(141, 207, 255, .72);
+  border-radius: 16px;
+  color: #6f7e99;
+  background: rgba(239, 248, 255, .76);
+  font-weight: 800;
+  text-align: center;
+}
+
+body.owner-page .owner-fast-lane {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(232, 205, 224, .92);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(239, 248, 255, .82)),
+    var(--surface-strong);
+  box-shadow: 0 14px 30px rgba(205, 78, 130, .08);
+}
+
+body.owner-page .owner-fast-lane h2,
+body.admin-page .admin-readiness h2 {
+  color: var(--ink);
+  font-size: 1.18rem;
+}
+
+body.owner-page .owner-fast-lane-list,
+body.admin-page .admin-readiness-list {
+  display: grid;
+  gap: 9px;
+}
+
+body.owner-page .owner-fast-lane-item,
+body.owner-page .owner-fast-lane-empty {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 62px;
+  padding: 12px;
+  border: 1px solid rgba(141, 207, 255, .5);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .86);
+}
+
+body.owner-page .owner-fast-lane-empty {
+  grid-template-columns: 1fr;
+}
+
+body.owner-page .owner-fast-lane-item.warn {
+  border-color: rgba(242, 91, 147, .32);
+  background: linear-gradient(135deg, rgba(255, 240, 246, .9), rgba(255, 255, 255, .9));
+}
+
+body.owner-page .owner-fast-lane-item div,
+body.owner-page .owner-fast-lane-empty {
+  min-width: 0;
+}
+
+body.owner-page .owner-fast-lane-item strong,
+body.owner-page .owner-fast-lane-empty strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-weight: 900;
+}
+
+body.owner-page .owner-fast-lane-item span,
+body.owner-page .owner-fast-lane-empty span {
+  display: block;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+body.owner-page .owner-fast-lane-item a,
+body.owner-page .owner-fast-lane-item button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--aqua));
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+body.admin-page .admin-readiness {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--shadow);
+}
+
+body.admin-page .admin-readiness-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.admin-page .admin-readiness-item {
+  display: grid;
+  gap: 5px;
+  min-height: 94px;
+  padding: 13px;
+  border: 1px solid rgba(141, 207, 255, .48);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(239, 248, 255, .84));
+}
+
+body.admin-page .admin-readiness-item.warn {
+  border-color: rgba(242, 91, 147, .36);
+  background: linear-gradient(135deg, rgba(255, 240, 246, .92), rgba(255, 255, 255, .9));
+}
+
+body.admin-page .admin-readiness-item.good {
+  border-color: rgba(53, 189, 120, .24);
+  background: linear-gradient(135deg, rgba(239, 251, 248, .94), rgba(255, 255, 255, .92));
+}
+
+body.admin-page .admin-readiness-item.muted {
+  opacity: .84;
+}
+
+body.admin-page .admin-readiness-item strong {
+  color: var(--ink);
+  font-size: .94rem;
+  font-weight: 900;
+}
+
+body.admin-page .admin-readiness-item span {
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  body.admin-page .admin-readiness-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  body.customer-page #customer .service-search-field input {
+    min-height: 46px;
+  }
+
+  body.owner-page .owner-fast-lane,
+  body.admin-page .admin-readiness {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  body.owner-page .owner-fast-lane-item {
+    grid-template-columns: 1fr;
+  }
+
+  body.owner-page .owner-fast-lane-item a,
+  body.owner-page .owner-fast-lane-item button {
+    width: 100%;
   }
 }

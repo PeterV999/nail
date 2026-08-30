@@ -8,6 +8,7 @@ const adminAccount = document.getElementById("admin-account");
 const adminLogoutButton = document.getElementById("admin-logout-button");
 const refreshAdminButton = document.getElementById("refresh-admin-button");
 const adminStats = document.getElementById("admin-stats");
+const adminReadinessList = document.getElementById("admin-readiness-list");
 const adminAttentionList = document.getElementById("admin-attention-list");
 const adminShopList = document.getElementById("admin-shop-list");
 const adminShopSearch = document.getElementById("admin-shop-search");
@@ -265,6 +266,39 @@ function renderStats() {
       <span>${escapeHtml(item.label)}</span>
     </div>
   `).join("");
+  renderReadinessList(stats);
+}
+
+function renderReadinessList(stats = {}) {
+  if (!adminReadinessList) return;
+  const items = [
+    {
+      tone: stats.pendingRequests ? "warn" : "good",
+      title: stats.pendingRequests ? "มีคำขอรอยืนยัน" : "ไม่มีคำขอค้าง",
+      copy: stats.pendingRequests ? `${stats.pendingRequests} คำขอควรให้ร้านตอบกลับ` : "ร้านไม่ต้องตอบคำขอเพิ่มตอนนี้"
+    },
+    {
+      tone: stats.inactiveShops ? "muted" : "good",
+      title: stats.inactiveShops ? "มีร้านปิดอยู่" : "ร้านเปิดครบ",
+      copy: stats.inactiveShops ? `${stats.inactiveShops} ร้านปิดใช้งานอยู่` : "ร้านทั้งหมดอยู่ในสถานะเปิดใช้งาน"
+    },
+    {
+      tone: shopsMissingContact().length ? "warn" : "good",
+      title: shopsMissingContact().length ? "บางร้านยังไม่มีเบอร์" : "ข้อมูลติดต่อครบ",
+      copy: shopsMissingContact().length ? `${shopsMissingContact().length} ร้านยังไม่มีเบอร์โทร` : "ร้านที่เปิดอยู่มีข้อมูลติดต่อหลักแล้ว"
+    }
+  ];
+
+  adminReadinessList.innerHTML = items.map((item) => `
+    <article class="admin-readiness-item ${escapeHtml(item.tone)}">
+      <strong>${escapeHtml(item.title)}</strong>
+      <span>${escapeHtml(item.copy)}</span>
+    </article>
+  `).join("");
+}
+
+function shopsMissingContact() {
+  return adminState.shops.filter((shop) => shop.status === "active" && !shop.phone);
 }
 
 function renderAttention() {

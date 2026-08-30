@@ -125,6 +125,7 @@ const requestList = document.getElementById("request-list");
 const todayQueueList = document.getElementById("today-queue-list");
 const ownerConnectionGrid = document.getElementById("owner-connection-grid");
 const ownerStats = document.getElementById("owner-stats");
+const ownerFastLaneList = document.getElementById("owner-fast-lane-list");
 const ownerHeroStatus = document.getElementById("owner-hero-status");
 const ownerTabsMenu = document.querySelector(".owner-tabs");
 const ownerTabs = Array.from(document.querySelectorAll("[data-owner-tab]"));
@@ -272,6 +273,7 @@ function busyWindows(date = selectedManualDate()) {
 function render() {
   renderOwnerConnection();
   renderOwnerStats();
+  renderOwnerFastLane();
   renderNotifications();
   renderOwnerLists();
   renderOwnerServices();
@@ -601,14 +603,52 @@ function ownerRestrictedMessage(tabName = "") {
   return "บัญชีทีมงานจัดการเมนูนี้ไม่ได้";
 }
 
-function isOwnerMobileMoreTab(tab) {
-  return Boolean(tab?.dataset?.ownerTab === "settings" && canManageServiceSettings() && isMobileOwnerTabs());
+function ownerUiMode() {
+  return isMobileOwnerTabs() ? "mobile" : "window";
+}
+
+function logOwnerActivity(eventName, metadata = {}) {
+  window.FahNailSupabase?.logActivity?.({
+    eventName,
+    surface: "owner_dashboard",
+    slug: currentShopSlug,
+    metadata: {
+      role: currentOwnerRole || "unknown",
+      mode: ownerUiMode(),
+      ...metadata
+    }
+  });
 }
 
 function setControlsDisabled(root, disabled) {
   root?.querySelectorAll("input, select, textarea, button").forEach((control) => {
     control.disabled = Boolean(disabled);
   });
+}
+
+function markOwnerAccessControl(element, canAccess) {
+  if (!element) return;
+  element.hidden = false;
+  element.disabled = false;
+  element.classList.toggle("is-locked", !canAccess);
+  element.setAttribute("aria-disabled", String(!canAccess));
+  element.setAttribute("aria-hidden", "false");
+}
+
+function ownerAddMenuMode() {
+  return isMobileOwnerTabs() ? "mobile" : "desktop";
+}
+
+function syncOwnerAddMenuItems(mode = ownerAddMenuMode()) {
+  ownerAddMenuItems.forEach((item) => {
+    const tabName = item.dataset.ownerActionTab || "";
+    const visibleForMode = mode === "mobile" || tabName === "manual";
+    item.classList.toggle("is-screen-hidden", !visibleForMode);
+    item.setAttribute("aria-hidden", String(!visibleForMode));
+  });
+
+  const hasVisibleAction = ownerAddMenuItems.some((item) => !item.classList.contains("is-screen-hidden"));
+  if (ownerAddToggle) ownerAddToggle.hidden = ownerApp.hidden || !hasVisibleAction;
 }
 
 function syncOwnerAccessUi() {
@@ -619,26 +659,21 @@ function syncOwnerAccessUi() {
   ownerTabs.forEach((tab) => {
     const tabName = tab.dataset.ownerTab || "";
     const canAccess = canAccessOwnerTab(tabName);
-    tab.hidden = !canAccess;
-    tab.disabled = !canAccess;
-    tab.setAttribute("aria-hidden", String(!canAccess));
+    markOwnerAccessControl(tab, canAccess);
     if (tabName === "settings") {
-      tab.classList.toggle("owner-more-tab", canAccess);
-      tab.setAttribute("aria-haspopup", "menu");
-      tab.setAttribute("aria-expanded", String(!ownerAddMenu?.hidden && ownerAddMenu?.dataset.menuMode === "more"));
+      tab.classList.remove("owner-more-tab");
+      tab.removeAttribute("aria-haspopup");
+      tab.removeAttribute("aria-expanded");
     }
   });
 
   document.querySelectorAll("[data-owner-action-tab]").forEach((item) => {
     const tabName = item.dataset.ownerActionTab || "";
     const canAccess = canAccessOwnerTab(tabName);
-    item.hidden = !canAccess;
-    if ("disabled" in item) item.disabled = !canAccess;
-    item.setAttribute("aria-hidden", String(!canAccess));
+    markOwnerAccessControl(item, canAccess);
   });
 
-  const hasVisibleAction = ownerAddMenuItems.some((item) => !item.hidden);
-  if (ownerAddToggle) ownerAddToggle.hidden = !hasVisibleAction;
+  syncOwnerAddMenuItems();
 
   setControlsDisabled(teamForm, !canManageOwnerTeam());
   setControlsDisabled(shopForm, !canManageShopSettings());
@@ -740,6 +775,46 @@ function ownerTodayLabel() {
     month: "short",
     year: "numeric"
   }).format(new Date(`${today}T00:00:00`));
+}
+
+function renderOwnerFastLane() {
+  if (!ownerFastLaneList) return;
+  const pending = activeBookingRequests().slice(0, 2).map((item) => ({ ...item, kind: "request" }));
+  const nextQueue = todayQueueItems()
+    .filter((item) => item.status === "confirmed")
+    .filter((item) => minutesUntilAppointment(item) > -15)
+    .slice(0, 3)
+    .map((item) => ({ ...item, kind: "appointment" }));
+  const items = [...pending, ...nextQueue].slice(0, 4);
+
+  if (!items.length) {
+    ownerFastLaneList.innerHTML = `
+      <div class="owner-fast-lane-empty">
+        <strong>วันนี้ยังโล่ง</strong>
+        <span>ถ้ามีลูกค้าจองหรือใกล้ถึงคิว ระบบจะแสดงตรงนี้</span>
+      </div>
+    `;
+    return;
+  }
+
+  ownerFastLaneList.innerHTML = items.map((item) => {
+    const isRequest = item.kind === "request";
+    const href = phoneHref(item.contact || "");
+    const action = isRequest
+      ? `<button type="button" data-fast-action="request" data-fast-id="${escapeHtml(item.id)}">ตอบ</button>`
+      : href
+        ? `<a href="${escapeHtml(href)}">โทร</a>`
+        : `<button type="button" data-fast-action="copy" data-fast-id="${escapeHtml(item.id)}">คัดลอก</button>`;
+    return `
+      <article class="owner-fast-lane-item ${isRequest ? "warn" : ""}">
+        <div>
+          <strong>${escapeHtml(item.customerName || "ลูกค้า")}</strong>
+          <span>${escapeHtml(item.timeWindow || "")} · ${escapeHtml(serviceText(item))}</span>
+        </div>
+        ${action}
+      </article>
+    `;
+  }).join("");
 }
 
 function activeBookingRequests() {
@@ -2298,7 +2373,12 @@ function activateOwnerTab(tabName, { persist = true, silent = false } = {}) {
 
   const requestedTab = ownerTabPanels.some((panel) => panel.dataset.ownerPanel === tabName) ? tabName : "queue";
   const nextTab = canAccessOwnerTab(requestedTab) ? requestedTab : "queue";
-  if (requestedTab !== nextTab && !silent) showToast(ownerRestrictedMessage(requestedTab));
+  if (requestedTab !== nextTab && !silent) {
+    showToast(ownerRestrictedMessage(requestedTab));
+    logOwnerActivity("restricted_owner_menu_attempt", { tab: requestedTab });
+  } else if (!silent) {
+    logOwnerActivity("owner_tab_opened", { tab: nextTab });
+  }
 
   ownerTabs.forEach((tab) => {
     const isActive = tab.dataset.ownerTab === nextTab;
@@ -2354,13 +2434,6 @@ function setupOwnerTabs() {
 
   ownerTabs.forEach((tab, index) => {
     tab.addEventListener("click", (event) => {
-      if (isOwnerMobileMoreTab(tab)) {
-        event.preventDefault();
-        event.stopPropagation();
-        setOwnerAddMenuOpen(ownerAddMenu?.hidden ?? true, "more");
-        setNotificationMenuOpen(false);
-        return;
-      }
       activateOwnerTab(tab.dataset.ownerTab);
       setOwnerTabsExpanded(false);
     });
@@ -2380,11 +2453,6 @@ function setupOwnerTabs() {
       event.preventDefault();
       const nextTab = availableTabs[nextIndex];
       nextTab.focus();
-      if (isOwnerMobileMoreTab(nextTab)) {
-        setOwnerAddMenuOpen(true, "more");
-        setNotificationMenuOpen(false);
-        return;
-      }
       activateOwnerTab(nextTab.dataset.ownerTab);
       setOwnerTabsExpanded(false);
     });
@@ -2395,7 +2463,11 @@ function setupOwnerTabs() {
     setOwnerTabsExpanded(false);
   });
 
-  ownerTabsMobileQuery?.addEventListener?.("change", () => setOwnerTabsExpanded(false));
+  ownerTabsMobileQuery?.addEventListener?.("change", () => {
+    setOwnerTabsExpanded(false);
+    setOwnerAddMenuOpen(false);
+    syncOwnerAddMenuItems();
+  });
 
   activateOwnerTab(initialOwnerTab(), { persist: false });
 }
@@ -2411,27 +2483,32 @@ function initialOwnerTab() {
   return ownerTabPanels.some((panel) => panel.dataset.ownerPanel === savedTab) && canAccessOwnerTab(savedTab) ? savedTab : "queue";
 }
 
-function setOwnerAddMenuOpen(open, mode = "quick") {
+function setOwnerAddMenuOpen(open, mode = "auto") {
   if (!ownerAddMenu || !ownerAddToggle) return;
-  ownerAddMenu.dataset.menuMode = mode;
+  const resolvedMode = mode === "auto" ? ownerAddMenuMode() : mode;
+  syncOwnerAddMenuItems(resolvedMode);
+  ownerAddMenu.dataset.menuMode = resolvedMode;
   ownerAddMenu.hidden = !open;
+  ownerAddMenu.classList.toggle("is-open", Boolean(open));
+  ownerAddMenu.style.display = open ? "grid" : "";
   ownerAddToggle.setAttribute("aria-expanded", String(open));
-  ownerTabs.forEach((tab) => {
-    if (tab.dataset.ownerTab === "settings") tab.setAttribute("aria-expanded", String(open && mode === "more"));
-  });
 }
 
-ownerAddToggle?.addEventListener("click", () => {
-  setOwnerAddMenuOpen(ownerAddMenu?.hidden ?? true, "quick");
+ownerAddToggle?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setOwnerAddMenuOpen(ownerAddMenu?.hidden ?? true, "auto");
   setNotificationMenuOpen(false);
 });
 
 ownerAddMenu?.addEventListener("click", (event) => {
+  event.stopPropagation();
   const item = event.target.closest("[data-owner-action-tab]");
   if (!item) return;
   const targetTab = item.dataset.ownerActionTab || "queue";
-  if (item.hidden || item.disabled || !canAccessOwnerTab(targetTab)) {
+  if (item.hidden || item.disabled || item.classList.contains("is-screen-hidden") || item.classList.contains("is-locked") || !canAccessOwnerTab(targetTab)) {
     showToast(ownerRestrictedMessage(targetTab));
+    logOwnerActivity("restricted_owner_menu_attempt", { tab: targetTab, source: "plus_menu" });
     setOwnerAddMenuOpen(false);
     return;
   }
@@ -2443,6 +2520,12 @@ function setNotificationMenuOpen(open) {
   if (!notificationMenu || !notificationToggle) return;
   notificationMenu.hidden = !open;
   notificationToggle.setAttribute("aria-expanded", String(open));
+}
+
+function eventPathIncludes(event, element) {
+  if (!element) return false;
+  if (typeof event.composedPath === "function") return event.composedPath().includes(element);
+  return element.contains(event.target);
 }
 
 ownerNotificationPopups?.addEventListener("click", (event) => {
@@ -2496,6 +2579,20 @@ notificationList?.addEventListener("click", (event) => {
   setNotificationMenuOpen(false);
 });
 
+ownerFastLaneList?.addEventListener("click", (event) => {
+  const item = event.target.closest("[data-fast-action]");
+  if (!item) return;
+  const id = item.dataset.fastId || "";
+  if (item.dataset.fastAction === "request") {
+    activateOwnerTab("queue");
+    requestList?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+
+  const appointment = state.appointments.find((entry) => entry.id === id);
+  if (appointment?.contact) copyText(appointment.contact, "คัดลอกช่องทางติดต่อแล้ว");
+});
+
 ownerTeamList?.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-team-action='remove']");
   if (!button || !remoteMode || !state.shop?.id || !canManageOwnerTeam()) return;
@@ -2530,14 +2627,22 @@ document.addEventListener("visibilitychange", () => {
 });
 
 document.addEventListener("click", (event) => {
-  const clickedOwnerAdd = ownerAddMenu?.contains(event.target) || ownerAddToggle?.contains(event.target);
+  const clickedOwnerAdd = eventPathIncludes(event, ownerAddMenu) || eventPathIncludes(event, ownerAddToggle);
   if (!clickedOwnerAdd) setOwnerAddMenuOpen(false);
 
-  const clickedNotification = notificationMenu?.contains(event.target) || notificationToggle?.contains(event.target);
+  const clickedNotification = eventPathIncludes(event, notificationMenu) || eventPathIncludes(event, notificationToggle);
   if (!clickedNotification) setNotificationMenuOpen(false);
 
   const quickAction = event.target.closest(".owner-quick-action[data-owner-action-tab]");
-  if (quickAction) activateOwnerTab(quickAction.dataset.ownerActionTab || "queue");
+  if (quickAction) {
+    const targetTab = quickAction.dataset.ownerActionTab || "queue";
+    if (quickAction.classList.contains("is-locked") || !canAccessOwnerTab(targetTab)) {
+      showToast(ownerRestrictedMessage(targetTab));
+      logOwnerActivity("restricted_owner_menu_attempt", { tab: targetTab, source: "quick_action" });
+    } else {
+      activateOwnerTab(targetTab);
+    }
+  }
 
   const copyButton = event.target.closest("[data-copy-contact]");
   if (copyButton) copyContact(copyButton.dataset.copyContact);

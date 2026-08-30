@@ -91,28 +91,62 @@ async function main() {
 
     await page.goto(`${baseUrl}/fah-owner?real-login=1`, { waitUntil: "networkidle" });
     await page.locator("#owner-app").waitFor({ state: "visible", timeout: 5000 });
+    await page.locator("#owner-fast-lane-title", { hasText: "สิ่งที่ต้องทำต่อ" }).waitFor({ timeout: 5000 });
+    const fastLaneText = await page.locator("#owner-fast-lane-list").textContent();
+    if (!fastLaneText?.includes("วันนี้ยังโล่ง")) throw new Error(`Expected fast lane empty state, got: ${fastLaneText}`);
 
-    const hiddenTabs = await page.evaluate(() => (
-      ["settings", "shop", "team"].map((tab) => ({
-        tab,
-        hidden: document.querySelector(`[data-owner-tab="${tab}"]`)?.hidden ?? false
-      }))
+    const lockedTabs = await page.evaluate(() => (
+      ["settings", "shop", "team"].every((tab) => {
+        const element = document.querySelector(`[data-owner-tab="${tab}"]`);
+        return element && element.classList.contains("is-locked") && element.getAttribute("aria-disabled") === "true";
+      })
     ));
-    const visibleRestrictedTab = hiddenTabs.find((item) => !item.hidden);
-    if (visibleRestrictedTab) {
-      throw new Error(`Staff should not see ${visibleRestrictedTab.tab} tab`);
-    }
+    if (!lockedTabs) throw new Error("Staff restricted tabs should stay visible in the DOM as locked controls");
 
-    const hiddenActions = await page.evaluate(() => (
-      ["settings", "shop", "team"].map((tab) => ({
-        tab,
-        hidden: document.querySelector(`[data-owner-action-tab="${tab}"]`)?.hidden ?? false
-      }))
+    const lockedActions = await page.evaluate(() => (
+      ["settings", "shop", "team"].every((tab) => {
+        const element = document.querySelector(`#owner-add-menu [data-owner-action-tab="${tab}"]`);
+        return element && element.classList.contains("is-locked") && element.getAttribute("aria-disabled") === "true";
+      })
     ));
-    const visibleRestrictedAction = hiddenActions.find((item) => !item.hidden);
-    if (visibleRestrictedAction) {
-      throw new Error(`Staff should not see ${visibleRestrictedAction.tab} shortcut`);
+    if (!lockedActions) throw new Error("Staff restricted plus-menu actions should stay visible as locked controls");
+
+    const mobileSettingsVisible = await page.locator('[data-owner-tab="settings"]').evaluate((element) => (
+      window.getComputedStyle(element).display !== "none"
+    ));
+    if (mobileSettingsVisible) throw new Error("Mobile staff navigation should not show the More/settings tab");
+
+    await page.locator("#owner-add-toggle").click();
+    const mobilePlusItems = await page.locator("#owner-add-menu [data-owner-action-tab]").evaluateAll((items) => (
+      items
+        .filter((item) => window.getComputedStyle(item).display !== "none")
+        .map((item) => item.dataset.ownerActionTab)
+    ));
+    if (mobilePlusItems.join(",") !== "manual,settings,shop,team") {
+      throw new Error(`Mobile plus menu should show 4 actions, got: ${mobilePlusItems.join(",")}`);
     }
+    await page.locator('#owner-add-menu [data-owner-action-tab="settings"]').click();
+    await page.locator("#owner-dialog").waitFor({ state: "visible", timeout: 5000 });
+    const mobileDialog = await page.locator("#owner-dialog-message").textContent();
+    if (!mobileDialog?.includes("บัญชีทีมงาน")) throw new Error(`Expected mobile restricted popup, got: ${mobileDialog}`);
+    await page.locator("#owner-dialog-cancel").click();
+
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.locator("#owner-add-toggle").click();
+    const desktopPlusItems = await page.locator("#owner-add-menu [data-owner-action-tab]").evaluateAll((items) => (
+      items
+        .filter((item) => window.getComputedStyle(item).display !== "none")
+        .map((item) => item.dataset.ownerActionTab)
+    ));
+    if (desktopPlusItems.join(",") !== "manual") {
+      throw new Error(`Desktop plus menu should show manual only, got: ${desktopPlusItems.join(",")}`);
+    }
+    await page.locator("#owner-add-toggle").click();
+    await page.locator('[data-owner-tab="settings"]').click();
+    await page.locator("#owner-dialog").waitFor({ state: "visible", timeout: 5000 });
+    const desktopDialog = await page.locator("#owner-dialog-message").textContent();
+    if (!desktopDialog?.includes("บัญชีทีมงาน")) throw new Error(`Expected desktop restricted popup, got: ${desktopDialog}`);
+    await page.locator("#owner-dialog-cancel").click();
 
     const visibleDailyTabs = await page.evaluate(() => (
       ["queue", "calendar", "manual"].every((tab) => {
@@ -146,7 +180,7 @@ async function main() {
     const teamPanelVisible = await page.locator('#owner-panel-team:not([hidden])').count();
     if (teamPanelVisible) throw new Error("Staff should not be able to open team panel with a direct hash");
 
-    console.log("Owner role test passed: staff sees daily queue tools only and restricted controls stay locked");
+    console.log("Owner role test passed: staff sees locked controls, gets restricted popups, and editing stays locked");
   } finally {
     if (browser) await browser.close();
     server.kill();

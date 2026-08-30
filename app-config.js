@@ -5,5 +5,5 @@ window.FAH_NAIL_CONFIG = {
   ownerRedirectUrl: "https://bookingnail.pages.dev/fah-owner",
   bookingRequestEndpoint: "/api/booking-request",
   turnstileSiteKey: "0x4AAAAAAELYK59kty8wkJuo",
-  assetVersion: "20260829-05"
+  assetVersion: "20260830-03"
 };

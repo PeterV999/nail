@@ -33,6 +33,7 @@ let selectedTime = "";
 let currentShopSlug = window.FahNailSupabase?.routeShopSlug?.() || "fah-nail";
 
 const serviceOptions = document.getElementById("service-options");
+const serviceSearch = document.getElementById("service-search");
 const timeOptions = document.getElementById("time-options");
 const miniCalendar = document.getElementById("mini-calendar");
 const bookingDate = document.getElementById("booking-date");
@@ -283,6 +284,12 @@ function activeServices() {
   return state.services.filter((service) => service.active);
 }
 
+function visibleServices() {
+  const query = String(serviceSearch?.value || "").trim().toLowerCase();
+  if (!query) return activeServices();
+  return activeServices().filter((service) => service.name.toLowerCase().includes(query));
+}
+
 function timeSlots() {
   state.timeSlots = normalizeTimeSlots(state.timeSlots || defaultTimeSlots);
   return state.timeSlots;
@@ -391,10 +398,11 @@ function renderBrandMark(element, shop) {
 }
 
 function renderServices() {
-  const services = activeServices();
+  const services = visibleServices();
+  const allServices = activeServices();
   serviceOptions.innerHTML = "";
 
-  if (!services.length) {
+  if (!allServices.length) {
     serviceOptions.setAttribute("aria-disabled", "true");
     serviceOptions.innerHTML = '<div class="empty-state">ยังไม่มีบริการที่เปิดรับจอง</div>';
     selectedServices.clear();
@@ -402,10 +410,17 @@ function renderServices() {
     return;
   }
 
+  if (!services.length) {
+    serviceOptions.setAttribute("aria-disabled", "true");
+    serviceOptions.innerHTML = '<div class="empty-state">ไม่พบบริการที่ค้นหา</div>';
+    updateBookingStepper();
+    return;
+  }
+
   serviceOptions.removeAttribute("aria-disabled");
-  if (!services.some((service) => selectedServices.has(service.name))) {
+  if (!allServices.some((service) => selectedServices.has(service.name))) {
     selectedServices.clear();
-    selectedServices.add(services[0].name);
+    selectedServices.add(allServices[0].name);
   }
 
   services.forEach((service) => {
@@ -569,6 +584,13 @@ function renderTimeWindows() {
     timeOptions.append(button);
   });
 
+  if (!firstAvailableTime) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state time-empty-state";
+    empty.textContent = date === today ? "วันนี้ไม่มีช่วงเวลาที่จองได้แล้ว เลือกวันอื่นได้เลย" : "วันนี้เต็มแล้ว เลือกวันอื่นได้เลย";
+    timeOptions.append(empty);
+  }
+
   const selectedSlot = timeSlots().find((slot) => timeSlotLabel(slot) === selectedTime);
   if (busy.has(selectedTime) || !selectedSlot || !isSlotBookable(date, selectedSlot)) {
     selectedTime = firstAvailableTime;
@@ -710,6 +732,15 @@ bookingForm.addEventListener("submit", async (event) => {
   try {
     setPageLoading(true, "กำลังส่งคำขอจอง", "กำลังบันทึกข้อมูลและตรวจสอบช่วงเวลาล่าสุด");
     await window.FahNailSupabase?.createBookingRequest(request, state, { turnstileToken: turnstileResponse });
+    window.FahNailSupabase?.logActivity?.({
+      eventName: "booking_request_submitted",
+      surface: "customer_booking",
+      metadata: {
+        bookingDate: request.bookingDate,
+        timeWindow: request.timeWindow,
+        serviceCount: request.services.length
+      }
+    });
     setPageLoading(false);
     resetTurnstile();
     showBookingSuccessDialog(request);
@@ -784,6 +815,7 @@ contactPhone?.addEventListener("input", () => {
   if (contactPhone.value.length === 10) validateContactPhone(false);
 });
 contactPhone?.addEventListener("blur", () => validateContactPhone(Boolean(contactPhone.value)));
+serviceSearch?.addEventListener("input", renderServices);
 bookingDialogClose?.addEventListener("click", closeBookingSuccessDialog);
 bookingSuccessDialog?.addEventListener("click", (event) => {
   if (event.target === bookingSuccessDialog) closeBookingSuccessDialog();

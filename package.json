@@ -5,11 +5,12 @@
   "description": "BookingNail booking and queue management web app.",
   "scripts": {
     "dev": "node scripts/dev-server.js",
-    "check": "node --check customer.js && node --check owner.js && node --check owner-utils.js && node --check register.js && node --check admin.js && node --check supabase-adapter.js && node --check theme.js && node --check pwa.js && node --check service-worker.js && node --check functions/api/booking-request.js && node --check scripts/dev-server.js && node --check scripts/smoke-test.js && node --check scripts/playwright-loader.js && node --check scripts/screenshot-test.js && node --check scripts/booking-flow-test.js && node --check scripts/booking-flow-db-test.js && node --check scripts/owner-role-test.js",
+    "check": "node --check customer.js && node --check owner.js && node --check owner-utils.js && node --check register.js && node --check admin.js && node --check supabase-adapter.js && node --check theme.js && node --check pwa.js && node --check service-worker.js && node --check functions/api/booking-request.js && node --check scripts/dev-server.js && node --check scripts/smoke-test.js && node --check scripts/playwright-loader.js && node --check scripts/screenshot-test.js && node --check scripts/booking-flow-test.js && node --check scripts/booking-flow-db-test.js && node --check scripts/owner-role-test.js && node --check scripts/multi-shop-access-test.js",
     "test:smoke": "node scripts/smoke-test.js",
     "test:screenshots": "node scripts/screenshot-test.js",
     "test:booking-flow": "node scripts/booking-flow-test.js",
     "test:owner-role": "node scripts/owner-role-test.js",
+    "test:multi-shop-access": "node scripts/multi-shop-access-test.js",
     "test:booking-flow:db": "node scripts/booking-flow-db-test.js"
   },
   "devDependencies": {

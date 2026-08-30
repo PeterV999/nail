@@ -65,6 +65,14 @@ async function main() {
 
     await page.goto(`${baseUrl}/fah`, { waitUntil: "networkidle" });
 
+    await page.locator("#service-search").fill("ต่อ");
+    const filteredServices = await page.locator(".service-choice").count();
+    if (filteredServices !== 1) throw new Error(`Expected service search to narrow to 1 service, got ${filteredServices}`);
+    await page.locator("#service-search").fill("ไม่มีบริการนี้");
+    const emptySearchText = await page.locator(".service-choice-list .empty-state").textContent();
+    if (!emptySearchText?.includes("ไม่พบบริการ")) throw new Error(`Expected service search empty state, got: ${emptySearchText}`);
+    await page.locator("#service-search").fill("");
+
     const expiredSlots = await page.locator(".time-options .choice.expired").count();
     if (expiredSlots < 4) throw new Error(`Expected at least 4 expired slots, got ${expiredSlots}`);
     const expiredText = await page.locator(".time-options .choice.expired").first().textContent();
