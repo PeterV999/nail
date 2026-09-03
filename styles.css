@@ -1675,7 +1675,6 @@ textarea {
 
 .owner-page .side-card,
 .owner-page .queue-card,
-.owner-page .schedule-item,
 .owner-page .calendar-day-detail,
 .owner-page .calendar-detail-item,
 .owner-page .shop-logo-editor {
@@ -1727,15 +1726,6 @@ textarea {
   color: #fff;
   border-color: rgba(192, 86, 101, .18);
   background: linear-gradient(135deg, #d96d7d, #c05665);
-}
-
-.owner-page .schedule-workspace {
-  grid-template-columns: minmax(0, 1fr) minmax(330px, .88fr);
-}
-
-.owner-page .schedule-item {
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fff, #fff5fa);
 }
 
 .owner-page .calendar-day {
@@ -2690,53 +2680,6 @@ textarea {
   margin-top: 12px;
 }
 
-.schedule-workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(330px, .88fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.shop-schedule-list {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.schedule-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: linear-gradient(135deg, #fff, #f1feff);
-}
-
-.schedule-item div {
-  display: grid;
-  gap: 2px;
-}
-
-.schedule-item div:nth-child(2) {
-  justify-items: end;
-  text-align: right;
-}
-
-.schedule-item .contact-actions {
-  grid-column: 1 / -1;
-}
-
-.schedule-item span {
-  color: var(--muted);
-  font-size: .88rem;
-}
-
-.schedule-item strong {
-  color: var(--ink);
-}
-
 .booking-calendar {
   display: grid;
   gap: 8px;
@@ -2903,20 +2846,62 @@ textarea {
 
 .calendar-detail-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 3px 10px;
-  padding: 9px 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 12px;
+  padding: 12px 0;
   border-top: 1px solid rgba(139, 218, 228, .52);
 }
 
-.calendar-detail-item strong {
-  color: var(--primary-dark);
+.calendar-detail-item.completed {
+  opacity: .76;
 }
 
-.calendar-detail-item small {
-  grid-column: 2;
+.calendar-detail-main,
+.calendar-detail-time {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.calendar-detail-main span,
+.calendar-detail-time span {
+  color: var(--muted);
+  font-size: .84rem;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.calendar-detail-main strong,
+.calendar-detail-time strong {
+  color: var(--primary-dark);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.calendar-detail-main small {
   color: var(--muted);
   font-size: .82rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.calendar-detail-time {
+  justify-items: end;
+  text-align: right;
+}
+
+.calendar-detail-time .status-pill {
+  justify-self: end;
+  min-height: 28px;
+  padding: 5px 10px;
+  font-size: .72rem;
+}
+
+.calendar-detail-item .contact-actions {
+  grid-column: 1 / -1;
 }
 
 .switch-row {
@@ -4229,7 +4214,6 @@ body.customer-page #customer .booking-form-actions .secondary-button {
     text-align: center;
   }
 
-  .owner-page .schedule-workspace,
   .owner-page .owner-panel-grid {
     grid-template-columns: 1fr;
   }
@@ -4436,11 +4420,6 @@ body.customer-page #customer .booking-form-actions .secondary-button {
     gap: 10px;
   }
 
-  .schedule-workspace {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
   .booking-calendar {
     gap: 7px;
     margin-top: 8px;
@@ -4495,6 +4474,20 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   .calendar-day-detail {
     padding: 9px;
     border-radius: 14px;
+  }
+
+  .calendar-detail-item {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .calendar-detail-time {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .calendar-detail-time .status-pill {
+    justify-self: start;
   }
 
   .manual-card {
@@ -5357,7 +5350,6 @@ body.owner-page .owner-command-center,
 body.owner-page .owner-nav,
 body.owner-page .side-card,
 body.owner-page .queue-card,
-body.owner-page .schedule-item,
 body.owner-page .calendar-day-detail,
 body.owner-page .calendar-detail-item,
 body.owner-page .shop-logo-editor {
@@ -6454,7 +6446,6 @@ body[data-shop-theme].owner-page .owner-command-center,
 body[data-shop-theme].owner-page .owner-nav,
 body[data-shop-theme].owner-page .side-card,
 body[data-shop-theme].owner-page .queue-card,
-body[data-shop-theme].owner-page .schedule-item,
 body[data-shop-theme].owner-page .calendar-day-detail,
 body[data-shop-theme].owner-page .calendar-detail-item,
 body[data-shop-theme].owner-page .shop-logo-editor {

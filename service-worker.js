@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v65";
+const CACHE_VERSION = "v66";
 const STATIC_CACHE = `bookingnail-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `bookingnail-pages-${CACHE_VERSION}`;
 

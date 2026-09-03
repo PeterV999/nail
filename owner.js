@@ -105,6 +105,7 @@ let currentMemberShops = [];
 let ownerTeamMembers = [];
 let calendarMonthStart = new Date(`${today}T00:00:00`);
 calendarMonthStart.setDate(1);
+let selectedCalendarDate = today;
 let notificationSoundEnabled = localStorage.getItem(NOTIFICATION_SOUND_ENABLED_KEY) === "1";
 let notificationAudioContext = null;
 let notificationReminderTimer = null;
@@ -146,7 +147,6 @@ const manualService = document.getElementById("manual-service");
 const manualDate = document.getElementById("manual-date");
 const scheduleDate = document.getElementById("schedule-date");
 const closedDayToggle = document.getElementById("closed-day-toggle");
-const shopScheduleList = document.getElementById("shop-schedule-list");
 const bookingCalendar = document.getElementById("booking-calendar");
 const manualForm = document.getElementById("manual-form");
 const serviceForm = document.getElementById("service-form");
@@ -279,7 +279,6 @@ function render() {
   renderOwnerServices();
   renderManualOptions();
   renderTimeManager();
-  renderShopSchedule();
   renderBookingCalendar();
   renderShopSettings();
   renderOwnerTeam();
@@ -1608,50 +1607,18 @@ async function removeTimeSlot(slotId) {
   }
 }
 
-function renderShopSchedule() {
-  if (!shopScheduleList) return;
-  const upcoming = [...state.appointments]
-    .filter((appointment) => appointment.status === "confirmed")
-    .sort((a, b) => `${a.bookingDate || ""} ${a.timeWindow || ""}`.localeCompare(`${b.bookingDate || ""} ${b.timeWindow || ""}`))
-    .slice(0, 12);
-
-  shopScheduleList.innerHTML = "";
-
-  if (!upcoming.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty-state";
-    empty.textContent = "ยังไม่มีคิวในตาราง";
-    shopScheduleList.append(empty);
-    return;
-  }
-
-  upcoming.forEach((appointment) => {
-    const item = document.createElement("article");
-    item.className = "schedule-item";
-    item.innerHTML = `
-      <div>
-        <strong>${escapeHtml(appointment.customerName || "ลูกค้า")}</strong>
-        <span>${escapeHtml(serviceText(appointment))}</span>
-      </div>
-      <div>
-        <span>${thaiDate(appointment.bookingDate || today)}</span>
-        <strong>${escapeHtml(appointment.timeWindow || "")}</strong>
-      </div>
-      ${contactActionsMarkup(appointment.contact, { showCopy: !phoneHref(appointment.contact) })}
-    `;
-    shopScheduleList.append(item);
-  });
-}
-
 function dayText(value) {
   return new Intl.DateTimeFormat("th-TH", {
     weekday: "short"
   }).format(new Date(`${value}T00:00:00`));
 }
 
+function visibleCalendarAppointments() {
+  return state.appointments.filter((appointment) => ["confirmed", "completed"].includes(appointment.status));
+}
+
 function appointmentsByDate() {
-  return state.appointments
-    .filter((appointment) => appointment.status === "confirmed")
+  return visibleCalendarAppointments()
     .reduce((groups, appointment) => {
       const date = appointment.bookingDate || today;
       if (!groups.has(date)) groups.set(date, []);
@@ -1709,9 +1676,11 @@ function renderBookingCalendar() {
   const dates = monthDates(calendarMonthStart);
   const activeSlotCount = timeSlots().filter((slot) => slot.active).length;
   const leadingDays = (new Date(calendarMonthStart).getDay() + 6) % 7;
-  const selectedDate = dates.includes(today)
-    ? today
-    : dates.find((date) => groupedAppointments.get(date)?.length || isDayClosed(date)) || dates[0];
+  const selectedDate = dates.includes(selectedCalendarDate)
+    ? selectedCalendarDate
+    : (dates.includes(today)
+      ? today
+      : dates.find((date) => groupedAppointments.get(date)?.length || isDayClosed(date)) || dates[0]);
   const weekdays = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
   bookingCalendar.innerHTML = `
@@ -1744,6 +1713,7 @@ function renderBookingCalendar() {
 
   const detail = bookingCalendar.querySelector("#calendar-day-detail");
   const showDateDetail = (date) => {
+    selectedCalendarDate = date;
     const appointments = (groupedAppointments.get(date) || [])
       .sort((a, b) => (a.timeWindow || "").localeCompare(b.timeWindow || ""));
     const isClosed = isDayClosed(date);
@@ -1759,10 +1729,18 @@ function renderBookingCalendar() {
         <span>${isClosed ? "ปิดร้าน" : appointments.length ? `${appointments.length} คิว` : "ยังไม่มีคิว"}</span>
       </div>
       ${isClosed ? `<p class="empty-state compact">ร้านปิดวันนี้</p>` : appointments.length ? appointments.map((appointment) => `
-        <article class="calendar-detail-item">
-          <strong>${escapeHtml(appointment.timeWindow || "")}</strong>
-          <span>${escapeHtml(appointment.customerName || "ลูกค้า")}</span>
-          <small>${escapeHtml(serviceText(appointment))}</small>
+        <article class="calendar-detail-item ${appointment.status === "completed" ? "completed" : ""}">
+          <div class="calendar-detail-main">
+            <strong>${escapeHtml(appointment.customerName || "ลูกค้า")}</strong>
+            <span>${escapeHtml(appointment.contact || "ไม่มีเบอร์")}</span>
+            <small>${escapeHtml(serviceText(appointment))}</small>
+          </div>
+          <div class="calendar-detail-time">
+            <span>${thaiDate(appointment.bookingDate || date)}</span>
+            <strong>${escapeHtml(appointment.timeWindow || "")}</strong>
+            <em class="status-pill ${statusToneClass({ ...appointment, kind: "appointment" })}">${statusLabel(appointment.status)}</em>
+          </div>
+          ${contactActionsMarkup(appointment.contact, { showCopy: !phoneHref(appointment.contact) })}
         </article>
       `).join("") : `<p class="empty-state compact">ยังไม่มีคิวในวันนี้</p>`}
     `;
