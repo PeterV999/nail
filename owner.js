@@ -1627,6 +1627,14 @@ function appointmentsByDate() {
     }, new Map());
 }
 
+function calendarContactMarkup(contact = "") {
+  const value = String(contact || "").trim();
+  if (!value) return `<span class="calendar-detail-contact">ไม่มีเบอร์</span>`;
+  const href = phoneHref(value);
+  if (!href) return `<span class="calendar-detail-contact">${escapeHtml(value)}</span>`;
+  return `<a class="calendar-detail-contact" href="${escapeHtml(href)}">${escapeHtml(value)}</a>`;
+}
+
 function isoDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1730,17 +1738,15 @@ function renderBookingCalendar() {
       </div>
       ${isClosed ? `<p class="empty-state compact">ร้านปิดวันนี้</p>` : appointments.length ? appointments.map((appointment) => `
         <article class="calendar-detail-item ${appointment.status === "completed" ? "completed" : ""}">
-          <div class="calendar-detail-main">
+          <div class="calendar-detail-line primary">
             <strong>${escapeHtml(appointment.customerName || "ลูกค้า")}</strong>
-            <span>${escapeHtml(appointment.contact || "ไม่มีเบอร์")}</span>
-            <small>${escapeHtml(serviceText(appointment))}</small>
-          </div>
-          <div class="calendar-detail-time">
-            <span>${thaiDate(appointment.bookingDate || date)}</span>
-            <strong>${escapeHtml(appointment.timeWindow || "")}</strong>
+            ${calendarContactMarkup(appointment.contact)}
             <em class="status-pill ${statusToneClass({ ...appointment, kind: "appointment" })}">${statusLabel(appointment.status)}</em>
           </div>
-          ${contactActionsMarkup(appointment.contact, { showCopy: !phoneHref(appointment.contact) })}
+          <div class="calendar-detail-line secondary">
+            <span>${escapeHtml(serviceText(appointment))}</span>
+            <strong>${thaiDate(appointment.bookingDate || date)} · ${escapeHtml(appointment.timeWindow || "")}</strong>
+          </div>
         </article>
       `).join("") : `<p class="empty-state compact">ยังไม่มีคิวในวันนี้</p>`}
     `;

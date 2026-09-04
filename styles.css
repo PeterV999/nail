@@ -2846,10 +2846,9 @@ textarea {
 
 .calendar-detail-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 8px 12px;
-  padding: 12px 0;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 0;
   border-top: 1px solid rgba(139, 218, 228, .52);
 }
 
@@ -2857,51 +2856,62 @@ textarea {
   opacity: .76;
 }
 
-.calendar-detail-main,
-.calendar-detail-time {
+.calendar-detail-line {
   display: grid;
+  align-items: center;
   min-width: 0;
-  gap: 3px;
+  gap: 8px;
 }
 
-.calendar-detail-main span,
-.calendar-detail-time span {
-  color: var(--muted);
-  font-size: .84rem;
-  font-weight: 800;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
+.calendar-detail-line.primary {
+  grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
-.calendar-detail-main strong,
-.calendar-detail-time strong {
+.calendar-detail-line.secondary {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.calendar-detail-line strong,
+.calendar-detail-line span,
+.calendar-detail-line a,
+.calendar-detail-line em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-detail-line.primary strong {
   color: var(--primary-dark);
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
-.calendar-detail-main small {
-  color: var(--muted);
-  font-size: .82rem;
+  font-size: .94rem;
   font-weight: 800;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+  line-height: 1.18;
 }
 
-.calendar-detail-time {
-  justify-items: end;
-  text-align: right;
+.calendar-detail-contact,
+.calendar-detail-line.secondary span,
+.calendar-detail-line.secondary strong {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
-.calendar-detail-time .status-pill {
-  justify-self: end;
-  min-height: 28px;
-  padding: 5px 10px;
-  font-size: .72rem;
+.calendar-detail-contact {
+  text-decoration: none;
 }
 
-.calendar-detail-item .contact-actions {
-  grid-column: 1 / -1;
+.calendar-detail-contact[href] {
+  color: var(--primary-dark);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.calendar-detail-line .status-pill {
+  min-height: 26px;
+  padding: 4px 9px;
+  font-size: .68rem;
 }
 
 .switch-row {
@@ -4477,17 +4487,36 @@ body.customer-page #customer .booking-form-actions .secondary-button {
   }
 
   .calendar-detail-item {
-    grid-template-columns: 1fr;
-    gap: 7px;
+    gap: 5px;
+    padding: 9px 0;
   }
 
-  .calendar-detail-time {
-    justify-items: start;
-    text-align: left;
+  .calendar-detail-line {
+    gap: 6px;
   }
 
-  .calendar-detail-time .status-pill {
-    justify-self: start;
+  .calendar-detail-line.primary {
+    grid-template-columns: minmax(0, 1fr) minmax(82px, auto) auto;
+  }
+
+  .calendar-detail-line.secondary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .calendar-detail-line.primary strong {
+    font-size: .86rem;
+  }
+
+  .calendar-detail-contact,
+  .calendar-detail-line.secondary span,
+  .calendar-detail-line.secondary strong {
+    font-size: .7rem;
+  }
+
+  .calendar-detail-line .status-pill {
+    min-height: 24px;
+    padding: 3px 7px;
+    font-size: .62rem;
   }
 
   .manual-card {

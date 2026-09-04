@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260904-01">
+    <link rel="stylesheet" href="styles.css?v=20260904-02">
   </head>
   <body class="owner-page">
     <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="กำลังโหลดข้อมูล">
@@ -98,27 +98,27 @@
           </nav>
 
           <section class="owner-main owner-command-center">
-            <div class="owner-dashboard-hero">
-              <div>
-                <p class="eyebrow">หลังบ้านร้านทำเล็บ</p>
-                <h1 id="owner-title">ศูนย์จัดการคิววันนี้</h1>
-                <p class="lead" id="owner-hero-status">กำลังโหลดคำขอและคิวล่าสุด</p>
-                <div class="owner-quick-actions" aria-label="ทางลัดหลังบ้าน">
-                  <button class="owner-quick-action primary" type="button" data-owner-action-tab="manual">ลงคิวหน้าร้าน</button>
-                  <button class="owner-quick-action" type="button" data-owner-action-tab="calendar">ดูตาราง</button>
-                  <button class="owner-quick-action" type="button" data-owner-action-tab="settings">แก้เวลา</button>
+            <section class="owner-tab-panel" id="owner-panel-queue" role="tabpanel" aria-labelledby="owner-tab-queue" data-owner-panel="queue">
+              <div class="owner-dashboard-hero">
+                <div>
+                  <p class="eyebrow">หลังบ้านร้านทำเล็บ</p>
+                  <h1 id="owner-title">ศูนย์จัดการคิววันนี้</h1>
+                  <p class="lead" id="owner-hero-status">กำลังโหลดคำขอและคิวล่าสุด</p>
+                  <div class="owner-quick-actions" aria-label="ทางลัดหลังบ้าน">
+                    <button class="owner-quick-action primary" type="button" data-owner-action-tab="manual">ลงคิวหน้าร้าน</button>
+                    <button class="owner-quick-action" type="button" data-owner-action-tab="calendar">ดูตาราง</button>
+                    <button class="owner-quick-action" type="button" data-owner-action-tab="settings">แก้เวลา</button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="owner-stats" id="owner-stats"></div>
-            <section class="owner-fast-lane" aria-labelledby="owner-fast-lane-title">
-              <div>
-                <p class="eyebrow">มุมมองเร็ว</p>
-                <h2 id="owner-fast-lane-title">สิ่งที่ต้องทำต่อ</h2>
-              </div>
-              <div class="owner-fast-lane-list" id="owner-fast-lane-list"></div>
-            </section>
-            <section class="owner-tab-panel" id="owner-panel-queue" role="tabpanel" aria-labelledby="owner-tab-queue" data-owner-panel="queue">
+              <div class="owner-stats" id="owner-stats"></div>
+              <section class="owner-fast-lane" aria-labelledby="owner-fast-lane-title">
+                <div>
+                  <p class="eyebrow">มุมมองเร็ว</p>
+                  <h2 id="owner-fast-lane-title">สิ่งที่ต้องทำต่อ</h2>
+                </div>
+                <div class="owner-fast-lane-list" id="owner-fast-lane-list"></div>
+              </section>
               <div class="owner-overview-grid">
                 <section class="side-card owner-overview-card owner-attention-card" aria-labelledby="owner-requests-title">
                   <div class="section-head compact">
@@ -319,11 +319,11 @@
     <div class="owner-notification-popups" id="owner-notification-popups" aria-live="polite" aria-atomic="false"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app-config.js?v=20260904-01"></script>
-    <script src="theme.js?v=20260904-01"></script>
-    <script src="supabase-adapter.js?v=20260904-01"></script>
-    <script src="pwa.js?v=20260904-01"></script>
-    <script src="owner-utils.js?v=20260904-01"></script>
-    <script src="owner.js?v=20260904-01"></script>
+    <script src="app-config.js?v=20260904-02"></script>
+    <script src="theme.js?v=20260904-02"></script>
+    <script src="supabase-adapter.js?v=20260904-02"></script>
+    <script src="pwa.js?v=20260904-02"></script>
+    <script src="owner-utils.js?v=20260904-02"></script>
+    <script src="owner.js?v=20260904-02"></script>
   </body>
 </html>
