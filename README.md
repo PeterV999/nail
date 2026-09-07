@@ -41,6 +41,7 @@
 - [Automated Tests](docs/automated-tests.md)
 - [Database Migrations](docs/database-migrations.md)
 - [Production Monitoring](docs/production-monitoring.md)
+- [Reusable Web Ops Standard](docs/reusable-web-ops-standard.md)
 - [New Shop Flow](docs/new-shop-flow.md)
 - [App Readiness](docs/app-readiness.md)
 - [Contributing](CONTRIBUTING.md)

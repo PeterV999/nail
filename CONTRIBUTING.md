@@ -66,4 +66,5 @@ npm run dev
 - `docs/automated-tests.md`
 - `docs/database-migrations.md`
 - `docs/production-monitoring.md`
+- `docs/reusable-web-ops-standard.md`
 - `DESIGN.md`
