@@ -30,10 +30,16 @@
 - [Data Model](docs/data-model.md)
 - [Integrations](docs/integrations.md)
 - [UI Guidelines](docs/ui-guidelines.md)
+- [Design System](DESIGN.md)
 - [Platform Admin](docs/admin.md)
 - [Backlog](docs/backlog.md)
 - [Deployment](docs/deployment.md)
 - [Developer Workflow](docs/developer-workflow.md)
+- [Source of Truth](docs/source-of-truth.md)
+- [Release Checklist](docs/release-checklist.md)
+- [Staging and Preview](docs/staging.md)
+- [Automated Tests](docs/automated-tests.md)
+- [Database Migrations](docs/database-migrations.md)
 - [New Shop Flow](docs/new-shop-flow.md)
 - [App Readiness](docs/app-readiness.md)
 
@@ -90,6 +96,7 @@ npm run test:screenshots
 npm run test:booking-flow
 npm run test:owner-role
 npm run test:multi-shop-access
+npm run test:ci
 ```
 
 คำสั่งทดสอบฐานข้อมูลจริงใช้เฉพาะผู้พัฒนาที่มี secret ในเครื่อง:

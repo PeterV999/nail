@@ -22,26 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Syntax check
-        run: npm run check
-
-      - name: Smoke test
-        run: npm run test:smoke
-
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Screenshot test
-        run: npm run test:screenshots
-
-      - name: Booking flow browser test
-        run: npm run test:booking-flow
-
-      - name: Owner role browser test
-        run: npm run test:owner-role
-
-      - name: Multi-shop access browser test
-        run: npm run test:multi-shop-access
+      - name: CI test suite
+        run: npm run test:ci
 
       - name: Upload screenshots
         if: always()

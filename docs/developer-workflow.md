@@ -10,6 +10,8 @@ https://github.com/PeterV999/nail
 
 โฟลเดอร์ `/Users/peterv999/Documents/Codex/nail` เป็น working copy บนเครื่องคุณ Peter เท่านั้น ผู้พัฒนาคนอื่นจะ clone repo ไปไว้ใน path ของเครื่องตัวเองได้
 
+อ่านรายละเอียด source of truth เพิ่มเติมที่ `docs/source-of-truth.md`
+
 ## ขั้นตอนทำงานมาตรฐาน
 
 1. ดึงโค้ดล่าสุดจาก GitHub ก่อนเริ่มงาน
@@ -25,19 +27,24 @@ https://github.com/PeterV999/nail
 11. merge เข้า `main` หลังตรวจผ่านเท่านั้น
 12. ให้ Cloudflare Pages deploy จาก GitHub ไม่ deploy จากเครื่องส่วนตัวถ้าไม่จำเป็น
 
+งานทุกชิ้นควรผ่าน staging/preview ก่อน merge หากกระทบ UI, route, auth, Supabase หรือระบบหลายร้าน ดูขั้นตอนที่ `docs/staging.md`
+
 ## กติกาแก้ด้วยมือ
 
 - ห้ามใส่ secret, service role key, private token หรือรหัสผ่านใน Git
 - ห้ามเพิ่มไฟล์เฉพาะร้านเข้า Git เช่น `branding/`, `marketing/`, `เมนูราคา.png`
 - ห้ามแก้ production โดยไม่ผ่าน GitHub ยกเว้นกรณีฉุกเฉิน
 - ถ้ามี Supabase SQL ใหม่ ต้องเก็บไฟล์ SQL ใน `supabase/` และระบุใน PR ว่าต้องรันไฟล์ไหน
+- ถ้าเป็น SQL เปลี่ยน schema/RLS/RPC ใหม่ ให้ใช้แนวทางใน `docs/database-migrations.md`
 - ถ้าแก้ PWA, CSS, JS หรือ asset ต้อง bump `assetVersion` และ `CACHE_VERSION`
 - ถ้าแก้ routing ต้องทดสอบทั้ง `/`, `/fah`, `/fah-owner`, `/admin`, `/register` และร้านใหม่แบบ `/xxx`, `/xxx-owner`
+- ถ้าแก้ UI หลังบ้าน ต้องเทียบกับกติกาใน `DESIGN.md` โดยเฉพาะกฎลดกรอบซ้อนกรอบและคำสั้นสำหรับเจ้าของร้าน
 
 ## Checklist ก่อน merge
 
 - [ ] `git status` ไม่มีไฟล์เฉพาะร้านติดมาโดยไม่ตั้งใจ
 - [ ] `npm run check` ผ่าน
+- [ ] `npm run test:ci` ผ่านในเครื่องหรือ GitHub Actions
 - [ ] `npm run test:smoke` ผ่าน
 - [ ] `npm run test:screenshots` ผ่าน หรือแนบเหตุผลถ้า environment เปิด browser ไม่ได้
 - [ ] `npm run test:booking-flow` ผ่านเมื่อมีการแก้หน้าจอง
@@ -51,12 +58,15 @@ https://github.com/PeterV999/nail
 - [ ] ถ้ามี SQL ใหม่ ระบุไฟล์ที่ต้องรันบน Supabase
 - [ ] หลัง deploy ตรวจว่า PWA/cache ไม่ค้างหน้าเก่า
 
+Checklist เต็มก่อน release อยู่ที่ `docs/release-checklist.md`
+
 ## Test เพิ่มเติม
 
 - `npm run test:screenshots` สร้างภาพ mobile/iPad ไว้ที่ `test-artifacts/screenshots/`
 - `npm run test:booking-flow` ตรวจ UX หน้าจองบน browser local
 - `npm run test:owner-role` จำลองบัญชีทีมงาน ตรวจว่าเมนูที่ไม่มีสิทธิ์อยู่ในสถานะล็อก กดแล้วมี popup และ control แก้ร้าน/บริการ/ทีมงานถูกล็อก
 - `npm run test:multi-shop-access` จำลองร้าน A/B ตรวจว่าหน้าลูกค้าและหลังบ้านไม่เห็นข้อมูลข้ามร้าน และบัญชีไม่มีสิทธิ์ไม่เห็นข้อมูลหลังบ้าน
+- `npm run test:ci` รันชุดตรวจหลักทั้งหมดที่ GitHub Actions ใช้
 - `npm run test:booking-flow:db` ตรวจ flow ฐานข้อมูลจริง ต้องตั้ง `SUPABASE_ANON_KEY` และ `SUPABASE_SERVICE_ROLE_KEY` ในเครื่องก่อนรัน ห้าม commit key เหล่านี้เข้า Git
 - ถ้า Playwright ยังไม่มีในเครื่อง ให้ติดตั้งด้วย `npm install --save-dev playwright` และ `npx playwright install chromium`
 

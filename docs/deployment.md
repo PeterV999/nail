@@ -32,6 +32,9 @@ npx wrangler pages deploy . --project-name bookingnail --branch main
 
 หลัง deploy ให้ตรวจว่า HTML โหลด cache version ล่าสุด เช่น `styles.css?v=20260828-13`
 
+งานที่ยังไม่ merge เข้า `main` ควรดูผ่าน Cloudflare Preview/Staging ก่อน ดูแนวทางที่ `docs/staging.md`
+ก่อน release ให้ใช้ checklist ที่ `docs/release-checklist.md`
+
 เอกสารอ้างอิง:
 
 - [Cloudflare Pages Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/)
