@@ -8,7 +8,7 @@ GitHub repo คือ source กลางของทีม:
 
 https://github.com/PeterV999/nail
 
-โฟลเดอร์ `/Users/peterv999/Documents/Codex/nail` เป็น working copy บนเครื่องคุณ Peter เท่านั้น ผู้พัฒนาคนอื่นจะ clone repo ไปไว้ใน path ของเครื่องตัวเองได้
+โฟลเดอร์ `/Users/peterv999/Documents/ChatGPT/nail` เป็น working copy หลักบนเครื่องคุณ Peter เท่านั้น ผู้พัฒนาคนอื่นจะ clone repo ไปไว้ใน path ของเครื่องตัวเองได้
 
 อ่านรายละเอียด source of truth เพิ่มเติมที่ `docs/source-of-truth.md`
 

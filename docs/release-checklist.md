@@ -4,7 +4,7 @@
 
 ## ก่อนเริ่มงาน
 
-- [ ] อยู่ที่ repo `/Users/peterv999/Documents/Codex/nail` หรือ clone จาก GitHub repo เดียวกัน
+- [ ] อยู่ที่ repo `/Users/peterv999/Documents/ChatGPT/nail` หรือ clone จาก GitHub repo เดียวกัน
 - [ ] `git status` สะอาด หรือเข้าใจไฟล์ที่เปลี่ยนอยู่ทั้งหมด
 - [ ] ดึงโค้ดล่าสุดจาก GitHub
 - [ ] ตรวจว่าไม่มีไฟล์เฉพาะร้าน เช่น `branding/`, `marketing/`, `เมนูราคา.png`

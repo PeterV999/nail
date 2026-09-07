@@ -8,7 +8,7 @@ Source กลางคือ GitHub repo:
 
 https://github.com/PeterV999/nail
 
-โฟลเดอร์ `/Users/peterv999/Documents/Codex/nail` เป็น working copy บนเครื่องคุณ Peter เท่านั้น ผู้พัฒนาคนอื่น clone repo ไปไว้ในเครื่องตัวเอง แล้วทำ branch, commit, push และเปิด Pull Request กลับเข้า repo กลาง
+โฟลเดอร์ `/Users/peterv999/Documents/ChatGPT/nail` เป็น working copy หลักบนเครื่องคุณ Peter เท่านั้น ผู้พัฒนาคนอื่น clone repo ไปไว้ในเครื่องตัวเอง แล้วทำ branch, commit, push และเปิด Pull Request กลับเข้า repo กลาง
 
 ## เริ่มงาน
 

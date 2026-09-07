@@ -7,7 +7,9 @@
 - GitHub repo: `https://github.com/PeterV999/nail`
 - Production branch: `main`
 - Production site: `https://bookingnail.pages.dev`
-- Working copy หลักบนเครื่องคุณ Peter: `/Users/peterv999/Documents/Codex/nail`
+- Working copy หลักบนเครื่องคุณ Peter: `/Users/peterv999/Documents/ChatGPT/nail`
+
+หมายเหตุ: โฟลเดอร์ archive เก่า `/Users/peterv999/Documents/bookingnail-old-folders-20260815/ร้านทำเล็บ-archive` ยังชี้ไป repo เดียวกัน แต่ล้าหลังและไม่ใช่ source สำหรับงานใหม่
 
 โฟลเดอร์บนเครื่องเป็นเพียง working copy ของคนทำงานคนนั้น ผู้พัฒนาคนอื่นสามารถ clone repo ไปไว้ที่ path ของตัวเองได้ แต่ต้อง push กลับเข้า GitHub และให้ Cloudflare deploy จาก GitHub เป็นหลัก
 
