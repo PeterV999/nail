@@ -5,7 +5,7 @@
   "description": "BookingNail booking and queue management web app.",
   "scripts": {
     "dev": "node scripts/dev-server.js",
-    "check": "node --check customer.js && node --check owner.js && node --check owner-utils.js && node --check register.js && node --check admin.js && node --check supabase-adapter.js && node --check theme.js && node --check pwa.js && node --check service-worker.js && node --check functions/api/booking-request.js && node --check scripts/dev-server.js && node --check scripts/smoke-test.js && node --check scripts/playwright-loader.js && node --check scripts/screenshot-test.js && node --check scripts/booking-flow-test.js && node --check scripts/booking-flow-db-test.js && node --check scripts/owner-role-test.js && node --check scripts/multi-shop-access-test.js",
+    "check": "node --check customer.js && node --check owner.js && node --check owner-utils.js && node --check register.js && node --check admin.js && node --check supabase-adapter.js && node --check theme.js && node --check pwa.js && node --check service-worker.js && node --check functions/api/booking-request.js && node --check scripts/dev-server.js && node --check scripts/smoke-test.js && node --check scripts/playwright-loader.js && node --check scripts/screenshot-test.js && node --check scripts/booking-flow-test.js && node --check scripts/booking-flow-db-test.js && node --check scripts/owner-role-test.js && node --check scripts/multi-shop-access-test.js && node --check scripts/production-health-check.js",
     "test": "npm run test:ci",
     "test:ci": "npm run check && npm run test:smoke && npm run test:screenshots && npm run test:booking-flow && npm run test:owner-role && npm run test:multi-shop-access",
     "test:smoke": "node scripts/smoke-test.js",
@@ -13,7 +13,8 @@
     "test:booking-flow": "node scripts/booking-flow-test.js",
     "test:owner-role": "node scripts/owner-role-test.js",
     "test:multi-shop-access": "node scripts/multi-shop-access-test.js",
-    "test:booking-flow:db": "node scripts/booking-flow-db-test.js"
+    "test:booking-flow:db": "node scripts/booking-flow-db-test.js",
+    "monitor:production": "node scripts/production-health-check.js"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

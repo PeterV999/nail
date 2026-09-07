@@ -58,7 +58,7 @@ Platform preview: /
 Other shop routes: /{shopSlug} and /{shopSlug}-owner
 New shop registration: /register
 Platform admin: /admin
-Closed legacy routes: /b/{shopSlug}, /book/{shopSlug}, /o/{shopSlug}, /dashboard/{shopSlug}
+Closed legacy routes: /b/{shopSlug}, /book/{shopSlug}, /o/{shopSlug}, /dashboard/{shopSlug}, /owner.html
 ```
 
 หมายเหตุสำหรับ `*.pages.dev`: Cloudflare Pages ไม่รองรับการเปลี่ยน subdomain ของ project เดิมจาก `fah-nail-booking.pages.dev` เป็น `bookingnail.pages.dev` โดยตรง ถ้าต้องใช้ URL ใหม่เป็น `bookingnail.pages.dev` ให้สร้าง Pages project ใหม่ชื่อ `bookingnail` แล้วเชื่อม repository/branch เดิม จากนั้นตั้งค่า Supabase redirect ให้ตรงกับ domain ใหม่ก่อนใช้งานจริง
@@ -67,7 +67,7 @@ Closed legacy routes: /b/{shopSlug}, /book/{shopSlug}, /o/{shopSlug}, /dashboard
 
 ## Legacy Cleanup
 
-- Route เก่า `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, และ `/dashboard/:shopSlug` ถูกถอดออกจาก `_redirects`, dev server, และ service worker แล้ว
+- Route เก่า `/b/:shopSlug`, `/o/:shopSlug`, `/book/:shopSlug`, `/dashboard/:shopSlug`, และ `/owner.html` ถูกปิดใน `_redirects`, dev server, และ service worker แล้ว
 - หาก production Supabase เคยมี Google Calendar objects จาก deployment เก่า ให้ backup ก่อน แล้ว run `supabase/remove-legacy-calendar.sql` ใน SQL Editor
 - หลัง deploy ให้เปิด old routes เพื่อยืนยันว่าไม่ควรได้ `200 OK`
 

@@ -29,6 +29,53 @@ https://github.com/PeterV999/nail
 
 งานทุกชิ้นควรผ่าน staging/preview ก่อน merge หากกระทบ UI, route, auth, Supabase หรือระบบหลายร้าน ดูขั้นตอนที่ `docs/staging.md`
 
+## Branch และ Commit
+
+ใช้ชื่อ branch ให้บอกงานชัดเจน:
+
+- `feature/shop-theme-picker`
+- `fix/mobile-owner-actions`
+- `docs/deploy-runbook`
+- `test/multi-shop-access`
+
+ข้อความ commit ควรเป็นประโยคสั้นที่บอกผลลัพธ์ เช่น:
+
+- `Improve mobile owner quick actions`
+- `Add production health check`
+- `Document database migration workflow`
+
+หลีกเลี่ยง commit ใหญ่ที่รวมหลายเรื่อง เช่น UI, SQL, docs และ deploy config ใน commit เดียว ยกเว้นเป็นงาน release cleanup ที่ตั้งใจรวมจริง
+
+## การใช้ AI หรือแก้ด้วยมือ
+
+- ให้ AI ช่วยเขียนได้ แต่ผู้พัฒนาต้องอ่าน diff เองก่อน commit
+- ถ้า AI แก้ไฟล์ใหญ่ เช่น `owner.js` หรือ `supabase-adapter.js` ให้ตรวจ scope ด้วย `git diff --stat` และ `git diff`
+- อย่าให้ AI สร้าง dependency ใหม่โดยไม่มีเหตุผลชัดเจน
+- ถ้าเปลี่ยน copy ภาษาไทยในแอพ ให้ยึดหลักสั้น เข้าใจง่าย และเหมาะกับเจ้าของร้าน
+- ถ้าแก้ logic สิทธิ์ ให้เพิ่มหรืออัปเดต test สิทธิ์ทันที
+- ถ้าแก้ production issue ให้จด root cause สั้น ๆ ใน PR หรือ issue เพื่อไม่ให้ปัญหาวนกลับมา
+
+## Definition of Ready
+
+ก่อนเริ่มแก้งาน ควรตอบได้ว่า:
+
+- กระทบผู้ใช้กลุ่มไหน: ลูกค้า, เจ้าของร้าน, ทีมงาน, หรือ admin กลาง
+- กระทบ route ไหน
+- ต้องแก้ Supabase SQL หรือไม่
+- ต้องมี screenshot mobile/iPad หรือไม่
+- test ใดต้องผ่านก่อน merge
+
+## Definition of Done
+
+งานถือว่าเสร็จเมื่อ:
+
+- โค้ดอยู่ใน branch และเปิด Pull Request แล้ว
+- checklist ใน PR ถูกติ๊กหรือใส่เหตุผลครบ
+- GitHub Actions ผ่าน หรือระบุข้อจำกัด environment ชัดเจน
+- ไม่มีไฟล์เฉพาะร้านหรือข้อมูลส่วนตัวลูกค้าติดไปใน Git
+- เอกสารที่เกี่ยวข้องอัปเดตแล้ว
+- หลัง deploy ตรวจ production ด้วย `npm run monitor:production` หรือ workflow `Production Monitor`
+
 ## กติกาแก้ด้วยมือ
 
 - ห้ามใส่ secret, service role key, private token หรือรหัสผ่านใน Git
@@ -50,6 +97,7 @@ https://github.com/PeterV999/nail
 - [ ] `npm run test:booking-flow` ผ่านเมื่อมีการแก้หน้าจอง
 - [ ] `npm run test:owner-role` ผ่านเมื่อมีการแก้หลังบ้านหรือสิทธิ์ทีมงาน
 - [ ] `npm run test:multi-shop-access` ผ่านเมื่อมีการแก้ระบบหลายร้านหรือ route
+- [ ] `npm run monitor:production` ผ่านหลัง deploy หรือ GitHub Actions `Production Monitor` ผ่าน
 - [ ] หน้าลูกค้า `/fah` เปิดได้
 - [ ] หลังบ้านร้าน `/fah-owner` เปิดได้
 - [ ] หลังบ้านกลาง `/admin` เปิดได้
@@ -74,3 +122,4 @@ Checklist เต็มก่อน release อยู่ที่ `docs/release-c
 
 - ใช้ `docs/new-shop-flow.md` เป็น checklist เพิ่มร้านใหม่
 - ใช้ `docs/app-readiness.md` เป็น roadmap ก่อนยกระดับเป็น PWA/app store
+- ใช้ `docs/production-monitoring.md` เป็นคู่มือตรวจ production และ incident

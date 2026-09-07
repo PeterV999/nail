@@ -34,9 +34,11 @@ npm run test:ci
 - [ ] Cloudflare Pages เชื่อม GitHub auto-deploy อยู่
 - [ ] หากต้องใช้ SQL ให้ run SQL บน Supabase production ก่อนหรือหลัง deploy ตามลำดับที่ระบุใน PR
 - [ ] บันทึกว่า deploy commit ใด
+- [ ] ตรวจว่า production monitoring workflow ยัง active อยู่
 
 ## หลัง deploy
 
+- [ ] รัน `npm run monitor:production` หรือกดรัน GitHub Actions workflow `Production Monitor`
 - [ ] เปิด `https://bookingnail.pages.dev/`
 - [ ] เปิด `https://bookingnail.pages.dev/fah`
 - [ ] เปิด `https://bookingnail.pages.dev/fah-owner/`
@@ -45,6 +47,7 @@ npm run test:ci
 - [ ] ทดสอบลูกค้าจองจริง 1 รอบถ้างานกระทบ booking
 - [ ] ตรวจว่า public page ไม่แสดงชื่อ เบอร์ LINE หรือข้อมูลส่วนตัวลูกค้า
 - [ ] ตรวจมือถือ/iPad จริง ถ้าเห็นหน้าเก่าให้ refresh หรือ clear site data
+- [ ] ถ้า health check fail ให้ rollback ก่อนแก้เพิ่มเมื่อกระทบการจองจริง
 
 ## Rollback
 

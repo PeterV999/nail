@@ -1,0 +1,27 @@
+name: Production Monitor
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 2 * * *"
+
+jobs:
+  production-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check production routes
+        run: npm run monitor:production
+        env:
+          PRODUCTION_URL: https://bookingnail.pages.dev

@@ -20,5 +20,6 @@
 /fah-owner/ /fah-owner/index.html 200
 /register /register/ 301
 /register/ /register/index.html 200
+/owner.html /404 404
 /:shop_owner-owner /fah-owner/index.html 200
 /:shop / 200

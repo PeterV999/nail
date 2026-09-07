@@ -20,9 +20,17 @@
 - [ ] Listed Supabase SQL that must be run, if any
 - [ ] Updated `DESIGN.md` when UI rules, tokens, or frame depth changed
 - [ ] Updated release/staging/database docs when workflow changed
+- [ ] Ran `npm run monitor:production` after deploy or noted that this PR is not deployed yet
+- [ ] Confirmed this PR does not expose customer PII in public pages, logs, screenshots, or docs
 
 ## Supabase SQL
 
 Write `none` if this PR does not require SQL.
 
 - 
+
+## Deploy / Monitor
+
+Write the deployment URL or `not deployed yet`.
+
+-

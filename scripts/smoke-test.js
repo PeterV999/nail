@@ -12,6 +12,7 @@ const routes = [
   { path: "/demo-salon-owner", includes: ["owner-auth-panel", "เข้าสู่ระบบหลังบ้าน"] },
   { path: "/privacy", includes: ["นโยบายความเป็นส่วนตัว"] },
   { path: "/terms", includes: ["ข้อตกลงการใช้งาน"] },
+  { path: "/register", includes: ["register-panel", "สร้างหน้าจองคิวของร้าน"] },
   { path: "/admin/", includes: ["admin-auth-panel", "ศูนย์ดูแลร้าน"] },
 ];
 

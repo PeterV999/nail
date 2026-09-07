@@ -40,8 +40,10 @@
 - [Staging and Preview](docs/staging.md)
 - [Automated Tests](docs/automated-tests.md)
 - [Database Migrations](docs/database-migrations.md)
+- [Production Monitoring](docs/production-monitoring.md)
 - [New Shop Flow](docs/new-shop-flow.md)
 - [App Readiness](docs/app-readiness.md)
+- [Contributing](CONTRIBUTING.md)
 
 ## ลำดับงานจากนี้
 
@@ -86,6 +88,8 @@
 - แยก `owner.js`, `customer.js`, และ `supabase-adapter.js` ต่อเป็นโมดูลย่อยเพื่อให้ดูแลง่ายขึ้น
 - ตรวจ flow เพิ่มร้านใหม่บน production แบบ end-to-end: สมัครร้าน → ได้ลิงก์จอง/หลังบ้านจากระบบกลาง → เจ้าของเข้าหลังบ้านได้ทันที
 - อัปเดตคู่มือ deploy/rollback ทุกครั้งที่เปลี่ยน route, cache, หรือ Supabase SQL
+- ใช้ `CONTRIBUTING.md`, issue templates และ PR checklist เป็นกติกากลางเมื่อมีผู้พัฒนาร่วม
+- ตรวจ production ด้วย `npm run monitor:production` หรือ GitHub Actions workflow `Production Monitor`
 
 ## คำสั่งตรวจงาน
 
@@ -97,6 +101,7 @@ npm run test:booking-flow
 npm run test:owner-role
 npm run test:multi-shop-access
 npm run test:ci
+npm run monitor:production
 ```
 
 คำสั่งทดสอบฐานข้อมูลจริงใช้เฉพาะผู้พัฒนาที่มี secret ในเครื่อง:
@@ -141,7 +146,7 @@ Rollback:
 - [register.js](register.js) สำหรับ logic ลงทะเบียนร้านใหม่
 - [supabase/schema.sql](supabase/schema.sql) สำหรับฐานข้อมูลจริง
 - Google Calendar sync ถูกตัดออกจาก flow ปัจจุบันแล้ว
-- Route เก่า `/b/{shopSlug}`, `/book/{shopSlug}`, `/o/{shopSlug}`, และ `/dashboard/{shopSlug}` ถูกปิดแล้ว
+- Route เก่า `/b/{shopSlug}`, `/book/{shopSlug}`, `/o/{shopSlug}`, `/dashboard/{shopSlug}`, และ `/owner.html` ถูกปิดแล้ว
 
 ฟีเจอร์ที่มีในเว็บระยะแรก:
 
