@@ -6,7 +6,7 @@
 
 - รู้เร็วว่า route หลักเปิดไม่ได้
 - รู้เร็วว่า asset/cache version บน production ไม่ตรงกับโค้ดล่าสุด
-- ตรวจว่า route เก่าที่ปิดแล้วไม่กลับมาเปิด
+- ตรวจว่า route เก่าที่ปิดหรือ redirect แล้วไม่กลับมาเปิดเป็นหน้าผิด
 - มีขั้นตอน incident ที่คนในทีมทำตามได้
 - แยก log สำหรับการใช้งานจริงออกจากข้อมูลส่วนตัวลูกค้า
 
@@ -36,7 +36,7 @@ PRODUCTION_URL=https://example.pages.dev npm run monitor:production
 - `app-config.js`
 - `service-worker.js`
 - `manifest.webmanifest`
-- route เก่าที่ควรปิด เช่น `/b/fah-nail`, `/dashboard/fah-nail`, `/owner.html`
+- route เก่าที่ควรปิดหรือ redirect เช่น `/b/fah-nail`, `/dashboard/fah-nail`, `/owner.html`
 
 ## GitHub Actions
 

@@ -66,16 +66,23 @@ async function assertRoute(route) {
 }
 
 async function assertLegacyRouteClosed(path) {
-  const response = await fetchUrl(path);
+  const response = await fetchUrl(path, { redirect: "manual" });
   if (response.ok) {
     throw new Error(`${path} should be closed but returned ${response.status}`);
   }
-  console.log(`Legacy route closed ${path} (${response.status})`);
+
+  const status = response.status;
+  if (status === 404 || status === 410 || (status >= 300 && status < 400)) {
+    console.log(`Legacy route closed ${path} (${status})`);
+    return;
+  }
+
+  throw new Error(`${path} returned unexpected status ${status}`);
 }
 
-async function fetchUrl(path) {
+async function fetchUrl(path, options = {}) {
   return fetch(`${baseUrl}${path}`, {
-    redirect: "follow",
+    redirect: options.redirect || "follow",
     headers: {
       "User-Agent": "BookingNail production health check"
     }
